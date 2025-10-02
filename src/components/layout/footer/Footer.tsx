@@ -32,10 +32,10 @@ const Footer: React.FC = () => {
 
           <div className="md:col-span-1">
             <h3 className="font-semibold mb-4 text-lg">Empresa</h3>
-            <ul className="space-y-3 text-gray-500 text-base">
-              <li className="hover:text-gray-900 cursor-pointer">
+            <ul className="space-y-3 text-gray-500 text-base flex flex-col">
+              <Link href="/nosotros" className="hover:text-gray-900 cursor-pointer">
                 Sobre nosotros
-              </li>
+              </Link>
               <Link
                 href="/contacto"
                 className="hover:text-gray-900 cursor-pointer"
@@ -47,13 +47,13 @@ const Footer: React.FC = () => {
 
           <div className="md:col-span-1">
             <h3 className="font-semibold mb-4 text-lg">Legal</h3>
-            <ul className="space-y-3 text-gray-500 text-base">
-              <li className="hover:text-gray-900 cursor-pointer">
+            <ul className="space-y-3 text-gray-500 text-base flex flex-col">
+              <Link href="/privacidad" className="hover:text-gray-900 cursor-pointer">
                 Política de privacidad
-              </li>
-              <li className="hover:text-gray-900 cursor-pointer">
+              </Link>
+              <Link href="/terminos" className="hover:text-gray-900 cursor-pointer">
                 Términos de servicio
-              </li>
+              </Link>
             </ul>
           </div>
         </div>
