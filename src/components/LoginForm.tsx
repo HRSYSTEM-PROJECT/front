@@ -10,7 +10,7 @@ export default function LoginForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Login enviado:", { email, password });
-    // 🔑 Acá podés conectar con AuthContext o API
+    //  Acá podés conectar con AuthContext o API
   };
 
   return (
@@ -19,7 +19,6 @@ export default function LoginForm() {
         <h2 className="text-2xl font-bold mb-6 text-center">Iniciar Sesión</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           
-          {/* Email */}
           <div>
             <label className="block text-sm font-medium mb-1">Email</label>
             <div className="flex items-center border rounded-lg px-3 py-2 bg-gray-50">
@@ -35,7 +34,6 @@ export default function LoginForm() {
             </div>
           </div>
 
-          {/* Password */}
           <div>
             <label className="block text-sm font-medium mb-1">Contraseña</label>
             <div className="flex items-center border rounded-lg px-3 py-2 bg-gray-50">
@@ -51,7 +49,6 @@ export default function LoginForm() {
             </div>
           </div>
 
-          {/* Botón */}
           <button
             type="submit"
             className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
