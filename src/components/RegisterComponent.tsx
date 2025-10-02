@@ -4,13 +4,13 @@ import { useState } from "react";
 
 export default function RegisterComponent() {
   const [formInput, setFormInput] = useState<{
-    name: string;
-    lastName: string;
-    company: string;
+    trade_name: string;
+    legal_name: string;
     email: string;
+    username: string;
     password: string;
     repeatPassword: string;
-  }>({ name: "", password: "", email: "", lastName: "", company: "", repeatPassword: "" });
+  }>({ trade_name: "", password: "", email: "", legal_name: "", username: "", repeatPassword: "" });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -24,44 +24,28 @@ export default function RegisterComponent() {
         <h2 className="text-2xl font-bold text-center mb-2 text-black">Crear Empresa</h2>
         <p className="text-gray-500 text-center mb-6">Completa el formulario para comenzar</p>
 
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium mb-1 text-black  ">
-              Nombre
-            </label>
-            <input
-              type="text"
-              name="name"
-              placeholder="Juan"
-              value={formInput.name}
-              onChange={handleInputChange}
-              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-300"
-            />
-          </div>
-          <div>
-            <label htmlFor="lastName" className="block text-sm font-medium mb-1 text-black ">
-              Apellido
-            </label>
-            <input
-              type="text"
-              name="lastName"
-              placeholder="Perez"
-              value={formInput.lastName}
-              onChange={handleInputChange}
-              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-300"
-            />
-          </div>
-        </div>
-
         <div className="mb-4">
-          <label htmlFor="company" className="block text-sm font-medium mb-1 text-black  ">
-            Empresa
+          <label htmlFor="trade_name" className="block text-sm font-medium mb-1 text-black  ">
+            Nombre Empresa
           </label>
           <input
             type="text"
-            name="company"
+            name="trade_name"
             placeholder="Nombre de tu empresa"
-            value={formInput.company}
+            value={formInput.trade_name}
+            onChange={handleInputChange}
+            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-300"
+          />
+        </div>
+        <div className="mb-4">
+          <label htmlFor="legal_name" className="block text-sm font-medium mb-1 text-black  ">
+            Nombre legal de la Empresa
+          </label>
+          <input
+            type="text"
+            name="legal_name"
+            placeholder="Nombre LEGAL de tu empresa"
+            value={formInput.legal_name}
             onChange={handleInputChange}
             className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-300"
           />
@@ -81,6 +65,19 @@ export default function RegisterComponent() {
           />
         </div>
 
+        <div className="mb-4">
+          <label htmlFor="username" className="block text-sm font-medium mb-1 text-black ">
+            Nombre de usuario
+          </label>
+          <input
+            type="text"
+            name="username"
+            placeholder="Mínimo 8 caracteres"
+            value={formInput.username}
+            onChange={handleInputChange}
+            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-300"
+          />
+        </div>
         <div className="mb-4">
           <label htmlFor="password" className="block text-sm font-medium mb-1 text-black ">
             Contraseña
