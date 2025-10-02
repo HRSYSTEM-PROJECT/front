@@ -23,7 +23,7 @@ export function Navbar() {
               Iniciar Sesión
             </Link>
             <Link
-              href="/registro"
+              href="/register"
               className="px-4 py-2 rounded-md text-white font-medium bg-[#083E96] hover:bg-[#0a4ebb] transition-colors shadow-md"
             >
               Registrarse

@@ -1,4 +1,6 @@
 import FeaturesSection from "@/components/features-section";
+import PricingSection from "@/components/pricing-section";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -26,16 +28,39 @@ export default function Home() {
           </p>
 
           <div className="flex justify-center flex-wrap gap-20 mt-20">
-            <button className="bg-[#083E96] hover:bg-[#0a4ebb] text-white px-6 py-3 rounded-md shadow-md  transition-colors cursor-pointer">
+            <Link
+              href="/register"
+              className="bg-[#083E96] hover:bg-[#0a4ebb] text-white px-6 py-3 rounded-md shadow-md  transition-colors cursor-pointer"
+            >
               Comenzar ahora &rarr;
-            </button>
-            <button className="border border-gray-300 text-gray-800 px-6 py-3 rounded-md hover:bg-[#0E6922] hover:text-white transition-colors cursor-pointer">
+            </Link>
+            <Link
+              href="/demo"
+              className="border border-gray-300 text-gray-800 px-6 py-3 rounded-md hover:bg-[#0E6922] hover:text-white transition-colors cursor-pointer"
+            >
               Ver Demo
-            </button>
+            </Link>
           </div>
         </div>
       </section>
       <FeaturesSection />
+      <PricingSection />
+
+      <div className="bg-[#083E96] text-white text-center py-6 mt-20 h-100">
+        <h3 className="text-2xl md:text-5xl font-bold text-white leading-tight mt-10">
+          ¿Listo para transformar tu gestión de RRHH?
+        </h3>
+        <p className="text-white text-lg md:text-xl mb-20 mx-auto max-w-5xl mt-15">
+          Únete a cientos de empresas que ya confían en HR SYSTEM para gestionar
+          su talento humano
+        </p>
+        <Link
+          href="/register"
+          className="bg-white text-black font-semibold px-6 py-3 rounded-md shadow-md hover:bg-[#0E6922] hover:text-white transition-colors"
+        >
+          Empieza gratis
+        </Link>
+      </div>
     </>
   );
 }
