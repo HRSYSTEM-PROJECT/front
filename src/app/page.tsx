@@ -11,6 +11,9 @@ export default function Home() {
             <span className="font-bold text-lg">•</span> Plataforma líder en
             gestión de RRHH
           </span>
+          <Link href="/prueba" className="text-blue-500 hover:underline">
+            Ir a la Prueba de Conexión
+          </Link>
 
           <h1 className="text-4xl md:text-7xl font-bold text-black leading-tight mb-4 mt-10">
             Gestiona tus Recursos Humanos de manera
