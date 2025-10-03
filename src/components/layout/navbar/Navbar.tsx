@@ -16,12 +16,12 @@ export function Navbar() {
           </Link>
 
           <div className="flex items-center gap-4">
-            <Link
-              href="/login"
-              className="font-medium text-black hover:bg-[#0E6922] hover:text-white px-4 py-2 rounded-md transition-colors"
+            <a
+              href="https://back-8cv1.onrender.com/login"
+              className="font-medium text-black hover:bg-[#0E6922] hover:text-white px-4 py-2 rounded-md transition-colors duration-300"
             >
               Iniciar Sesión
-            </Link>
+            </a>
             <Link
               href="/register"
               className="px-4 py-2 rounded-md text-white font-medium bg-[#083E96] hover:bg-[#0a4ebb] transition-colors shadow-md"
