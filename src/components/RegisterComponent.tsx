@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+import { FaGoogle, FaLinkedinIn } from "react-icons/fa";
 
 export default function RegisterComponent() {
   const [formInput, setFormInput] = useState<{
@@ -10,7 +12,14 @@ export default function RegisterComponent() {
     username: string;
     password: string;
     repeatPassword: string;
-  }>({ trade_name: "", password: "", email: "", legal_name: "", username: "", repeatPassword: "" });
+  }>({
+    trade_name: "",
+    password: "",
+    email: "",
+    legal_name: "",
+    username: "",
+    repeatPassword: "",
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -19,13 +28,20 @@ export default function RegisterComponent() {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <form className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-2 text-black">Crear Empresa</h2>
-        <p className="text-gray-500 text-center mb-6">Completa el formulario para comenzar</p>
+    <div className="flex justify-center items-center min-h-screen bg-white">
+      <form className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md mb-10">
+        <h2 className="text-2xl font-bold text-center mb-2 text-black">
+          Crear Empresa
+        </h2>
+        <p className="text-gray-500 text-center mb-6">
+          Completa el formulario para comenzar
+        </p>
 
         <div className="mb-4">
-          <label htmlFor="trade_name" className="block text-sm font-medium mb-1 text-black  ">
+          <label
+            htmlFor="trade_name"
+            className="block text-sm font-medium mb-1 text-black  "
+          >
             Nombre Empresa
           </label>
           <input
@@ -38,7 +54,10 @@ export default function RegisterComponent() {
           />
         </div>
         <div className="mb-4">
-          <label htmlFor="legal_name" className="block text-sm font-medium mb-1 text-black  ">
+          <label
+            htmlFor="legal_name"
+            className="block text-sm font-medium mb-1 text-black  "
+          >
             Nombre legal de la Empresa
           </label>
           <input
@@ -52,7 +71,10 @@ export default function RegisterComponent() {
         </div>
 
         <div className="mb-4">
-          <label htmlFor="email" className="block text-sm font-medium mb-1 text-black ">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium mb-1 text-black "
+          >
             Correo electrónico
           </label>
           <input
@@ -66,7 +88,10 @@ export default function RegisterComponent() {
         </div>
 
         <div className="mb-4">
-          <label htmlFor="username" className="block text-sm font-medium mb-1 text-black ">
+          <label
+            htmlFor="username"
+            className="block text-sm font-medium mb-1 text-black "
+          >
             Nombre de usuario
           </label>
           <input
@@ -79,7 +104,10 @@ export default function RegisterComponent() {
           />
         </div>
         <div className="mb-4">
-          <label htmlFor="password" className="block text-sm font-medium mb-1 text-black ">
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium mb-1 text-black "
+          >
             Contraseña
           </label>
           <input
@@ -93,7 +121,10 @@ export default function RegisterComponent() {
         </div>
 
         <div className="mb-4">
-          <label htmlFor="repeatPassword" className="block text-sm font-medium mb-1 text-black ">
+          <label
+            htmlFor="repeatPassword"
+            className="block text-sm font-medium mb-1 text-black "
+          >
             Repetir contraseña
           </label>
           <input
@@ -110,19 +141,19 @@ export default function RegisterComponent() {
           <input type="checkbox" id="terms" className="mt-1 text-black mr-2" />
           <label htmlFor="terms" className="text-sm text-gray-600">
             Acepto los{" "}
-            <a href="#" className="text-blue-600 hover:underline">
+            <Link href="/terminos" className="text-blue-600 hover:underline">
               términos y condiciones
-            </a>{" "}
+            </Link>{" "}
             y la{" "}
-            <a href="#" className="text-blue-600 hover:underline">
+            <Link href="/privacidad" className="text-blue-600 hover:underline">
               política de privacidad
-            </a>
+            </Link>
           </label>
         </div>
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition"
+          className="w-full bg-[#083E96] text-white font-semibold py-2 rounded-lg hover:bg-[#0a4ebb] transition"
         >
           Crear Cuenta
         </button>
@@ -132,25 +163,24 @@ export default function RegisterComponent() {
           <span className="mx-2 text-gray-400 text-sm">O REGÍSTRATE CON</span>
           <hr className="flex-grow border-gray-300" />
         </div>
-
-        <div className="flex gap-4 mb-6">
-          <button
-            type="button"
-            className="flex-1 border border-gray-300 rounded-lg py-2 hover:bg-gray-100 transition text-black"
-          >
+        <div className="flex space-x-4 w-full justify-center mb-10">
+          <button className="flex items-center justify-center w-1/2 px-4 py-3 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-[#0E6922] hover:text-white cursor-pointer transition duration-150 ease-in-out">
+            <FaGoogle className="w-5 h-5 mr-3 text-red-500" />
             Google
           </button>
-          <button
-            type="button"
-            className="flex-1 border border-gray-300 rounded-lg py-2 hover:bg-gray-100 transition text-black"
-          >
+
+          <button className="flex items-center justify-center w-1/2 px-4 py-3 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-[#0E6922] hover:text-white cursor-pointer transition duration-150 ease-in-out">
+            <FaLinkedinIn className="w-5 h-5 mr-3 text-blue-600" />
             LinkedIn
           </button>
         </div>
 
         <p className="text-center text-sm text-gray-600">
           ¿Ya tienes una cuenta?{" "}
-          <a href="/login" className="text-blue-600 font-medium hover:underline">
+          <a
+            href="/login"
+            className="text-blue-600 font-medium hover:underline"
+          >
             Inicia Sesión
           </a>
         </p>
