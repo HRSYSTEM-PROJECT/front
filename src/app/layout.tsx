@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/layout/navbar/Navbar";
-import Footer from "@/components/layout/footer/Footer";
-
+import { AuthProvider } from "@/context/AuthContextProvider";
+import ToastProvider from "@/components/toastProvider";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -26,12 +25,10 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.svg" />
       </head>
-      <body
-        className={`flex flex-col min-h-screen ${poppins.variable} antialiased`}
-      >
-        <Navbar />
-        <main className="flex-1 pt-25">{children}</main>
-        <Footer />
+      <body className={`${poppins.variable} antialiased`}>
+        <AuthProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </AuthProvider>
       </body>
     </html>
   );

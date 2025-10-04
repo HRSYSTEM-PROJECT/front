@@ -1,11 +1,20 @@
+"use client";
 import Link from "next/link";
+import { useAuth } from "../../../context/AuthContextProvider";
 
 export function Navbar() {
+  const { isAuthenticated, logout, company } = useAuth();
+
+  const buttonClass =
+    "px-4 py-2 rounded-md text-white font-medium bg-[#083E96] hover:bg-[#0a4ebb] transition-colors shadow-md whitespace-nowrap";
+  const loginButtonClass =
+    "font-medium text-black hover:bg-[#0E6922] hover:text-white px-4 py-2 rounded-md transition-colors duration-300 whitespace-nowrap";
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
       <div className="container mx-auto px-4 lg:px-8">
-        <div className="flex items-center justify-between h-25">
-          <Link
+        <div className="flex items-center justify-between h-20 sm:h-24">
+          <Link 
             href="/"
             className="flex items-center gap-2 transition-transform duration-200 hover:scale-105"
           >
@@ -16,18 +25,32 @@ export function Navbar() {
           </Link>
 
           <div className="flex items-center gap-4">
-            <a
-              href="https://back-8cv1.onrender.com/login"
-              className="font-medium text-black hover:bg-[#0E6922] hover:text-white px-4 py-2 rounded-md transition-colors duration-300"
-            >
-              Iniciar Sesión
-            </a>
-            <Link
-              href="/register"
-              className="px-4 py-2 rounded-md text-white font-medium bg-[#083E96] hover:bg-[#0a4ebb] transition-colors shadow-md"
-            >
-              Registrarse
-            </Link>
+            {isAuthenticated ? (
+              <div className="flex items-center gap-4">
+                <span className="text-gray-700 text-base font-medium hidden sm:inline truncate max-w-[150px]">
+                  Hola, {company?.legal_name || company?.name || "Usuario"}
+                </span>
+
+                <button
+                  onClick={logout}
+                  className="px-4 py-2 rounded-md text-black hover:text-white font-medium  hover:bg-[#0E6922] transition-colors shadow-md whitespace-nowrap"
+                >
+                  Cerrar Sesión
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-4">
+                <Link
+                  href="https://back-8cv1.onrender.com/login"
+                  className={loginButtonClass}
+                >
+                  Iniciar Sesión
+                </Link>
+                <Link href="/register" className={buttonClass}>
+                  Registrarse
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>
