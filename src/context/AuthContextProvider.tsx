@@ -81,9 +81,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.log(token);
       setIsAuthenticated(true);
       router.push("/dashboard");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error en inicio de sesión:", error);
-      alert(
+      toast.error(
         "Error en inicio de sesión: " +
           (axios.isAxiosError(error) && error.response?.data?.message)
       );
@@ -101,7 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       toast.success("Registro exitoso. Bienvenido a HR SYSTEM!");
       router.push("/dashboard");
-    } catch (error: any) {
+    } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 409) {
           toast.error("El email ya existe, por favor usa otro.");
@@ -112,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           );
         }
       } else {
-        alert(error.message);
+        toast.error("Error al registrar la compañía.");
       }
 
       setIsAuthenticated(false);

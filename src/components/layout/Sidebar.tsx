@@ -38,7 +38,7 @@ export function Sidebar() {
     <aside className="fixed top-0 left-0 h-full w-70 text-black bg-gray-100 border-b border-gray-200  p-4 shadow-xl z-40">
       <div className="flex flex-col h-full">
         <div className="border-b-1 border-gray-700 flex items-center justify-center">
-          <a
+          <Link
             href="/"
             className="flex items-center gap-2 transition-transform duration-200 hover:scale-105 mt-8 mb-6 "
           >
@@ -46,7 +46,7 @@ export function Sidebar() {
               <span className="text-white font-bold text-2xl">HR</span>
             </div>
             <span className="text-2xl font-semibold text-black">SYSTEM</span>
-          </a>
+          </Link>
         </div>
 
         <nav className="flex-grow mt-4">

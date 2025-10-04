@@ -157,7 +157,7 @@ export default function RegisterComponent() {
       "password",
     ];
 
-    for (let field of requiredFields) {
+    for (const field of requiredFields) {
       if (!formInput[field]) {
         setError("Por favor, complete todos los campos requeridos.");
         return;
