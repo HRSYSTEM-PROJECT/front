@@ -3,217 +3,283 @@
 import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaGoogle, FaLinkedinIn } from "react-icons/fa";
+import { CompanyRegistration, Plan } from "@/context/AuthContext.type";
+import { useAuth } from "@/hooks/useAuth";
+
+interface FormState extends CompanyRegistration {
+  repeatPassword: string;
+  acceptedTerms: boolean;
+}
+
+const Inputs = [
+  {
+    label: "Nombre Empresa",
+    name: "trade_name",
+    type: "text",
+    placeholder: "Nombre de tu empresa",
+    required: true,
+  },
+  {
+    label: "Nombre legal de la Empresa",
+    name: "legal_name",
+    type: "text",
+    placeholder: "Nombre legal de tu empresa",
+    required: true,
+  },
+  {
+    label: "Correo electrónico",
+    name: "email",
+    type: "email",
+    placeholder: "Correo electrónico",
+    required: true,
+  },
+  {
+    label: "Nombre de usuario",
+    name: "name",
+    type: "text",
+    placeholder: "Nombre de usuario",
+    required: true,
+    minLength: 8,
+  },
+  {
+    label: "Número de teléfono",
+    name: "phone_number",
+    type: "text",
+    placeholder: "Número de teléfono",
+    required: true,
+    minLength: 8,
+  },
+  {
+    label: "Dirección",
+    name: "address",
+    type: "text",
+    placeholder: "Dirección",
+    required: true,
+    minLength: 8,
+  },
+  {
+    label: "Contraseña",
+    name: "password",
+    type: "password",
+    placeholder: "Mínimo 8 caracteres",
+    required: true,
+    minLength: 8,
+  },
+  {
+    label: "Repetir contraseña",
+    name: "repeatPassword",
+    type: "password",
+    placeholder: "Repite tu contraseña",
+    required: true,
+  },
+];
 
 export default function RegisterComponent() {
-  const [formInput, setFormInput] = useState<{
-    trade_name: string;
-    legal_name: string;
-    email: string;
-    name: string;
-    password: string;
-    repeatPassword: string;
-    phone_number: string;
-    address: string;
-    plan_id: string;
-  }>({
+  const { registerCompany, isAuthenticated } = useAuth();
+  const router = useRouter();
+  const [planes, setPlans] = useState<Plan[]>([]);
+  const [isPlansLoading, setIsPlansLoading] = useState(false);
+
+  const [formInput, setFormInput] = useState<FormState>({
     trade_name: "",
-    password: "",
-    email: "",
     legal_name: "",
+    email: "",
     name: "",
-    repeatPassword: "",
     phone_number: "",
     address: "",
     plan_id: "",
+    password: "",
+    repeatPassword: "",
+    acceptedTerms: false,
+    logo_url: "",
   });
 
-  const [errors, setErrors] = useState<{ formError?: string }>({});
-  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormInput({
-      ...formInput,
-      [name]: value,
-    });
-  };
+  useEffect(() => {
+    const fetchPlans = async () => {
+      setIsPlansLoading(true);
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/plan`
+        );
+        setPlans(response.data);
+      } catch (err) {
+        console.error("Error fetching planes:", err);
+      } finally {
+        setIsPlansLoading(false);
+      }
+    };
+    fetchPlans();
+  }, []);
 
-  interface RegisterCompany {
-    name: string;
-    password: string;
-    email: string;
-    legal_name: string;
-    trade_name: string;
-    phone_number: string;
-    address: string;
-  }
+  useEffect(() => {
+    if (isAuthenticated) router.push("/dashboard");
+  }, [isAuthenticated, router]);
 
-  const sendRegister = async (registerData: RegisterCompany) => {
-    return axios.post(`${process.env.NEXT_PUBLIC_API_URL}/onboarding`, registerData);
+  if (isAuthenticated) return null;
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = e.target;
+    setFormInput((prev) => ({
+      ...prev,
+      [name]:
+        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
 
-    if (
-      !formInput.trade_name ||
-      !formInput.legal_name ||
-      !formInput.email ||
-      !formInput.password ||
-      !formInput.repeatPassword
-    ) {
-      setErrors({ formError: "Faltan campos" });
+    if (!formInput.acceptedTerms) {
+      setError("Debes aceptar los términos y condiciones");
       return;
     }
 
-    setErrors({});
-    try {
-      await sendRegister(formInput);
-      alert("Usuario registrado con éxito ✅");
-      router.push("/login");
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error(error.message);
-        alert("Error al registrar al usuario ❌");
+    if (formInput.password !== formInput.repeatPassword) {
+      setError("Las contraseñas no coinciden");
+      return;
+    }
+
+    const requiredFields: (keyof FormState)[] = [
+      "trade_name",
+      "legal_name",
+      "email",
+      "name",
+      "phone_number",
+      "address",
+      "plan_id",
+      "password",
+    ];
+
+    for (let field of requiredFields) {
+      if (!formInput[field]) {
+        setError("Por favor, complete todos los campos requeridos.");
+        return;
       }
+    }
+
+    const registrationData = {
+      trade_name: formInput.trade_name,
+      legal_name: formInput.legal_name,
+      email: formInput.email,
+      name: formInput.name,
+      phone_number: formInput.phone_number,
+      address: formInput.address,
+      plan_id: formInput.plan_id,
+      password: formInput.password,
+      logo_url:
+        formInput.logo_url ||
+        "https://www.shutterstock.com/es/search/image-not-found-icon",
+    };
+
+    try {
+      await registerCompany(registrationData);
+    } catch (err) {
+      console.error("Error al registrar la empresa:", err);
+      setError("Error al registrar la empresa");
     }
   };
 
+  const getInputClass = (name: keyof FormState, type?: string) => {
+    if (type === "checkbox") return "mt-1 mr-2";
+    const hasError = error && !formInput[name];
+    return `w-full border rounded-lg px-3 py-2 focus:ring-2 outline-none placeholder-gray-300 ${
+      hasError
+        ? "border-red-500 focus:ring-red-500"
+        : "border-gray-300 focus:ring-blue-500"
+    }`;
+  };
+
   return (
-    <div className="flex justify-center items-center min-h-screen bg-white">
-      <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md mb-10">
-        <h2 className="text-2xl font-bold text-center mb-2 text-black">Crear Empresa</h2>
-        <p className="text-gray-500 text-center mb-6">Completa el formulario para comenzar</p>
+    <div className="flex justify-center items-center min-h-screen bg-white mt-10">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white shadow-lg rounded-2xl p-8 w-200 mb-10"
+      >
+        <h2 className="text-2xl font-bold text-center mb-2 text-black">
+          Crear Empresa
+        </h2>
+        <p className="text-gray-500 text-center mb-6">
+          Completa el formulario para comenzar
+        </p>
 
-        <div className="mb-4">
-          <label htmlFor="trade_name" className="block text-sm font-medium mb-1 text-black  ">
-            Nombre Empresa
-          </label>
-          <input
-            type="text"
-            name="trade_name"
-            placeholder="Nombre de tu empresa"
-            value={formInput.trade_name}
-            onChange={handleInputChange}
-            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-300"
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="legal_name" className="block text-sm font-medium mb-1 text-black  ">
-            Nombre legal de la Empresa
-          </label>
-          <input
-            type="text"
-            name="legal_name"
-            placeholder="Nombre LEGAL de tu empresa"
-            value={formInput.legal_name}
-            onChange={handleInputChange}
-            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-300"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="email" className="block text-sm font-medium mb-1 text-black ">
-            Correo electrónico
-          </label>
-          <input
-            type="email"
-            name="email"
-            placeholder="tu@empresa.com"
-            value={formInput.email}
-            onChange={handleInputChange}
-            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-300"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="name" className="block text-sm font-medium mb-1 text-black ">
-            Nombre de usuario
-          </label>
-          <input
-            type="text"
-            name="name"
-            placeholder="Mínimo 8 caracteres"
-            value={formInput.name}
-            onChange={handleInputChange}
-            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-300"
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="phone_number" className="block text-sm font-medium mb-1 text-black ">
-            Numero de telefono
-          </label>
-          <input
-            type="text"
-            name="phone_number"
-            placeholder="Mínimo 8 caracteres"
-            value={formInput.phone_number}
-            onChange={handleInputChange}
-            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-300"
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="address" className="block text-sm font-medium mb-1 text-black ">
-            Dirección
-          </label>
-          <input
-            type="text"
-            name="address"
-            placeholder="Mínimo 8 caracteres"
-            value={formInput.address}
-            onChange={handleInputChange}
-            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-300"
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="plan_id" className="block text-sm font-medium mb-1 text-black">
-            Selecciona un plan
-          </label>
-          <select
-            name="plan_id"
-            value={formInput.plan_id}
-            onChange={handleInputChange}
-            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-          >
-            <option value="">-- Selecciona un plan --</option>
-            <option value="c3856a72-620a-403c-a7c3-3858e78e1595">Plan Free</option>
-            <option value="2a4ffeeb-b28e-43c1-9fbc-5159a13be057">Plan Premium</option>
-            <option value="20d7d1de-1820-42bb-b2b2-3577e84725b1">Plan Enterprise</option>
-          </select>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Inputs.map((input) => (
+            <div className="mb-4" key={input.name}>
+              <label
+                htmlFor={input.name}
+                className="block text-sm font-medium mb-1 text-black"
+              >
+                {input.label}
+              </label>
+              <input
+                type={input.type}
+                name={input.name}
+                placeholder={input.placeholder}
+                value={
+                  input.type === "checkbox"
+                    ? undefined
+                    : (formInput[input.name as keyof FormState] as string)
+                }
+                checked={
+                  input.type === "checkbox"
+                    ? (formInput[input.name as keyof FormState] as boolean)
+                    : undefined
+                }
+                onChange={handleInputChange}
+                className={getInputClass(
+                  input.name as keyof FormState,
+                  input.type
+                )}
+              />
+            </div>
+          ))}
         </div>
 
         <div className="mb-4">
-          <label htmlFor="password" className="block text-sm font-medium mb-1 text-black ">
-            Contraseña
+          <label htmlFor="plan_id" className="block mb-1 font-medium">
+            Plan
           </label>
-          <input
-            type="password"
-            name="password"
-            placeholder="Mínimo 8 caracteres"
-            value={formInput.password}
-            onChange={handleInputChange}
-            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-300"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label htmlFor="repeatPassword" className="block text-sm font-medium mb-1 text-black ">
-            Repetir contraseña
-          </label>
-          <input
-            type="password"
-            name="repeatPassword"
-            placeholder="Repite tu contraseña"
-            value={formInput.repeatPassword}
-            onChange={handleInputChange}
-            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-300"
-          />
+          {isPlansLoading ? (
+            <p>Cargando planes...</p>
+          ) : (
+            <select
+              name="plan_id"
+              id="plan_id"
+              value={formInput.plan_id}
+              onChange={(e) =>
+                setFormInput({ ...formInput, plan_id: e.target.value })
+              }
+              required
+              className="border p-2 w-full rounded"
+            >
+              <option value="" className="text-gray-500">
+                Selecciona un plan
+              </option>
+              {planes.map((plan) => (
+                <option key={plan.id} value={plan.id}>
+                  {plan.name} - ${plan.price}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         <div className="flex items-start mb-6">
-          <input type="checkbox" id="terms" className="mt-1 text-black mr-2" />
+          <input
+            type="checkbox"
+            id="terms"
+            name="acceptedTerms"
+            checked={formInput.acceptedTerms}
+            onChange={handleInputChange}
+            className={getInputClass("acceptedTerms", "checkbox")}
+          />
           <label htmlFor="terms" className="text-sm text-gray-600">
             Acepto los{" "}
             <Link href="/terminos" className="text-blue-600 hover:underline">
@@ -225,6 +291,8 @@ export default function RegisterComponent() {
             </Link>
           </label>
         </div>
+
+        {error && <p className="text-red-500 mb-4 text-sm">{error}</p>}
 
         <button
           type="submit"
@@ -238,21 +306,29 @@ export default function RegisterComponent() {
           <span className="mx-2 text-gray-400 text-sm">O REGÍSTRATE CON</span>
           <hr className="flex-grow border-gray-300" />
         </div>
+
         <div className="flex space-x-4 w-full justify-center mb-10">
-          <button className="flex items-center justify-center w-1/2 px-4 py-3 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-[#0E6922] hover:text-white cursor-pointer transition duration-150 ease-in-out">
-            <FaGoogle className="w-5 h-5 mr-3 text-red-500" />
-            Google
+          <button
+            type="button"
+            className="flex items-center justify-center w-1/2 px-4 py-3 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-[#0E6922] hover:text-white transition"
+          >
+            <FaGoogle className="w-5 h-5 mr-3 text-red-500" /> Google
           </button>
 
-          <button className="flex items-center justify-center w-1/2 px-4 py-3 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-[#0E6922] hover:text-white cursor-pointer transition duration-150 ease-in-out">
-            <FaLinkedinIn className="w-5 h-5 mr-3 text-blue-600" />
-            LinkedIn
+          <button
+            type="button"
+            className="flex items-center justify-center w-1/2 px-4 py-3 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-[#0E6922] hover:text-white transition"
+          >
+            <FaLinkedinIn className="w-5 h-5 mr-3 text-blue-600" /> LinkedIn
           </button>
         </div>
 
         <p className="text-center text-sm text-gray-600">
           ¿Ya tienes una cuenta?{" "}
-          <a href="/login" className="text-blue-600 font-medium hover:underline">
+          <a
+            href="/login"
+            className="text-blue-600 font-medium hover:underline"
+          >
             Inicia Sesión
           </a>
         </p>
