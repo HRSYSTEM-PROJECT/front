@@ -21,7 +21,7 @@ interface AuthContextType {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-const VERIFICATION_ENDPOINT = `${API_BASE_URL}/ruta-protegida-valida`;
+// const VERIFICATION_ENDPOINT = `${API_BASE_URL}/ruta-protegida-valida`;
 
 export const AuthContext = createContext<AuthContextType | undefined>(
   undefined
@@ -42,22 +42,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
 
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const response = await axios.get(VERIFICATION_ENDPOINT, {
-          withCredentials: true,
-        });
-        setIsAuthenticated(true);
-      } catch (error) {
-        setIsAuthenticated(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // useEffect(() => {
+  //   const checkSession = async () => {
+  //     try {
+  //       // const response = await axios.get(VERIFICATION_ENDPOINT, {
+  //         withCredentials: true,
+  //       });
+  //       setIsAuthenticated(true);
+  //     } catch (error) {
+  //       setIsAuthenticated(false);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
 
-    checkSession();
-  }, []);
+  //   checkSession();
+  // }, []);
 
   const startLoginRedirect = async (email: string, password: string) => {
     setIsLoading(true);
