@@ -2,7 +2,7 @@
 import { Sidebar } from "@/components/layout/Sidebar";
 import { useAuth } from "@/context/AuthContextProvider";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function DashboardLayout({
   children,
@@ -11,6 +11,8 @@ export default function DashboardLayout({
 }) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push("/login");
@@ -25,14 +27,18 @@ export default function DashboardLayout({
     );
   }
 
-  if (!isAuthenticated) {
-    return null;
-  }
+  if (!isAuthenticated) return null;
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <main className="flex-grow ml-64 p-8">{children}</main>   {" "}
+    <div className="flex min-h-screen transition-all duration-300">
+      <Sidebar onToggle={setIsSidebarExpanded} />
+      <main
+        className={`flex-1 transition-all duration-300 px-6 pt-6 bg-gray-100 ${
+          isSidebarExpanded ? "ml-70" : "ml-20"
+        }`}
+      >
+        {children}
+      </main>
     </div>
   );
 }
