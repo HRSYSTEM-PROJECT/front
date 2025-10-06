@@ -23,7 +23,7 @@ export function Navbar() {
             </div>
             <span className="text-2xl font-semibold text-black">SYSTEM</span>
           </Link>
-          <Link
+          {/* <Link
             href="https://back-8cv1.onrender.com/login"
             className={loginButtonClass}
           >
@@ -31,14 +31,17 @@ export function Navbar() {
           </Link>
           <Link href="/register" className={buttonClass}>
             Registrarse
-          </Link>
+          </Link> */}
 
-          {/* <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4">
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
                 <span className="text-gray-700 text-base font-medium hidden sm:inline truncate max-w-[150px]">
                   Hola, {company?.legal_name || company?.name || "Usuario"}
                 </span>
+                <Link href="/dashboard" className={buttonClass}>
+                  Ir al Dashboard
+                </Link>
 
                 <button
                   onClick={logout}
@@ -60,7 +63,7 @@ export function Navbar() {
                 </Link>
               </div>
             )}
-          </div> */}
+          </div>
         </div>
       </div>
     </nav>
