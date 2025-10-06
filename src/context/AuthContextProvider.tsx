@@ -78,9 +78,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         throw new Error("Respuesta de login inválida.");
 
       localStorage.setItem("auth_token", token);
-      console.log(token);
       setIsAuthenticated(true);
-      router.push("/dashboard");
+      router.push("/login");
     } catch (error) {
       console.error("Error en inicio de sesión:", error);
       toast.error(
@@ -100,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsAuthenticated(true);
 
       toast.success("Registro exitoso. Bienvenido a HR SYSTEM!");
-      router.push("/dashboard");
+      router.push("https://back-8cv1.onrender.com/");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 409) {
@@ -124,7 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = () => {
     localStorage.removeItem("auth_token");
     setIsAuthenticated(false);
-    router.push("/");
+    router.push("https://back-8cv1.onrender.com/logout");
   };
 
   const contextValue: AuthContextType = {
