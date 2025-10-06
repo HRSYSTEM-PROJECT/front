@@ -14,7 +14,7 @@ export function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-20 sm:h-24">
-          <Link 
+          <Link
             href="/"
             className="flex items-center gap-2 transition-transform duration-200 hover:scale-105"
           >
@@ -23,8 +23,17 @@ export function Navbar() {
             </div>
             <span className="text-2xl font-semibold text-black">SYSTEM</span>
           </Link>
+          <Link
+            href="https://back-8cv1.onrender.com/login"
+            className={loginButtonClass}
+          >
+            Iniciar Sesión
+          </Link>
+          <Link href="/register" className={buttonClass}>
+            Registrarse
+          </Link>
 
-          <div className="flex items-center gap-4">
+          {/* <div className="flex items-center gap-4">
             {isAuthenticated ? (
               <div className="flex items-center gap-4">
                 <span className="text-gray-700 text-base font-medium hidden sm:inline truncate max-w-[150px]">
@@ -51,7 +60,7 @@ export function Navbar() {
                 </Link>
               </div>
             )}
-          </div>
+          </div> */}
         </div>
       </div>
     </nav>
