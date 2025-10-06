@@ -1,15 +1,3 @@
-// <<<<<<< HEAD
-// import EmployeeTable from "@/components/empleados/employeetable";
-
-// export default function EmpleadoPage() {
-//   return (
-//     <div className="p-6">
-//       <h1 className="text-2xl font-bold mb-4">Empleados</h1>
-//       <p className="mb-4 text-gray-600">
-//         Gestiona y visualiza todos los empleados de la empresa
-//       </p>
-//       <EmployeeTable />
-// =======
 "use client";
 
 import { useEffect, useState } from "react";
@@ -44,7 +32,6 @@ const Avatar = ({ name }: { name: string }) => {
       className={`flex items-center justify-center h-10 w-10 rounded-full ${colors} flex-shrink-0`}
     >
       <span className="text-sm font-medium">{initials}</span>
-{/* >>>>>>> 67e655a (Add form de registroEmpleados y conexión con Back) */}
     </div>
   );
 };
@@ -136,10 +123,10 @@ export default function EmpleadoPage() {
         </div>
         <Link
           href="/registroEmpleados"
-          className="text-sm text-white font-medium rounded bg-[#083E96] hover:bg-[#0a4ebb] p-3 cursor-pointer transition"
+          className="flex items-center text-sm text-white font-medium rounded bg-[#083E96] hover:bg-[#0a4ebb] p-3 cursor-pointer transition"
         >
           <UserPlus className="inline-block mr-1" />
-          Nuevo empleado
+          <span className="hidden sm:inline">Nuevo empleado</span>
         </Link>
       </div>
       <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 mt-10 mb-10">
@@ -168,7 +155,7 @@ export default function EmpleadoPage() {
         {empleadosFiltrados.map((empleado) => (
           <div
             key={empleado.id}
-            className="flex justify-between items-center mb-4 p-4 border-b border-gray-200"
+            className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 p-4 border-b border-gray-200"
           >
             <div className=" hover:bg-gray-50 rounded transition">
               <div className="flex items-center space-x-3">
@@ -181,7 +168,7 @@ export default function EmpleadoPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-5 mt-4 font-medium text-gray-700 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4 font-medium text-gray-700 text-sm">
                 <div>
                   <span className="font-bold">DNI: </span>
                   {empleado.dni}
@@ -190,24 +177,15 @@ export default function EmpleadoPage() {
                   <span className="font-bold">CUIL: </span>
                   {empleado.cuil}
                 </div>
-                {/* <div>
-                  <span className="font-bold">Teléfono: </span>
-                  {empleado.phone_number || "N/A"}
-                </div>
-                <div>
-                  <span className="font-bold">Nacimiento: </span>
-                  {empleado.birthdate || "N/A"}
-                </div>
-                <div>
-                  <span className="font-bold">Salario: </span>
-                  {empleado.salary
-                    ? `$${Number(empleado.salary).toLocaleString("es-AR")}`
-                    : "N/A"}
-                </div> */}
               </div>
             </div>
-            <div className="text-sm text-white font-medium rounded bg-[#083E96] hover:bg-[#0a4ebb] p-3 cursor-pointer transition">
-              <Link href={`/empleados/${empleado.id}`}>Ver Detalles</Link>
+            <div className="mt-3 md:mt-0">
+              <Link
+                href={`/empleados/${empleado.id}`}
+                className="block text-center text-sm text-white font-medium rounded bg-[#083E96] hover:bg-[#0a4ebb] px-4 py-2 transition"
+              >
+                Ver Detalles
+              </Link>
             </div>
           </div>
         ))}

@@ -64,42 +64,58 @@ export function Sidebar({
       className={`fixed top-0 left-0 h-full bg-gray-100 border-r border-gray-200 shadow-lg text-black transition-all duration-300 z-40
         ${isExpanded ? "w-70" : "w-20"}`}
     >
-      <div className="flex flex-col h-full p-4 ">
-        <div className="flex items-center justify-between p-4 border-b border-gray-300">
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-[#083E96] rounded-lg flex items-center justify-center">
+      <div className="flex flex-col h-full py-4 relative">
+        <div className="flex flex-col border-b border-gray-300 mb-2">
+          <Link
+            href="/dashboard"
+            className={`flex items-center gap-2 ${
+              isExpanded ? "p-4" : "py-3 justify-center"
+            }`}
+          >
+            <div className="w-10 h-10 bg-[#083E96] rounded-lg flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-2xl">HR</span>
             </div>
             {isExpanded && (
-              <span className="text-2xl font-semibold text-black transition-opacity duration-300">
+              <span className="text-2xl font-semibold text-black transition-opacity duration-300 whitespace-nowrap">
                 SYSTEM
               </span>
             )}
           </Link>
+
           <button
             onClick={() => setIsExpanded((prev) => !prev)}
-            className="text-gray-700 hover:text-black transition-colors"
+            className={`absolute top-9 flex items-center justify-center w-8 h-8 rounded-full text-gray-700 hover:text-black hover:bg-gray-200 transition-colors flex-shrink-0  z-50
+              ${isExpanded ? "right-[-1px]" : "right-[-10px]"}`}
           >
             {isExpanded ? (
-              <ChevronLeft className="w-6 h-6" />
+              <ChevronLeft className="w-5 h-5" />
             ) : (
-              <ChevronRight className="w-6 h-6" />
+              <ChevronRight className="w-5 h-5" />
             )}
           </button>
         </div>
-
-        <nav className="flex-grow mt-2">
+        <nav className={`flex-grow mt-2 ${isExpanded ? "px-4" : "px-0"}`}>
           <ul>
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
               const linkClasses = isActive
+                ? "flex items-center p-3 rounded-lg bg-[#083E96] text-white font-semibold shadow-md justify-center lg:justify-start"
+                : "flex items-center p-3 rounded-lg hover:bg-gray-300 hover:text-black transition-colors justify-center lg:justify-start";
+
+              const baseLinkClasses = isActive
                 ? "flex items-center p-3 rounded-lg bg-[#083E96] text-white font-semibold shadow-md"
                 : "flex items-center p-3 rounded-lg hover:bg-gray-300 hover:text-black transition-colors";
 
               return (
                 <li key={link.name} className="mb-2">
                   <Link href={link.href}>
-                    <span className={linkClasses}>
+                    <span
+                      className={`${baseLinkClasses} ${
+                        isExpanded
+                          ? "w-full justify-start"
+                          : "w-full justify-center"
+                      }`}
+                    >
                       <link.icon className="w-5 h-5 min-w-[20px]" />
                       {isExpanded && (
                         <span className="ml-3 transition-opacity duration-300 whitespace-nowrap">
@@ -113,20 +129,20 @@ export function Sidebar({
             })}
           </ul>
         </nav>
-
-        <div className="mt-auto pt-4 border-t border-gray-300 mb-10 p-1">
-          <div>
-            <h4 className="text-sm font-semibold mb-5 justify-center text-center">
-              Admin User
-            </h4>
-          </div>
+        <div
+          className={`mt-auto pt-4 border-t border-gray-300 mb-10 ${
+            isExpanded ? "px-4" : "px-0"
+          }`}
+        >
           <button
             onClick={logout}
-            className="flex items-center w-full p-3 rounded-lg text-black hover:bg-[#0E6922] hover:text-white border border-gray-300 transition-colors"
+            className={`flex items-center w-full p-3 rounded-lg text-black hover:bg-[#0E6922] hover:text-white border border-gray-300 transition-colors cursor-pointer ${
+              isExpanded ? "justify-start" : "justify-center"
+            }`}
           >
             <LogOut className="w-5 h-5 min-w-[20px]" />
             {isExpanded && (
-              <span className="ml-3 transition-opacity duration-300">
+              <span className="ml-3 transition-opacity duration-300 ">
                 Cerrar Sesión
               </span>
             )}

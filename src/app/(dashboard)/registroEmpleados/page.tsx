@@ -117,15 +117,6 @@ export default function RegistroEmpleadosPage() {
         ? Number(parseFloat(formValues.salary).toFixed(2))
         : undefined,
     };
-
-    console.log("Datos enviados al backend:", formattedData);
-    console.log("Tipos de datos:", {
-      dni: typeof formattedData.dni,
-      cuil: typeof formattedData.cuil,
-      phone_number: typeof formattedData.phone_number,
-      salary: typeof formattedData.salary,
-    });
-
     try {
       const res = await fetch(process.env.NEXT_PUBLIC_API_URL + "/empleado", {
         method: "POST",
@@ -133,11 +124,7 @@ export default function RegistroEmpleadosPage() {
         body: JSON.stringify(formattedData),
       });
 
-      console.log("Estado del response:", res.status);
-
       const data = await res.json();
-      console.log("Respuesta bruta del backend:", data);
-
       if (!res.ok) throw new Error(JSON.stringify(data));
 
       toast.success("Empleado creado con éxito");
