@@ -115,9 +115,9 @@ export default function RegisterComponent() {
     fetchPlans();
   }, []);
 
-  useEffect(() => {
-    if (isAuthenticated) router.push("/dashboard");
-  }, [isAuthenticated, router]);
+  // useEffect(() => {
+  //   if (isAuthenticated) router.push("/dashboard");
+  // }, [isAuthenticated, router]);
 
   if (isAuthenticated) return null;
 
