@@ -99,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsAuthenticated(true);
 
       toast.success("Registro exitoso. Bienvenido a HR SYSTEM!");
-      router.push("https://back-8cv1.onrender.com/");
+      router.push("/");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 409) {
