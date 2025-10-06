@@ -142,9 +142,12 @@ export function Sidebar({
           >
             <LogOut className="w-5 h-5 min-w-[20px]" />
             {isExpanded && (
-              <span className="ml-3 transition-opacity duration-300 ">
+              <Link
+                className="ml-3 transition-opacity duration-300 "
+                href="https://back-8cv1.onrender.com/logout"
+              >
                 Cerrar Sesión
-              </span>
+              </Link>
             )}
           </button>
         </div>
