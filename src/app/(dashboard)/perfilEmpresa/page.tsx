@@ -9,18 +9,18 @@ import {
   Key,
 } from "lucide-react";
 
-interface Company {
-  id: string;
-  trade_name: string;
-  legal_name: string;
-  address: string;
-  phone_number: string;
-  email: string;
-  logo: string;
-  created_at: string;
-  update_at: string;
-  deletedAt: null;
-}
+// interface Company {
+//   id: string;
+//   trade_name: string;
+//   legal_name: string;
+//   address: string;
+//   phone_number: string;
+//   email: string;
+//   logo: string;
+//   created_at: string;
+//   update_at: string;
+//   deletedAt: null;
+// }
 
 const admins = [
   {

@@ -1,16 +1,12 @@
 "use client";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { useAuth } from "@/context/AuthContextProvider";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isAuthenticated, isLoading } = useAuth();
-  const router = useRouter();
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   // useEffect(() => {

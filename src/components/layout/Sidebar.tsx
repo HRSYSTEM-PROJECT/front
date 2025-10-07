@@ -102,9 +102,9 @@ export function Sidebar({
           <ul>
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
-              const linkClasses = isActive
-                ? "flex items-center p-3 rounded-lg bg-[#083E96] text-white font-semibold shadow-md justify-center lg:justify-start"
-                : "flex items-center p-3 rounded-lg hover:bg-gray-300 hover:text-black transition-colors justify-center lg:justify-start";
+              // const linkClasses = isActive
+              //   ? "flex items-center p-3 rounded-lg bg-[#083E96] text-white font-semibold shadow-md justify-center lg:justify-start"
+              //   : "flex items-center p-3 rounded-lg hover:bg-gray-300 hover:text-black transition-colors justify-center lg:justify-start";
 
               const baseLinkClasses = isActive
                 ? "flex items-center p-3 rounded-lg bg-[#083E96] text-white font-semibold shadow-md"

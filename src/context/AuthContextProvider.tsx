@@ -1,14 +1,14 @@
 "use client";
 import { createContext, useEffect, useState, useContext } from "react";
 import axios from "axios";
-import { CompanyRegistration, User } from "./AuthContext.type";
+import { CompanyRegistration } from "./AuthContext.type";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
-interface FormState extends CompanyRegistration {
-  repeatPassword: string;
-  acceptedTerms: boolean;
-}
+// interface FormState extends CompanyRegistration {
+//   repeatPassword: string;
+//   acceptedTerms: boolean;
+// }
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -74,33 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       );
       const token = response.data.token;
-      useEffect(() => {
-        const fetchCompany = async () => {
-          const token = localStorage.getItem("auth_token");
-          if (!token) {
-            setIsLoading(false);
-            return;
-          }
-
-          try {
-            const response = await axios.get(`${API_BASE_URL}/empresa`, {
-              headers: { Authorization: `Bearer ${token}` },
-              withCredentials: true,
-            });
-            setCompany(response.data);
-            setIsAuthenticated(true);
-          } catch (error) {
-            console.error("Error al obtener la empresa:", error);
-            setIsAuthenticated(false);
-            setCompany(null);
-          } finally {
-            setIsLoading(false);
-          }
-        };
-
-        fetchCompany();
-      }, []);
-
+      
       const companyData: CompanyRegistration = response.data.company;
       if (!token || !companyData)
         throw new Error("Respuesta de login inválida.");
