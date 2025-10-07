@@ -41,6 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
+  const [company, setCompany] = useState<CompanyRegistration | null>(null);
 
   // useEffect(() => {
   //   const checkSession = async () => {
@@ -73,12 +74,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       );
       const token = response.data.token;
+      useEffect(() => {
+        const fetchCompany = async () => {
+          const token = localStorage.getItem("auth_token");
+          if (!token) {
+            setIsLoading(false);
+            return;
+          }
+
+          try {
+            const response = await axios.get(`${API_BASE_URL}/empresa`, {
+              headers: { Authorization: `Bearer ${token}` },
+              withCredentials: true,
+            });
+            setCompany(response.data);
+            setIsAuthenticated(true);
+          } catch (error) {
+            console.error("Error al obtener la empresa:", error);
+            setIsAuthenticated(false);
+            setCompany(null);
+          } finally {
+            setIsLoading(false);
+          }
+        };
+
+        fetchCompany();
+      }, []);
+
       const companyData: CompanyRegistration = response.data.company;
       if (!token || !companyData)
         throw new Error("Respuesta de login inválida.");
 
       localStorage.setItem("auth_token", token);
       setIsAuthenticated(true);
+      setCompany(companyData);
       router.push("/login");
     } catch (error) {
       console.error("Error en inicio de sesión:", error);
@@ -128,7 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const contextValue: AuthContextType = {
     isAuthenticated,
-    company: null,
+    company,
     registerCompany,
     logout,
     isLoading,

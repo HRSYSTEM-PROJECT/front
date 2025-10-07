@@ -29,7 +29,7 @@ export default function TerminosPage() {
       </h2>
       <p className="mb-4">
         Todos los contenidos del sitio (textos, imágenes, logotipos, diseños,
-        software) son propiedad de HYSTSTEM o de sus licenciantes, y no podrán
+        software) son propiedad de HRSYSTEM o de sus licenciantes, y no podrán
         ser utilizados sin autorización expresa.
       </p>
 
@@ -44,7 +44,7 @@ export default function TerminosPage() {
         4. Limitación de responsabilidad
       </h2>
       <p className="mb-4">
-        HYSTSTEM no garantiza que el sitio esté libre de errores, virus o
+        HRSYSTEM no garantiza que el sitio esté libre de errores, virus o
         interrupciones. El uso del sitio es bajo tu propio riesgo.
       </p>
 

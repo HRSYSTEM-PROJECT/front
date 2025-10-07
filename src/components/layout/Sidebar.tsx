@@ -46,6 +46,11 @@ export function Sidebar({
 
   const navLinks = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    {
+      name: "Perfil de empresa",
+      href: "/perfilEmpresa",
+      icon: Building2,
+    },
     { name: "Empleados", href: "/empleados", icon: Users },
     {
       name: "Registro de empleados",
@@ -53,7 +58,6 @@ export function Sidebar({
       icon: UserPlus,
     },
     { name: "Categorías laborales", href: "/categorias", icon: Briefcase },
-    { name: "Perfil de empresa", href: "/perfil", icon: Building2 },
     { name: "Plan de suscripción", href: "/plan", icon: CreditCard },
     { name: "Notificaciones", href: "/notificaciones", icon: Bell },
     { name: "Mensajería", href: "/mensajeria", icon: MessageCircle },
