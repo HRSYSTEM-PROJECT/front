@@ -1,14 +1,14 @@
 "use client";
 import { createContext, useEffect, useState, useContext } from "react";
 import axios from "axios";
-import { CompanyRegistration, User } from "./AuthContext.type";
+import { CompanyRegistration } from "./AuthContext.type";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
-interface FormState extends CompanyRegistration {
-  repeatPassword: string;
-  acceptedTerms: boolean;
-}
+// interface FormState extends CompanyRegistration {
+//   repeatPassword: string;
+//   acceptedTerms: boolean;
+// }
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -41,6 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
+  const [company, setCompany] = useState<CompanyRegistration | null>(null);
 
   // useEffect(() => {
   //   const checkSession = async () => {
@@ -73,12 +74,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       );
       const token = response.data.token;
+      
       const companyData: CompanyRegistration = response.data.company;
       if (!token || !companyData)
         throw new Error("Respuesta de login inválida.");
 
       localStorage.setItem("auth_token", token);
       setIsAuthenticated(true);
+      setCompany(companyData);
       router.push("/login");
     } catch (error) {
       console.error("Error en inicio de sesión:", error);
@@ -128,7 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const contextValue: AuthContextType = {
     isAuthenticated,
-    company: null,
+    company,
     registerCompany,
     logout,
     isLoading,

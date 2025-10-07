@@ -2,7 +2,6 @@
 
 import axios from "axios";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FaGoogle, FaLinkedinIn } from "react-icons/fa";
 import { CompanyRegistration, Plan } from "@/context/AuthContext.type";
@@ -78,7 +77,6 @@ const Inputs = [
 
 export default function RegisterComponent() {
   const { registerCompany, isAuthenticated } = useAuth();
-  const router = useRouter();
   const [planes, setPlans] = useState<Plan[]>([]);
   const [isPlansLoading, setIsPlansLoading] = useState(false);
 

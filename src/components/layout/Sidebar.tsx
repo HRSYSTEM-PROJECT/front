@@ -46,6 +46,11 @@ export function Sidebar({
 
   const navLinks = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    {
+      name: "Perfil de empresa",
+      href: "/perfilEmpresa",
+      icon: Building2,
+    },
     { name: "Empleados", href: "/empleados", icon: Users },
     {
       name: "Registro de empleados",
@@ -53,7 +58,6 @@ export function Sidebar({
       icon: UserPlus,
     },
     { name: "Categorías laborales", href: "/categorias", icon: Briefcase },
-    { name: "Perfil de empresa", href: "/perfil", icon: Building2 },
     { name: "Plan de suscripción", href: "/plan", icon: CreditCard },
     { name: "Notificaciones", href: "/notificaciones", icon: Bell },
     { name: "Mensajería", href: "/mensajeria", icon: MessageCircle },
@@ -98,9 +102,9 @@ export function Sidebar({
           <ul>
             {navLinks.map((link) => {
               const isActive = pathname === link.href;
-              const linkClasses = isActive
-                ? "flex items-center p-3 rounded-lg bg-[#083E96] text-white font-semibold shadow-md justify-center lg:justify-start"
-                : "flex items-center p-3 rounded-lg hover:bg-gray-300 hover:text-black transition-colors justify-center lg:justify-start";
+              // const linkClasses = isActive
+              //   ? "flex items-center p-3 rounded-lg bg-[#083E96] text-white font-semibold shadow-md justify-center lg:justify-start"
+              //   : "flex items-center p-3 rounded-lg hover:bg-gray-300 hover:text-black transition-colors justify-center lg:justify-start";
 
               const baseLinkClasses = isActive
                 ? "flex items-center p-3 rounded-lg bg-[#083E96] text-white font-semibold shadow-md"

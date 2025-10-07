@@ -95,6 +95,7 @@ export default function FormContact() {
       }
     } catch (error) {
       toast.error("Error de conexión con el servidor");
+      console.error("Error enviando el formulario:", error);
     }
   };
 
