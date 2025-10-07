@@ -5,24 +5,35 @@ import { Users, CalendarX, DollarSign, TrendingUp, CalendarDays } from "lucide-r
 
 interface Employee {
   id: number;
-  nombre: string;
-  puesto: string;
-  estado: string;
-  ausencias: number;
-  sueldo: number;
+  first_name: string;
+  last_name: string;
+  salary?: string;
+  estado?: string;
+  ausencias?: number;
 }
 
 export default function DashboardPage() {
   const [empleados, setEmpleados] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Traer empleados desde el backend
   useEffect(() => {
     const fetchEmpleados = async () => {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/empleados`);
         const data = await response.json();
-        setEmpleados(data);
+       
+           // Adaptar los datos reales del backend a lo que necesita el Dashboard
+        const empleadosAdaptados = data.map((emp: any) => ({
+          id: emp.id,
+          first_name: emp.first_name,
+          last_name: emp.last_name,
+          salary: emp.salary,
+          // Datos simulados hasta que el backend los provea
+          estado: "Activo",
+          ausencias: Math.floor(Math.random() * 5),
+        }));
+
+        setEmpleados(empleadosAdaptados);
       } catch (error) {
         console.error("Error al obtener empleados:", error);
       } finally {
@@ -55,8 +66,9 @@ export default function DashboardPage() {
 function MetricsCards({ empleados }: { empleados: Employee[] }) {
   const totalEmpleados = empleados.length;
   const ausenciasMes = 8.5; // simulación
-  const sueldosTotales = empleados.reduce((acc, emp) => acc + emp.sueldo, 0);
-  const productividad = 94.2;
+  const sueldosTotales = empleados.reduce((acc, emp) => acc + (parseFloat(emp.salary || "0") || 0),
+  0
+);  const productividad = 94.2;
 
   const cards = [
     { titulo: "Total Empleados", valor: totalEmpleados, icon: Users, color: "text-blue-600" },
@@ -100,8 +112,10 @@ function RecentEmployees({ empleados }: { empleados: Employee[] }) {
         {empleados.slice(0, 5).map((emp) => (
           <li key={emp.id} className="flex justify-between items-center border-b pb-2">
             <div>
-              <p className="font-medium">{emp.nombre}</p>
-              <span className="text-gray-500 text-sm">{emp.puesto}</span>
+              <p className="font-medium">{emp.first_name} {emp.last_name}</p>
+              <span className="text-gray-500 text-sm">Empleado</span>
+
+              {/* <span className="text-gray-500 text-sm">{emp.puesto}</span> */}
             </div>
             <span
               className={`text-xs px-2 py-1 rounded-full ${
