@@ -36,10 +36,11 @@ interface Params {
 export default async function EmpleadoDetailsPage({ params }: Params) {
   const { id } = params;
 
-  const response = await axios.get(
-    `${process.env.NEXT_PUBLIC_API_URL}/empleado/${id}`
-  );
-  const empleado: Empleado = response.data;
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/empleado/${id}`, {
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error("Error al obtener el empleado");
+  const empleado: Empleado = await res.json();
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-4 text-start max-w-full overflow-x-hidden">
@@ -77,11 +78,11 @@ export default async function EmpleadoDetailsPage({ params }: Params) {
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="w-10 h-10 text-blue-600 bg-blue-100 p-2 rounded-md flex-shrink-0" />
-                  <span>{empleado.phone_number}</span>
+                  <span>{empleado.phone_number || "No especificado"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-10 h-10 text-blue-600 bg-blue-100 p-2 rounded-md flex-shrink-0" />
-                  <span>{empleado.address}</span>
+                  <span>{empleado.address || "No especificado"}</span>
                 </div>
               </div>
               <div className="flex gap-4 sm:gap-10">
