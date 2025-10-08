@@ -75,25 +75,24 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchEmpresa = async () => {
       try {
-        const token = localStorage.getItem("auth_token");
-        if (!token) {
-          console.error("No hay token guardado");
-          return;
-        }
-
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+          method: "GET",
+          credentials: "include",
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
         });
 
-        if (!res.ok) throw new Error("Error al obtener empresa");
+        if (!res.ok) {
+          console.error("Error al obtener empresa:", res.status);
+          return;
+        }
 
         const data = await res.json();
         console.log("Datos de la empresa:", data);
         setEmpresa(data);
       } catch (error) {
-        console.error("Error:", error);
+        console.error("Error al traer empresa:", error);
       } finally {
         setLoading(false);
       }
