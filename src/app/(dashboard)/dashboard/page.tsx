@@ -22,8 +22,9 @@ export default function DashboardPage() {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/empleado`);
         const data = await response.json();
 
+        console.log("hola mundo");
         // Adaptar los datos reales del backend a lo que necesita el Dashboard
-        const empleadosAdaptados = data.map((emp: any) => ({
+        const empleadosAdaptados = data.map((emp: Employee) => ({
           id: emp.id,
           first_name: emp.first_name,
           last_name: emp.last_name,
