@@ -85,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         withCredentials: true,
       });
       toast.success("Registro exitoso. Bienvenido a HR SYSTEM!");
-      router.push("/login");
+      router.push("https://back-8cv1.onrender.com/login");
     } catch (error) {
       console.error("Error al registrar:", error);
       toast.error("Error al registrar la compañía.");
@@ -101,7 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setIsAuthenticated(false);
       setCompany(null);
       toast.info("Sesión cerrada correctamente");
-      router.push("/login");
+      router.push("https://back-8cv1.onrender.com/logout");
     } catch (error) {
       toast.error("Error al cerrar sesión");
     } finally {
