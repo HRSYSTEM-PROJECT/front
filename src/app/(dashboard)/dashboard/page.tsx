@@ -23,7 +23,7 @@ export default function DashboardPage() {
         const data = await response.json();
 
         // Adaptar los datos reales del backend a lo que necesita el Dashboard
-        const empleadosAdaptados = data.map((emp: any) => ({
+        const empleadosAdaptados = data.map((emp: Employee) => ({
           id: emp.id,
           first_name: emp.first_name,
           last_name: emp.last_name,
