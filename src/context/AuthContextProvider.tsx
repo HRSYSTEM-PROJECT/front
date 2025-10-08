@@ -94,6 +94,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  //   const startLoginRedirect = async (email: string, password: string) => {
+  //   setIsLoading(true);
+  //   try {
+  //     await axios.post(
+  //       `${API_BASE_URL}/login`,
+  //       { withCredentials: true }
+  //     );
+  //     const me = await axios.get(`${API_BASE_URL}/auth/me`, {
+  //       withCredentials: true,
+  //     });
+
+  //     setCompany(me.data.company);
+  //     setIsAuthenticated(true);
+  //     toast.success("Inicio de sesión exitoso");
+  //     router.push("/perfilEmpresa");
+  //   } catch (error) {
+  //     console.error("Error en inicio de sesión:", error);
+  //     toast.error("Credenciales incorrectas o error al iniciar sesión");
+  //     setIsAuthenticated(false);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const registerCompany = async (data: CompanyRegistration) => {
     setIsLoading(true);
     try {
