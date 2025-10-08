@@ -1,7 +1,29 @@
 "use client";
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { Users, CalendarX, DollarSign, TrendingUp, CalendarDays } from "lucide-react";
+import {
+  Users,
+  CalendarX,
+  DollarSign,
+  TrendingUp,
+  Building2,
+  Mail,
+  Phone,
+  MapPin,
+  Save,
+  UserPlus,
+  Key,
+} from "lucide-react";
+
+interface Empresa {
+  id: number;
+  trade_name: string;
+  legal_name: string;
+  address: string;
+  phone_number: string;
+  email: string;
+  logo?: string;
+  created_at?: string;
+}
 
 interface Employee {
   id: number;
@@ -13,35 +35,36 @@ interface Employee {
 }
 
 export default function DashboardPage() {
+  const [empresa, setEmpresa] = useState<Empresa | null>(null);
   const [empleados, setEmpleados] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchEmpleados = async () => {
+    const fetchEmpresa = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/empleado`);
-        const data = await response.json();
+        const token = localStorage.getItem("auth_token");
+        if (!token) {
+          console.error("No hay token guardado");
+          return;
+        }
 
-        console.log("hola mundo");
-        // Adaptar los datos reales del backend a lo que necesita el Dashboard
-        const empleadosAdaptados = data.map((emp: Employee) => ({
-          id: emp.id,
-          first_name: emp.first_name,
-          last_name: emp.last_name,
-          salary: emp.salary,
-          // Datos simulados hasta que el backend los provea
-          estado: "Activo",
-          ausencias: Math.floor(Math.random() * 5),
-        }));
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-        setEmpleados(empleadosAdaptados);
+        if (!res.ok) throw new Error("Error al obtener datos de la empresa");
+        const data = await res.json();
+        setEmpresa(data);
       } catch (error) {
-        console.error("Error al obtener empleados:", error);
+        console.error("Error al traer empresa:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchEmpleados();
+
+    fetchEmpresa();
   }, []);
 
   if (loading) return <p className="p-6 text-gray-600">Cargando datos...</p>;
@@ -50,23 +73,24 @@ export default function DashboardPage() {
     <div className="p-8 space-y-8">
       <h1 className="text-3xl font-bold">Dashboard</h1>
       <p className="text-gray-600 mb-6">
-        Bienvenido al panel de control de <strong>HR SYSTEM</strong>
+        Bienvenido al panel de control de{" "}
+        <strong>{empresa?.trade_name || "Tu Empresa"}</strong>
       </p>
 
       <MetricsCards empleados={empleados} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RecentEmployees empleados={empleados} />
-        <UpcomingEvents />
-      </div>
+      {empresa && <PerfilEmpresa empresa={empresa} empleados={empleados} />}
     </div>
   );
 }
 
 function MetricsCards({ empleados }: { empleados: Employee[] }) {
   const totalEmpleados = empleados.length;
-  const ausenciasMes = 8.5; // simulación
-  const sueldosTotales = empleados.reduce((acc, emp) => acc + (parseFloat(emp.salary || "0") || 0), 0);
+  const ausenciasMes = 8.5;
+  const sueldosTotales = empleados.reduce(
+    (acc, emp) => acc + (parseFloat(emp.salary || "0") || 0),
+    0
+  );
   const productividad = 94.2;
 
   const cards = [
@@ -101,68 +125,139 @@ function MetricsCards({ empleados }: { empleados: Employee[] }) {
   );
 }
 
-function RecentEmployees({ empleados }: { empleados: Employee[] }) {
+function PerfilEmpresa({ empresa, empleados }: { empresa: Empresa; empleados: Employee[] }) {
+  const admins = [
+    { id: 1, name: "Admin", last_name: "Principal", email: "admin@techsolutions.com", role: "Super Admin" },
+    { id: 2, name: "María", last_name: "Gónzalez", email: "maria.gonzalez@techsolutions.com", role: "Admin" },
+  ];
+
+  const Avatar = ({ name }: { name: string }) => {
+    const initials = name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+    return (
+      <div className="flex items-center justify-center h-10 w-10 rounded-full bg-[#083E96] text-white">
+        <span className="text-sm font-medium">{initials}</span>
+      </div>
+    );
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Empleados Recientes</h2>
-        <Link href="/empleados" className="text-blue-600 text-sm font-medium hover:underline">
-          Ver todos
-        </Link>
+    <div className="container mx-auto px-4 sm:px-6 py-4 text-start max-w-full overflow-x-hidden">
+      <h2 className="text-2xl sm:text-3xl font-bold mt-10 text-black">Perfil de Empresa</h2>
+      <p className="text-gray-600 mt-2 sm:mt-4 text-sm sm:text-base">
+        Gestiona la información de tu empresa y configuración de administradores
+      </p>
+
+      {/* Datos generales */}
+      <div className="bg-white p-5 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+          <Building2 className="w-14 h-14 text-blue-600 bg-blue-100 p-4 rounded-md flex-shrink-0" />
+          <div>
+            <h4 className="text-lg font-medium text-gray-800">{empresa.trade_name}</h4>
+            <p className="text-gray-500 text-sm sm:text-base">{empresa.legal_name}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 sm:gap-x-12 mt-6">
+          <InfoItem icon={<Mail />} label="Email" value={empresa.email} />
+          <InfoItem icon={<Phone />} label="Teléfono" value={empresa.phone_number || "-"} />
+          <InfoItem icon={<MapPin />} label="Dirección" value={empresa.address || "-"} />
+          <InfoItem icon={<Users />} label="Empleados" value={`${empleados.length}`} />
+        </div>
       </div>
 
-      <ul className="space-y-3">
-        {empleados.slice(0, 5).map((emp) => (
-          <li key={emp.id} className="flex justify-between items-center border-b pb-2">
-            <div>
-              <p className="font-medium">
-                {emp.first_name} {emp.last_name}
-              </p>
-              <span className="text-gray-500 text-sm">Empleado</span>
+      {/* Formulario */}
+      <div className="bg-white p-5 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8">
+        <h3 className="text-lg sm:text-xl font-medium text-gray-800 mb-4">
+          Información de la empresa
+        </h3>
 
-              {/* <span className="text-gray-500 text-sm">{emp.puesto}</span> */}
+        <form className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Input label="Nombre Comercial" placeholder={empresa.trade_name} />
+            <Input label="Razón Social" placeholder={empresa.legal_name} />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Input label="Email" placeholder={empresa.email} />
+            <Input label="Teléfono" placeholder={empresa.phone_number} />
+          </div>
+
+          <Input label="Dirección" placeholder={empresa.address} />
+
+          <button
+            type="submit"
+            className="flex items-center gap-2 bg-[#083E96] hover:bg-[#0a4ebb] text-white px-4 py-2 rounded-md transition text-sm"
+          >
+            <Save className="h-4 w-4" />
+            Guardar Cambios
+          </button>
+        </form>
+      </div>
+
+      {/* Administradores */}
+      <div className="bg-white p-5 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8">
+        <h3 className="text-lg font-medium text-gray-800 mb-4">Administradores</h3>
+        {admins.map((admin) => (
+          <div key={admin.id} className="flex items-center justify-between border p-4 mb-3 rounded-lg hover:bg-gray-50">
+            <div className="flex items-center gap-3">
+              <Avatar name={`${admin.name} ${admin.last_name}`} />
+              <div>
+                <p className="font-medium text-gray-900">{admin.name} {admin.last_name}</p>
+                <p className="text-sm text-gray-500">{admin.email}</p>
+              </div>
             </div>
-            <span
-              className={`text-xs px-2 py-1 rounded-full ${
-                emp.estado === "Activo" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-              }`}
-            >
-              {emp.estado}
-            </span>
-          </li>
+            <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-md text-sm">{admin.role}</span>
+          </div>
         ))}
-      </ul>
+        <button className="mt-6 flex items-center gap-2 bg-[#083E96] hover:bg-[#0a4ebb] text-white px-4 py-2 rounded-md">
+          <UserPlus className="h-4 w-4" />
+          Agregar Administrador
+        </button>
+      </div>
+
+      {/* Cambio de contraseña */}
+      <div className="bg-white p-5 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8">
+        <h3 className="text-lg font-medium text-gray-800 mb-4">Cambiar Contraseña</h3>
+        <form className="space-y-4">
+          <Input label="Contraseña Actual" type="password" />
+          <Input label="Nueva Contraseña" type="password" />
+          <Input label="Confirmar Nueva Contraseña" type="password" />
+          <button className="mt-2 flex items-center gap-2 bg-[#083E96] hover:bg-[#0a4ebb] text-white px-4 py-2 rounded-md">
+            <Key className="h-4 w-4" />
+            Actualizar Contraseña
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
 
-/* ================================= */
-/* 🔹 COMPONENTE PRÓXIMOS EVENTOS     */
-/* ================================= */
-function UpcomingEvents() {
-  const eventos = [
-    { id: 1, titulo: "Revisión de Desempeño - Equipo IT", fecha: "15 Ene", categoria: "Evaluación" },
-    { id: 2, titulo: "Pago de Nómina", fecha: "18 Ene", categoria: "Finanzas" },
-    { id: 3, titulo: "Capacitación: Liderazgo", fecha: "22 Ene", categoria: "Formación" },
-    { id: 4, titulo: "Reunión Trimestral", fecha: "25 Ene", categoria: "Reunión" },
-  ];
-
+function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string; value?: string }) {
   return (
-    <div className="bg-white rounded-lg shadow p-5">
-      <h2 className="text-lg font-semibold mb-4">Próximos Eventos</h2>
-      <ul className="space-y-3">
-        {eventos.map((evento) => (
-          <li key={evento.id} className="flex items-center gap-3 border-b pb-2">
-            <CalendarDays className="w-5 h-5 text-blue-500" />
-            <div>
-              <p className="font-medium">{evento.titulo}</p>
-              <p className="text-sm text-gray-500">
-                {evento.fecha} — {evento.categoria}
-              </p>
-            </div>
-          </li>
-        ))}
-      </ul>
+    <div className="flex items-start gap-3">
+      <div className="w-6 h-6 text-gray-900 mt-1">{icon}</div>
+      <div>
+        <h4 className="text-gray-500 text-sm">{label}</h4>
+        <p className="text-gray-800 text-sm sm:text-base break-words">{value || "-"}</p>
+      </div>
+    </div>
+  );
+}
+
+function Input({ label, placeholder, type = "text" }: { label: string; placeholder?: string; type?: string }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="text-sm font-medium text-gray-700">{label}</label>
+      <input
+        type={type}
+        placeholder={placeholder}
+        className="border border-gray-300 rounded-md px-3 py-2 w-full text-sm"
+      />
     </div>
   );
 }
