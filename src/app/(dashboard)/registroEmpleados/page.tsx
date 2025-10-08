@@ -123,8 +123,6 @@ export default function RegistroEmpleadosPage() {
       if (!process.env.NEXT_PUBLIC_API_URL) {
         throw new Error("La URL de la API no está definida");
       }
-
-      // 1️⃣ Crear empleado
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/empleado`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -144,16 +142,16 @@ export default function RegistroEmpleadosPage() {
       toast.success("Empleado creado con éxito");
       handleCancel();
 
-      // 2️⃣ Obtener sesión actual del usuario
       const meRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
         credentials: "include",
       });
 
       const meData = await meRes.json();
       console.log("Usuario logueado:", meData);
-    } catch (error: any) {
-      console.error("Error al crear empleado:", error);
-      toast.error(error.message || "Error al crear empleado");
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(`Error: ${error.message}`);
+      }
     }
   };
 
