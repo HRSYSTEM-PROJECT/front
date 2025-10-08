@@ -148,7 +148,7 @@ export default function RegistroEmpleadosPage() {
 
       const meData = await meRes.json();
       console.log("Usuario logueado:", meData);
-    } catch (error) {
+    } catch (error){
       if (error instanceof Error) {
         toast.error(`Error: ${error.message}`);
       }
