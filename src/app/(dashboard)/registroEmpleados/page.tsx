@@ -110,6 +110,7 @@ export default function RegistroEmpleadosPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const formattedData = {
       ...formValues,
       dni: Number(formValues.dni),
@@ -117,21 +118,42 @@ export default function RegistroEmpleadosPage() {
         ? Number(parseFloat(formValues.salary).toFixed(2))
         : undefined,
     };
+
     try {
-      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + "/empleado", {
+      if (!process.env.NEXT_PUBLIC_API_URL) {
+        throw new Error("La URL de la API no está definida");
+      }
+
+      // 1️⃣ Crear empleado
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/empleado`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(formattedData),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(JSON.stringify(data));
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        data = { message: "No se pudo parsear la respuesta del servidor" };
+      }
+
+      if (!res.ok) throw new Error(data.message || "Error desconocido");
 
       toast.success("Empleado creado con éxito");
       handleCancel();
-    } catch (error) {
+
+      // 2️⃣ Obtener sesión actual del usuario
+      const meRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+        credentials: "include",
+      });
+
+      const meData = await meRes.json();
+      console.log("Usuario logueado:", meData);
+    } catch (error: any) {
       console.error("Error al crear empleado:", error);
-      toast.error("Error al crear empleado");
+      toast.error(error.message || "Error al crear empleado");
     }
   };
 
