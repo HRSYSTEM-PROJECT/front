@@ -19,10 +19,10 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchEmpleados = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/empleados`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/empleado`);
         const data = await response.json();
-       
-           // Adaptar los datos reales del backend a lo que necesita el Dashboard
+
+        // Adaptar los datos reales del backend a lo que necesita el Dashboard
         const empleadosAdaptados = data.map((emp: any) => ({
           id: emp.id,
           first_name: emp.first_name,
@@ -62,18 +62,21 @@ export default function DashboardPage() {
   );
 }
 
-
 function MetricsCards({ empleados }: { empleados: Employee[] }) {
   const totalEmpleados = empleados.length;
   const ausenciasMes = 8.5; // simulación
-  const sueldosTotales = empleados.reduce((acc, emp) => acc + (parseFloat(emp.salary || "0") || 0),
-  0
-);  const productividad = 94.2;
+  const sueldosTotales = empleados.reduce((acc, emp) => acc + (parseFloat(emp.salary || "0") || 0), 0);
+  const productividad = 94.2;
 
   const cards = [
     { titulo: "Total Empleados", valor: totalEmpleados, icon: Users, color: "text-blue-600" },
     { titulo: "Ausencias del Mes", valor: `${ausenciasMes}%`, icon: CalendarX, color: "text-orange-600" },
-    { titulo: "Sueldos Totales", valor: `$${sueldosTotales.toLocaleString()}`, icon: DollarSign, color: "text-green-600" },
+    {
+      titulo: "Sueldos Totales",
+      valor: `$${sueldosTotales.toLocaleString()}`,
+      icon: DollarSign,
+      color: "text-green-600",
+    },
     { titulo: "Productividad", valor: `${productividad}%`, icon: TrendingUp, color: "text-emerald-600" },
   ];
 
@@ -97,7 +100,6 @@ function MetricsCards({ empleados }: { empleados: Employee[] }) {
   );
 }
 
-
 function RecentEmployees({ empleados }: { empleados: Employee[] }) {
   return (
     <div className="bg-white rounded-lg shadow p-5">
@@ -112,7 +114,9 @@ function RecentEmployees({ empleados }: { empleados: Employee[] }) {
         {empleados.slice(0, 5).map((emp) => (
           <li key={emp.id} className="flex justify-between items-center border-b pb-2">
             <div>
-              <p className="font-medium">{emp.first_name} {emp.last_name}</p>
+              <p className="font-medium">
+                {emp.first_name} {emp.last_name}
+              </p>
               <span className="text-gray-500 text-sm">Empleado</span>
 
               {/* <span className="text-gray-500 text-sm">{emp.puesto}</span> */}
