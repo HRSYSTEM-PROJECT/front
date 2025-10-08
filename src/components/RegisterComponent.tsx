@@ -62,9 +62,9 @@ const Inputs = [
     label: "Contraseña",
     name: "password",
     type: "password",
-    placeholder: "Mínimo 8 caracteres",
+    placeholder: "12 caracteres, una mayúscula, una minúscula y un número",
     required: true,
-    minLength: 8,
+    minLength: 12,
   },
   {
     label: "Repetir contraseña",
@@ -112,11 +112,6 @@ export default function RegisterComponent() {
     };
     fetchPlans();
   }, []);
-
-  // useEffect(() => {
-  //   if (isAuthenticated) router.push("/dashboard");
-  // }, [isAuthenticated, router]);
-
   if (isAuthenticated) return null;
 
   const handleInputChange = (
@@ -138,12 +133,18 @@ export default function RegisterComponent() {
       setError("Debes aceptar los términos y condiciones");
       return;
     }
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{12,}$/;
 
+    if (!passwordRegex.test(formInput.password)) {
+      setError(
+        "La contraseña debe tener al menos 12 caracteres, incluir una mayúscula, una minúscula y un número."
+      );
+      return;
+    }
     if (formInput.password !== formInput.repeatPassword) {
       setError("Las contraseñas no coinciden");
       return;
     }
-
     const requiredFields: (keyof FormState)[] = [
       "trade_name",
       "legal_name",
@@ -161,7 +162,6 @@ export default function RegisterComponent() {
         return;
       }
     }
-
     const registrationData = {
       trade_name: formInput.trade_name,
       legal_name: formInput.legal_name,
@@ -231,11 +231,17 @@ export default function RegisterComponent() {
                     : undefined
                 }
                 onChange={handleInputChange}
-                className={getInputClass(
+                className={`text-sm ${getInputClass(
                   input.name as keyof FormState,
                   input.type
-                )}
+                )}`}
               />
+              {input.name === "password" && (
+                <p className="text-xs text-gray-500 mt-1">
+                  La contraseña debe tener al menos 12 caracteres, una
+                  mayúscula, una minúscula y un número.
+                </p>
+              )}
             </div>
           ))}
         </div>
