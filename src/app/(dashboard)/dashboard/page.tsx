@@ -4,10 +4,19 @@ import Link from "next/link";
 import { Users, CalendarX, DollarSign, TrendingUp, CalendarDays } from "lucide-react";
 
 interface Employee {
-  id: number;
+  id: string | number;
   first_name: string;
   last_name: string;
-  salary?: string;
+  salary?: number;
+  dni?: number;
+  cuil?: string;
+  phone_number?: string;
+  address?: string;
+  birthdate?: string;
+  email?: string;
+  imgUrl?: string;
+  department_id?: string;
+  position_id?: string;
   estado?: string;
   ausencias?: number;
 }
@@ -19,19 +28,20 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchEmpleados = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/empleados`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/empleado`);
         const data = await response.json();
        
            // Adaptar los datos reales del backend a lo que necesita el Dashboard
-        const empleadosAdaptados = data.map((emp: any) => ({
-          id: emp.id,
-          first_name: emp.first_name,
-          last_name: emp.last_name,
-          salary: emp.salary,
-          // Datos simulados hasta que el backend los provea
-          estado: "Activo",
-          ausencias: Math.floor(Math.random() * 5),
-        }));
+        const empleadosAdaptados = Array.isArray(data)
+          ? data.map((emp: any) => ({
+              id: emp.id,
+              first_name: emp.first_name,
+              last_name: emp.last_name,
+              salary: emp.salary || 0,
+              estado: "Activo",
+              ausencias: Math.floor(Math.random() * 5),
+            }))
+          : [];
 
         setEmpleados(empleadosAdaptados);
       } catch (error) {
@@ -66,9 +76,8 @@ export default function DashboardPage() {
 function MetricsCards({ empleados }: { empleados: Employee[] }) {
   const totalEmpleados = empleados.length;
   const ausenciasMes = 8.5; // simulación
-  const sueldosTotales = empleados.reduce((acc, emp) => acc + (parseFloat(emp.salary || "0") || 0),
-  0
-);  const productividad = 94.2;
+  const sueldosTotales = empleados.reduce((acc, emp) => acc + (emp.salary || 0), 0);
+  const productividad = 94.2;
 
   const cards = [
     { titulo: "Total Empleados", valor: totalEmpleados, icon: Users, color: "text-blue-600" },
@@ -131,9 +140,7 @@ function RecentEmployees({ empleados }: { empleados: Employee[] }) {
   );
 }
 
-/* ================================= */
-/* 🔹 COMPONENTE PRÓXIMOS EVENTOS     */
-/* ================================= */
+
 function UpcomingEvents() {
   const eventos = [
     { id: 1, titulo: "Revisión de Desempeño - Equipo IT", fecha: "15 Ene", categoria: "Evaluación" },
