@@ -5,23 +5,16 @@ import { CompanyRegistration } from "./AuthContext.type";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
-// interface FormState extends CompanyRegistration {
-//   repeatPassword: string;
-//   acceptedTerms: boolean;
-// }
-
 interface AuthContextType {
   isAuthenticated: boolean;
   company: CompanyRegistration | null;
   registerCompany: (data: CompanyRegistration) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isLoading: boolean;
   startLoginRedirect: (email: string, password: string) => Promise<void>;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-
-// const VERIFICATION_ENDPOINT = `${API_BASE_URL}/ruta-protegida-valida`;
 
 export const AuthContext = createContext<AuthContextType | undefined>(
   undefined
@@ -38,95 +31,82 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [company, setCompany] = useState<CompanyRegistration | null>(null);
+  const router = useRouter();
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/auth/me`, {
+          withCredentials: true,
+        });
 
-  // useEffect(() => {
-  //   const checkSession = async () => {
-  //     try {
-  //       // const response = await axios.get(VERIFICATION_ENDPOINT, {
-  //         withCredentials: true,
-  //       });
-  //       setIsAuthenticated(true);
-  //     } catch (error) {
-  //       setIsAuthenticated(false);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
+        setCompany(res.data.company);
+        setIsAuthenticated(true);
+      } catch (error) {
+        setIsAuthenticated(false);
+        setCompany(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  //   checkSession();
-  // }, []);
-
+    checkSession();
+  }, []);
   const startLoginRedirect = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const response = await axios.post(
+      await axios.post(
         `${API_BASE_URL}/login`,
-        {
-          email,
-          password,
-        },
-        {
-          withCredentials: true,
-        }
+        { email, password },
+        { withCredentials: true }
       );
-      const token = response.data.token;
-      
-      const companyData: CompanyRegistration = response.data.company;
-      if (!token || !companyData)
-        throw new Error("Respuesta de login inválida.");
+      const me = await axios.get(`${API_BASE_URL}/auth/me`, {
+        withCredentials: true,
+      });
 
-      localStorage.setItem("auth_token", token);
+      setCompany(me.data.company);
       setIsAuthenticated(true);
-      setCompany(companyData);
-      router.push("/login");
+      toast.success("Inicio de sesión exitoso");
+      router.push("/perfilEmpresa");
     } catch (error) {
       console.error("Error en inicio de sesión:", error);
-      toast.error(
-        "Error en inicio de sesión: " +
-          (axios.isAxiosError(error) && error.response?.data?.message)
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const registerCompany = async (data: CompanyRegistration) => {
-    setIsLoading(true);
-    try {
-      const response = await axios.post(`${API_BASE_URL}/onboarding`, data);
-
-      setIsAuthenticated(true);
-
-      toast.success("Registro exitoso. Bienvenido a HR SYSTEM!");
-      router.push("/");
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 409) {
-          toast.error("El email ya existe, por favor usa otro.");
-        } else {
-          toast.error(
-            error.response?.data?.message ||
-              "Error desconocido al registrar la compañía."
-          );
-        }
-      } else {
-        toast.error("Error al registrar la compañía.");
-      }
-
+      toast.error("Credenciales incorrectas o error al iniciar sesión");
       setIsAuthenticated(false);
     } finally {
       setIsLoading(false);
     }
   };
-
-  const logout = () => {
-    localStorage.removeItem("auth_token");
-    setIsAuthenticated(false);
-    router.push("https://back-8cv1.onrender.com/logout");
+  const registerCompany = async (data: CompanyRegistration) => {
+    setIsLoading(true);
+    try {
+      await axios.post(`${API_BASE_URL}/onboarding`, data, {
+        withCredentials: true,
+      });
+      toast.success("Registro exitoso. Bienvenido a HR SYSTEM!");
+      router.push("/login");
+    } catch (error) {
+      console.error("Error al registrar:", error);
+      toast.error("Error al registrar la compañía.");
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const logout = async () => {
+    setIsLoading(true);
+    try {
+      await axios.post(`${API_BASE_URL}/logout`, {}, { withCredentials: true });
+      setIsAuthenticated(false);
+      setCompany(null);
+      toast.info("Sesión cerrada correctamente");
+      router.push("/login");
+    } catch (error) {
+      toast.error("Error al cerrar sesión");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const contextValue: AuthContextType = {
@@ -135,10 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     registerCompany,
     logout,
     isLoading,
-    startLoginRedirect: startLoginRedirect as (
-      email: string,
-      password: string
-    ) => Promise<void>,
+    startLoginRedirect,
   };
 
   return (
