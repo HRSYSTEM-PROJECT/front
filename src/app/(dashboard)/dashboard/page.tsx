@@ -164,7 +164,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <MetricsCards empleados={empleados} />
+      {/* <MetricsCards empleados={empleados} /> */}
 
       <div className="bg-white p-5 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full">
         <h2 className="text-lg sm:text-xl font-medium text-gray-800">
@@ -371,49 +371,6 @@ export default function DashboardPage() {
           Actualizar Contraseña
         </button>
       </div>
-    </div>
-  );
-}
-
-function InfoItem({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value?: string;
-}) {
-  return (
-    <div className="flex items-start gap-3">
-      <div className="w-6 h-6 text-gray-900 mt-1">{icon}</div>
-      <div>
-        <h4 className="text-gray-500 text-sm">{label}</h4>
-        <p className="text-gray-800 text-sm sm:text-base break-words">
-          {value || "-"}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function Input({
-  label,
-  placeholder,
-  type = "text",
-}: {
-  label: string;
-  placeholder?: string;
-  type?: string;
-}) {
-  return (
-    <div className="flex flex-col gap-2">
-      <label className="text-sm font-medium text-gray-700">{label}</label>
-      <input
-        type={type}
-        placeholder={placeholder}
-        className="border border-gray-300 rounded-md px-3 py-2 w-full text-sm"
-      />
     </div>
   );
 }
