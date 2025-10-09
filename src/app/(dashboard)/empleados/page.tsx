@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
 import { UserPlus } from "lucide-react";
+import { useRouter } from "next/router";
 
-interface Empleado {
+export interface Empleado {
   id: number;
   first_name: string;
   last_name: string;
@@ -17,6 +18,8 @@ interface Empleado {
   imgUrl?: string;
   salary?: string;
   email: string;
+  age?: number;
+  created_at: string;
 }
 const Avatar = ({ name }: { name: string }) => {
   const names = name.split(" ");
@@ -41,21 +44,47 @@ export default function EmpleadoPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const router = useRouter();
 
   const fetchEmpleados = async () => {
+    setLoading(true);
+    setError("");
+
+    const authToken = localStorage.getItem("authToken");
+
+    if (!authToken) {
+      setError("Usuario no autenticado. Por favor, inicie sesión.");
+      setLoading(false);
+      router.push("/");
+      return;
+    }
+
     try {
       const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/empleado`
+        `${process.env.NEXT_PUBLIC_API_URL}/empleado`,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
       );
       setEmpleados(response.data);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError("No se pudieron cargar los empleados");
+      if (
+        err.response &&
+        (err.response.status === 401 || err.response.status === 403)
+      ) {
+        setError("Sesión expirada o inválida. Inicie sesión nuevamente.");
+        localStorage.removeItem("authToken");
+        router.push("/");
+      } else {
+        setError("No se pudieron cargar los empleados.");
+      }
     } finally {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchEmpleados();
   }, []);

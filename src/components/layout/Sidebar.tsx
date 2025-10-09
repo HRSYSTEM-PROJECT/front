@@ -46,11 +46,6 @@ export function Sidebar({
 
   const navLinks = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    {
-      name: "Perfil de empresa",
-      href: "/perfilEmpresa",
-      icon: Building2,
-    },
     { name: "Empleados", href: "/empleados", icon: Users },
     {
       name: "Registro de empleados",
