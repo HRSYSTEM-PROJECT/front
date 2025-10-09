@@ -51,19 +51,24 @@ export default function EmpleadoDetailsPage({ params }: Params) {
         }
       );
       setEmpleadoDetails(response.data);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error al cargar detalles del empleado:", err);
 
-      if (
-        err.response &&
-        (err.response.status === 401 || err.response.status === 403)
-      ) {
-        localStorage.removeItem("authToken");
-        router.push("/");
-      } else if (err.response && err.response.status === 404) {
-        setError("Empleado no encontrado.");
+      if (axios.isAxiosError(err)) {
+        if (err.response) {
+          if (err.response.status === 401 || err.response.status === 403) {
+            localStorage.removeItem("authToken");
+            router.push("/");
+          } else if (err.response.status === 404) {
+            setError("Empleado no encontrado.");
+          } else {
+            setError("Error al cargar los detalles.");
+          }
+        } else {
+          setError("Error de red o conexión al servidor.");
+        }
       } else {
-        setError("Error al cargar los detalles.");
+        setError("Ocurrió un error inesperado.");
       }
     } finally {
       setLoading(false);
