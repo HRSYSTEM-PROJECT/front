@@ -1,10 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, X } from "lucide-react";
+import axios from "axios";
 
 export default function PlanesPage() {
   const [currentPlan, setCurrentPlan] = useState("Premium");
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/plan`);
+        setCurrentPlan(response.data.name);
+        console.log(response.data);
+      } catch (err) {
+        console.error("Error fetching planes:", err);
+      }
+    };
+    fetchPlans();
+  }, []);
 
   const plans = [
     {
