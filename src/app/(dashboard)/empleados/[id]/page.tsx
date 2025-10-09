@@ -1,3 +1,4 @@
+"use client";
 import {
   Mail,
   Phone,
@@ -12,34 +13,85 @@ import {
 } from "lucide-react";
 
 import axios from "axios";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/dist/client/components/navigation";
+import { Empleado } from "../page";
 
-interface Empleado {
-  id: number;
-  first_name: string;
-  last_name: string;
-  dni: string;
-  cuil: string;
-  phone_number?: string;
-  address?: string;
-  birthdate?: string;
-  imgUrl?: string;
-  salary?: string;
-  email: string;
-  created_at: string;
-  age?: number;
-}
 interface Params {
   params: { id: string };
 }
 
-export default async function EmpleadoDetailsPage({ params }: Params) {
+export default function EmpleadoDetailsPage({ params }: Params) {
   const { id } = params;
+  const router = useRouter();
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [empleadoDetails, setEmpleadoDetails] = useState<Empleado | null>(null);
 
-  const response = await axios.get(
-    `${process.env.NEXT_PUBLIC_API_URL}/empleado/${id}`
-  );
-  const empleado: Empleado = response.data;
+  const fetchEmpleadoDetails = async () => {
+    setLoading(true);
+    setError("");
+
+    const authToken = localStorage.getItem("authToken");
+
+    if (!authToken) {
+      setError("Usuario no autenticado.");
+      setLoading(false);
+      router.push("/");
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/empleado/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
+      setEmpleadoDetails(response.data);
+    } catch (err: any) {
+      console.error("Error al cargar detalles del empleado:", err);
+
+      if (
+        err.response &&
+        (err.response.status === 401 || err.response.status === 403)
+      ) {
+        localStorage.removeItem("authToken");
+        router.push("/");
+      } else if (err.response && err.response.status === 404) {
+        setError("Empleado no encontrado.");
+      } else {
+        setError("Error al cargar los detalles.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEmpleadoDetails();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-8 text-center text-gray-600">
+        Cargando detalles del empleado...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-8 text-center text-red-600">
+        <h1 className="text-xl font-semibold">Error de Carga</h1>
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  const empleado = empleadoDetails as Empleado;
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-4 text-start max-w-full overflow-x-hidden">
