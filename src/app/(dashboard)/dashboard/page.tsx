@@ -74,46 +74,46 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchEmpresa = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
-          credentials: "include",
-        });
-        if (!res.ok) {
-          if (res.status === 401 || res.status === 403) {
-            console.error(
-              "Autenticación fallida. Sesión expirada o no válida."
-            );
-            localStorage.removeItem("authToken");
-          }
-          throw new Error(`Fallo de solicitud: ${res.status}`);
-        }
+  // useEffect(() => {
+  //   const fetchEmpresa = async () => {
+  //     try {
+  //       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+  //         credentials: "include",
+  //       });
+  //       if (!res.ok) {
+  //         if (res.status === 401 || res.status === 403) {
+  //           console.error(
+  //             "Autenticación fallida. Sesión expirada o no válida."
+  //           );
+  //           localStorage.removeItem("authToken");
+  //         }
+  //         throw new Error(`Fallo de solicitud: ${res.status}`);
+  //       }
 
-        const data = await res.json();
+  //       const data = await res.json();
 
-        if (data && data.user && data.user.company && data.token) {
-          setEmpresa(data.user.company);
-          setToken(data.token);
-          localStorage.setItem("authToken", data.token);
-        }
-      } catch (error) {
-        console.error("Error al traer empresa:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  //       if (data && data.user && data.user.company && data.token) {
+  //         setEmpresa(data.user.company);
+  //         setToken(data.token);
+  //         localStorage.setItem("authToken", data.token);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error al traer empresa:", error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
 
-    fetchEmpresa();
-  }, []);
+  //   fetchEmpresa();
+  // }, []);
 
-  if (loading) {
-    return <p>Cargando...</p>;
-  }
+  // if (loading) {
+  //   return <p>Cargando...</p>;
+  // }
 
-  if (!empresa) {
-    return <p>No se encontraron datos de la empresa</p>;
-  }
+  // if (!empresa) {
+  //   return <p>No se encontraron datos de la empresa</p>;
+  // }
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-4 text-start max-w-full overflow-x-hidden">
