@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
 import { UserPlus } from "lucide-react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 export interface Empleado {
   id: number;
@@ -69,17 +69,22 @@ export default function EmpleadoPage() {
         }
       );
       setEmpleados(response.data);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      if (
-        err.response &&
-        (err.response.status === 401 || err.response.status === 403)
-      ) {
-        setError("Sesión expirada o inválida. Inicie sesión nuevamente.");
-        localStorage.removeItem("authToken");
-        router.push("/");
+
+      if (axios.isAxiosError(err)) {
+        if (
+          err.response &&
+          (err.response.status === 401 || err.response.status === 403)
+        ) {
+          setError("Sesión expirada o inválida. Inicie sesión nuevamente.");
+          localStorage.removeItem("authToken");
+          router.push("/");
+        } else {
+          setError("No se pudieron cargar los empleados.");
+        }
       } else {
-        setError("No se pudieron cargar los empleados.");
+        setError("Ocurrió un error inesperado.");
       }
     } finally {
       setLoading(false);
