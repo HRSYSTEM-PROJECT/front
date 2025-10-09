@@ -85,8 +85,15 @@ export default function DashboardPage() {
         }
 
         const data = await res.json();
-        console.log("Datos de la empresa:", data);
-        setEmpresa(data);
+        console.log("Datos completos de la respuesta:", data);
+
+        if (data && data.user && data.user.company) {
+          setEmpresa(data.user.company);
+        } else {
+          console.warn(
+            "La respuesta del backend no contiene los datos esperados de la empresa."
+          );
+        }
       } catch (error) {
         console.error("Error al traer empresa:", error);
       } finally {
