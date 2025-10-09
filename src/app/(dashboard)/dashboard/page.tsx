@@ -13,7 +13,7 @@ import {
 import MetricsCards from "@/components/metricas/MetricsCards";
 
 interface Empresa {
-  id: number;
+  id: string;
   trade_name: string;
   legal_name: string;
   address: string;
@@ -104,6 +104,14 @@ export default function DashboardPage() {
     fetchEmpresa();
   }, []);
 
+  if (loading) {
+    return <p>Cargando...</p>;
+  }
+
+  if (!empresa) {
+    return <p>No se encontraron datos de la empresa</p>;
+  }
+
   return (
     <div className="container mx-auto px-4 sm:px-6 py-4 text-start max-w-full overflow-x-hidden">
       <h1 className="text-3xl font-bold">Dashboard</h1>
@@ -168,7 +176,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* <MetricsCards empleados={empleados} /> */}
+      <MetricsCards empleados={empleados} />
 
       <div className="bg-white p-5 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full">
         <h2 className="text-lg sm:text-xl font-medium text-gray-800">
