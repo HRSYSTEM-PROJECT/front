@@ -42,23 +42,23 @@ export default function EmpleadoPage() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
 
-  // const fetchEmpleados = async () => {
-  //   try {
-  //     const response = await axios.get(
-  //       `${process.env.NEXT_PUBLIC_API_URL}/empleado`
-  //     );
-  //     setEmpleados(response.data);
-  //   } catch (err) {
-  //     console.error(err);
-  //     setError("No se pudieron cargar los empleados");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  const fetchEmpleados = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/empleado`
+      );
+      setEmpleados(response.data);
+    } catch (err) {
+      console.error(err);
+      setError("No se pudieron cargar los empleados");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // useEffect(() => {
-  //   fetchEmpleados();
-  // }, []);
+  useEffect(() => {
+    fetchEmpleados();
+  }, []);
 
   const empleadosFiltrados = empleados.filter((empleado) => {
     const busquedaLower = search.toLowerCase();
