@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useAuth } from "../../../context/AuthContextProvider";
+import { LoginButton } from "@/components/LoginButton";
 
 export function Navbar() {
   const { isAuthenticated, logout, company } = useAuth();
@@ -34,35 +35,10 @@ export function Navbar() {
           </Link> */}
 
           <div className="flex items-center gap-4">
-            {isAuthenticated ? (
-              <div className="flex items-center gap-4">
-                <span className="text-gray-700 text-base font-medium hidden sm:inline truncate max-w-[150px]">
-                  Hola, {company?.legal_name || company?.name || "Usuario"}
-                </span>
-                <Link href="/dashboard" className={buttonClass}>
-                  Ir al Dashboard
-                </Link>
-
-                <button
-                  onClick={logout}
-                  className="px-4 py-2 rounded-md text-black hover:text-white font-medium  hover:bg-[#0E6922] transition-colors shadow-md whitespace-nowrap"
-                >
-                  Cerrar Sesión
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-4">
-                <Link
-                  href="https://back-8cv1.onrender.com/login"
-                  className={loginButtonClass}
-                >
-                  Iniciar Sesión
-                </Link>
-                <Link href="/register" className={buttonClass}>
-                  Registrarse
-                </Link>
-              </div>
-            )}
+            <LoginButton />
+            <Link href="/register" className={buttonClass}>
+              Registrarse
+            </Link>
           </div>
         </div>
       </div>

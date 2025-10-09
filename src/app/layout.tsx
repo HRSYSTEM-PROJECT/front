@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContextProvider";
 import ToastProvider from "@/components/toastProvider";
+import { Auth0ProviderWrapper } from "@/components/auth0/Auth0Provider";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -26,9 +27,11 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.svg" />
       </head>
       <body className={`${poppins.variable} antialiased`}>
-        <AuthProvider>
-          <ToastProvider>{children}</ToastProvider>
-        </AuthProvider>
+        <Auth0ProviderWrapper>
+          <AuthProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </AuthProvider>
+        </Auth0ProviderWrapper>
       </body>
     </html>
   );
