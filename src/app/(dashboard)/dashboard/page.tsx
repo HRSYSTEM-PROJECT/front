@@ -97,9 +97,6 @@ export default function DashboardPage() {
     fetchEmpresa();
   }, []);
 
-  if (loading) return <p>Cargando...</p>;
-
-  if (!empresa) return <p>No se encontraron datos de la empresa</p>;
   return (
     <div className="container mx-auto px-4 sm:px-6 py-4 text-start max-w-full overflow-x-hidden">
       <h1 className="text-3xl font-bold">Dashboard</h1>
