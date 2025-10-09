@@ -21,6 +21,7 @@ interface Empresa {
   email: string;
   logo?: string;
   created_at?: string;
+  token?: string;
 }
 
 interface Employee {
@@ -71,6 +72,7 @@ export default function DashboardPage() {
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
   const [empleados, setEmpleados] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchEmpresa = async () => {
@@ -78,21 +80,22 @@ export default function DashboardPage() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
           credentials: "include",
         });
-
         if (!res.ok) {
-          console.error("Error al obtener empresa:", res.status);
-          return;
+          if (res.status === 401 || res.status === 403) {
+            console.error(
+              "Autenticación fallida. Sesión expirada o no válida."
+            );
+            localStorage.removeItem("authToken");
+          }
+          throw new Error(`Fallo de solicitud: ${res.status}`);
         }
 
         const data = await res.json();
-        console.log("Datos completos de la respuesta:", data);
 
-        if (data && data.user && data.user.company) {
+        if (data && data.user && data.user.company && data.token) {
           setEmpresa(data.user.company);
-        } else {
-          console.warn(
-            "La respuesta del backend no contiene los datos esperados de la empresa."
-          );
+          setToken(data.token);
+          localStorage.setItem("authToken", data.token);
         }
       } catch (error) {
         console.error("Error al traer empresa:", error);
@@ -170,6 +173,15 @@ export default function DashboardPage() {
               <h4 className="text-gray-500 text-sm">Empleados</h4>
               <p className="text-gray-800 text-sm sm:text-base">
                 [Cantidad de empleados]
+              </p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <Users className="w-6 h-6 text-gray-900 mt-1 flex-shrink-0" />
+            <div>
+              <h4 className="text-gray-500 text-sm">${empresa?.created_at}</h4>
+              <p className="text-gray-800 text-sm sm:text-base">
+                Fecha de creación
               </p>
             </div>
           </div>
