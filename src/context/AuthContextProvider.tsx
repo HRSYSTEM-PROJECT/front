@@ -97,11 +97,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = async () => {
     setIsLoading(true);
     try {
-      await axios.post(`${API_BASE_URL}/logout`, {}, { withCredentials: true });
+      await axios.post("https://back-8cv1.onrender.com/logout");
       setIsAuthenticated(false);
       setCompany(null);
       toast.info("Sesión cerrada correctamente");
-      router.push("https://back-8cv1.onrender.com/logout");
+      router.push("/");
     } catch (error) {
       toast.error("Error al cerrar sesión");
     } finally {
