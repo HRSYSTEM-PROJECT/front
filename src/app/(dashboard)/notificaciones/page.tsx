@@ -1,7 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bell, Trash2, CheckCircle2, Calendar, AlertCircle, UserPlus, DollarSign, TrendingUp } from "lucide-react";
+import {
+  getNotifications,
+  markAsRead,
+  markAllAsRead,
+  deleteNotification,
+  deleteAllNotifications,
+} from "../../../notification/notificationServices";
 
 interface Notification {
   id: number;
@@ -13,76 +20,61 @@ interface Notification {
 }
 
 export default function NotificacionesPage() {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: 1,
-      title: "Nuevo empleado registrado",
-      message: "María González ha sido agregada al sistema como Desarrolladora Senior",
-      time: "Hace 5 minutos",
-      type: "employee",
-      read: false,
-    },
-    {
-      id: 2,
-      title: "Ausencia registrada",
-      message: "Juan Pérez marcó ausencia para el día de hoy",
-      time: "Hace 1 hora",
-      type: "absence",
-      read: false,
-    },
-    {
-      id: 3,
-      title: "Alerta de ausencias",
-      message: "El departamento de Ventas tiene un 15% de ausencias este mes",
-      time: "Hace 2 horas",
-      type: "alert",
-      read: false,
-    },
-    {
-      id: 4,
-      title: "Nómina procesada",
-      message: "La nómina del mes de enero ha sido procesada exitosamente",
-      time: "Hace 3 horas",
-      type: "payroll",
-      read: true,
-    },
-    {
-      id: 5,
-      title: "Reporte de productividad",
-      message: "La productividad general aumentó un 5% este mes",
-      time: "Hace 5 horas",
-      type: "productivity",
-      read: true,
-    },
-    {
-      id: 6,
-      title: "Actualización de categoría",
-      message: "Ana Martínez fue promovida a Senior Designer",
-      time: "Hace 1 día",
-      type: "employee",
-      read: true,
-    },
-    {
-      id: 7,
-      title: "Recordatorio de evaluación",
-      message: "Tienes 3 evaluaciones de desempeño pendientes",
-      time: "Hace 1 día",
-      type: "evaluation",
-      read: true,
-    },
-  ]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const markAllAsRead = () => setNotifications((prev) => prev.map((notificacion) => ({ ...notificacion, read: true })));
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const data = await getNotifications();
+        setNotifications(data);
+      } catch (error) {
+        console.error("Error al obtener notificaciones:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const deleteAll = () => setNotifications([]);
+    fetchNotifications();
+  }, []);
 
-  const markAsRead = (id: number) =>
-    setNotifications((prev) =>
-      prev.map((notificacion) => (notificacion.id === id ? { ...notificacion, read: true } : notificacion))
-    );
+  const handleMarkAsRead = async (id: number) => {
+    try {
+      await markAsRead(id);
+      setNotifications((prev) =>
+        prev.map((notificacion) => (notificacion.id === id ? { ...notificacion, read: true } : notificacion))
+      );
+    } catch (error) {
+      console.error("Error al marcar como leída:", error);
+    }
+  };
 
-  const deleteNotification = (id: number) =>
-    setNotifications((prev) => prev.filter((notificacion) => notificacion.id !== id));
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllAsRead();
+      setNotifications((prev) => prev.map((notificacion) => ({ ...notificacion, read: true })));
+    } catch (error) {
+      console.error("Error al marcar todas como leídas:", error);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteNotification(id);
+      setNotifications((prev) => prev.filter((notificacion) => notificacion.id !== id));
+    } catch (error) {
+      console.error("Error al eliminar notificación:", error);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    try {
+      await deleteAllNotifications();
+      setNotifications([]);
+    } catch (error) {
+      console.error("Error al eliminar todas:", error);
+    }
+  };
 
   const getIcon = (type: Notification["type"]) => {
     const base = "w-6 h-6 p-1.5 rounded-md";
@@ -104,6 +96,10 @@ export default function NotificacionesPage() {
     }
   };
 
+  if (loading) {
+    return <div className="text-center py-10 text-gray-500">Cargando notificaciones...</div>;
+  }
+
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       <div className="flex justify-between items-center mb-6">
@@ -113,13 +109,13 @@ export default function NotificacionesPage() {
         </div>
         <div className="flex space-x-2">
           <button
-            onClick={markAllAsRead}
+            onClick={handleMarkAllAsRead}
             className="flex items-center gap-2 border border-gray-300 rounded-md px-3 py-2 text-sm hover:bg-gray-100"
           >
             <CheckCircle2 className="w-4 h-4" /> Marcar todas como leídas
           </button>
           <button
-            onClick={deleteAll}
+            onClick={handleDeleteAll}
             className="flex items-center gap-2 border border-gray-300 rounded-md px-3 py-2 text-sm hover:bg-gray-100 text-red-600"
           >
             <Trash2 className="w-4 h-4" /> Eliminar todas
@@ -151,34 +147,20 @@ export default function NotificacionesPage() {
               </div>
               <div className="text-right space-y-1">
                 {!n.read && (
-                  <button onClick={() => markAsRead(n.id)} className="text-sm text-blue-700 hover:underline block">
+                  <button
+                    onClick={() => handleMarkAsRead(n.id)}
+                    className="text-sm text-blue-700 hover:underline block"
+                  >
                     Marcar como leída
                   </button>
                 )}
-                <button onClick={() => deleteNotification(n.id)} className="text-sm text-red-600 hover:underline block">
+                <button onClick={() => handleDelete(n.id)} className="text-sm text-red-600 hover:underline block">
                   Eliminar
                 </button>
               </div>
             </div>
           ))
         )}
-      </div>
-
-      {/* Configuración */}
-      <div className="mt-10 bg-gray-50 border border-gray-200 rounded-lg p-6">
-        <h2 className="font-semibold text-gray-900 mb-4">Configuración de Notificaciones</h2>
-        <div className="grid md:grid-cols-2 gap-6 text-sm">
-          <div>
-            <p className="font-semibold mb-1">Notificaciones por Email</p>
-            <p className="text-gray-600 mb-2">Recibe resúmenes diarios en tu correo.</p>
-            <button className="border border-gray-300 rounded-md px-3 py-1.5 hover:bg-gray-100">Configurar</button>
-          </div>
-          <div>
-            <p className="font-semibold mb-1">Alertas Importantes</p>
-            <p className="text-gray-600 mb-2">Notificaciones de eventos críticos.</p>
-            <button className="border border-gray-300 rounded-md px-3 py-1.5 hover:bg-gray-100">Configurar</button>
-          </div>
-        </div>
       </div>
     </div>
   );
