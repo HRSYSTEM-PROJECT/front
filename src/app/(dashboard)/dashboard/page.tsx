@@ -1,6 +1,7 @@
 "use client";
 import {useEffect, useState} from "react";
 import {Users, Building2, Mail, Phone, MapPin, Save, UserPlus, Key} from "lucide-react";
+import {useAuth} from "@clerk/nextjs";
 import MetricsCards from "@/components/metricas/MetricsCards";
 
 // interface Empresa {
@@ -56,6 +57,8 @@ const Avatar = ({name}: {name: string}) => {
     </div>
   );
 };
+
+const {isLoaded, getToken} = useAuth();
 
 export default function DashboardPage() {
   // const [empresa, setEmpresa] = useState<Empresa | null>(null);

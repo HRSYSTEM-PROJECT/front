@@ -1,5 +1,5 @@
-import { SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
-import { UserButton } from "@clerk/nextjs"; // Componente para cerrar sesión y perfil
+import {SignInButton, SignedIn, SignedOut} from "@clerk/nextjs";
+import {UserButton} from "@clerk/nextjs"; // Componente para cerrar sesión y perfil
 
 export function ClerkLoginButton() {
   return (
