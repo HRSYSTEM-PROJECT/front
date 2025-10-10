@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FaGoogle, FaLinkedinIn } from "react-icons/fa";
 import { CompanyRegistration, Plan } from "@/context/AuthContext.type";
-import { useAuth } from "@/hooks/useAuth";
 
 interface FormState extends CompanyRegistration {
   repeatPassword: string;
@@ -76,7 +75,6 @@ const Inputs = [
 ];
 
 export default function RegisterComponent() {
-  const { registerCompany, isAuthenticated } = useAuth();
   const [planes, setPlans] = useState<Plan[]>([]);
   const [isPlansLoading, setIsPlansLoading] = useState(false);
 
@@ -112,7 +110,6 @@ export default function RegisterComponent() {
     };
     fetchPlans();
   }, []);
-  if (isAuthenticated) return null;
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -177,7 +174,6 @@ export default function RegisterComponent() {
     };
 
     try {
-      await registerCompany(registrationData);
     } catch (err) {
       console.error("Error al registrar la empresa:", err);
       setError("Error al registrar la empresa");

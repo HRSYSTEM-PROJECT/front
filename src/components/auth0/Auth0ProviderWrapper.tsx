@@ -1,36 +1,41 @@
 "use client";
 
-import React from "react";
 import { Auth0Provider } from "@auth0/auth0-react";
+import { useRouter } from "next/navigation";
+import { ReactNode } from "react";
 
-const domain = process.env.NEXT_PUBLIC_AUTH0_DOMAIN || "";
-const clientId = process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID || "";
+interface Props {
+  children: ReactNode;
+}
 
-export function Auth0ProviderWrapper({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function Auth0ProviderWrapper({ children }: Props) {
+  const router = useRouter();
+
+  const domain = process.env.NEXT_PUBLIC_AUTH0_DOMAIN!;
+  const clientId = process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID!;
+
   const redirectUri =
     typeof window !== "undefined" ? window.location.origin : "";
 
-  const authorizationParams = {
-    response_type: "code",
-    scope: "openid profile email",
-    redirect_uri: redirectUri,
+  const onRedirectCallback = (appState: any) => {
+    router.replace(appState?.returnTo || "/");
   };
-
-  if (!domain || !clientId) {
-    return <div>Error de Configuración de Auth0: Faltan credenciales.</div>;
-  }
 
   return (
     <Auth0Provider
       domain={domain}
       clientId={clientId}
-      authorizationParams={authorizationParams}
+      authorizationParams={{
+        audience: "https://hr-system-api",
+        response_type: "code",
+        scope: "openid profile email",
+        redirect_uri: redirectUri,
+      }}
+      onRedirectCallback={onRedirectCallback}
+      useRefreshTokens={true}
+      cacheLocation="localstorage"
     >
-      {children}
+      {children}{" "}
     </Auth0Provider>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useAuth } from "@/context/AuthContextProvider";
+// import { useAuth } from "@/context/AuthContextProvider";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -22,7 +22,7 @@ export function Sidebar({
 }: {
   onToggle: (expanded: boolean) => void;
 }) {
-  const { logout } = useAuth();
+  // const { logout } = useAuth();
   const pathname = usePathname();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -134,7 +134,7 @@ export function Sidebar({
           }`}
         >
           <button
-            onClick={logout}
+            // onClick={logout}
             className={`flex items-center w-full p-3 rounded-lg text-black hover:bg-[#0E6922] hover:text-white border border-gray-300 transition-colors cursor-pointer ${
               isExpanded ? "justify-start" : "justify-center"
             }`}

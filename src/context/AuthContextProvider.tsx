@@ -11,7 +11,7 @@ interface AuthContextType {
   registerCompany: (data: CompanyRegistration) => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
-  startLoginRedirect: (email: string, password: string) => Promise<void>;
+  // startLoginRedirect: (email: string, password: string) => Promise<void>;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -35,48 +35,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [company, setCompany] = useState<CompanyRegistration | null>(null);
   const router = useRouter();
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const res = await axios.get(`${API_BASE_URL}/auth/me`, {
-          withCredentials: true,
-        });
+  // useEffect(() => {
+  //   const checkSession = async () => {
+  //     try {
+  //       const res = await axios.get(`${API_BASE_URL}/auth/me`, {
+  //         withCredentials: true,
+  //       });
 
-        setCompany(res.data.company);
-        setIsAuthenticated(true);
-      } catch (error) {
-        setIsAuthenticated(false);
-        setCompany(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  //       setCompany(res.data.company);
+  //       setIsAuthenticated(true);
+  //     } catch (error) {
+  //       setIsAuthenticated(false);
+  //       setCompany(null);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
 
-    checkSession();
-  }, []);
+  //   checkSession();
+  // }, []);
   const startLoginRedirect = async (email: string, password: string) => {
     setIsLoading(true);
-    try {
-      await axios.post(
-        `${API_BASE_URL}/login`,
-        { email, password },
-        { withCredentials: true }
-      );
-      const me = await axios.get(`${API_BASE_URL}/auth/me`, {
-        withCredentials: true,
-      });
+    //   try {
+    //     await axios.post(
+    //       `${API_BASE_URL}/login`,
+    //       { email, password },
+    //       { withCredentials: true }
+    //     );
+    //     const me = await axios.get(`${API_BASE_URL}/auth/me`, {
+    //       withCredentials: true,
+    //     });
 
-      setCompany(me.data.company);
-      setIsAuthenticated(true);
-      toast.success("Inicio de sesión exitoso");
-      router.push("/perfilEmpresa");
-    } catch (error) {
-      console.error("Error en inicio de sesión:", error);
-      toast.error("Credenciales incorrectas o error al iniciar sesión");
-      setIsAuthenticated(false);
-    } finally {
-      setIsLoading(false);
-    }
+    //     setCompany(me.data.company);
+    //     setIsAuthenticated(true);
+    //     toast.success("Inicio de sesión exitoso");
+    //     router.push("/perfilEmpresa");
+    //   } catch (error) {
+    //     console.error("Error en inicio de sesión:", error);
+    //     toast.error("Credenciales incorrectas o error al iniciar sesión");
+    //     setIsAuthenticated(false);
+    //   } finally {
+    //     setIsLoading(false);
+    //   }
   };
   const registerCompany = async (data: CompanyRegistration) => {
     setIsLoading(true);
@@ -97,7 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = async () => {
     setIsLoading(true);
     try {
-      await axios.post("https://back-8cv1.onrender.com/logout");
+      await axios.post("/logout");
       setIsAuthenticated(false);
       setCompany(null);
       toast.info("Sesión cerrada correctamente");
@@ -115,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     registerCompany,
     logout,
     isLoading,
-    startLoginRedirect,
+    // startLoginRedirect,
   };
 
   return (

@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/context/AuthContextProvider";
 import ToastProvider from "@/components/toastProvider";
-import { Auth0ProviderWrapper } from "@/components/auth0/Auth0ProviderWrapper";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -16,23 +15,23 @@ export const metadata: Metadata = {
   description: "Sistema de gestión de recursos humanos",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
+    <ClerkProvider>
     <html lang="en">
       <head>
         <link rel="icon" href="/favicon.svg" />
       </head>
       <body className={`${poppins.variable} antialiased`}>
-        <Auth0ProviderWrapper>
-          <AuthProvider>
+
             <ToastProvider>{children}</ToastProvider>
-          </AuthProvider>
-        </Auth0ProviderWrapper>
+
       </body>
     </html>
+    </ClerkProvider>
   );
 }
