@@ -1,9 +1,9 @@
 "use client";
-import { createContext, useEffect, useState, useContext } from "react";
+import {createContext, useEffect, useState, useContext} from "react";
 import axios from "axios";
-import { CompanyRegistration } from "./AuthContext.type";
-import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import {CompanyRegistration} from "./AuthContext.type";
+import {useRouter} from "next/navigation";
+import {toast} from "react-toastify";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -14,11 +14,9 @@ interface AuthContextType {
   // startLoginRedirect: (email: string, password: string) => Promise<void>;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_BASE_URL = process.env.BACKEND_PUBLIC_API_URL;
 
-export const AuthContext = createContext<AuthContextType | undefined>(
-  undefined
-);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -28,9 +26,7 @@ export const useAuth = () => {
   return context;
 };
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider: React.FC<{children: React.ReactNode}> = ({children}) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [company, setCompany] = useState<CompanyRegistration | null>(null);
@@ -118,7 +114,5 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     // startLoginRedirect,
   };
 
-  return (
-    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };

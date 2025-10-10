@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { toast } from "react-toastify";
+import {useState} from "react";
+import {toast} from "react-toastify";
 
 const input = [
   {
@@ -58,11 +58,9 @@ export default function FormContact() {
   });
   const [enviando, setEnviando] = useState(false);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const {name, value} = e.target;
+    setFormData((prev) => ({...prev, [name]: value}));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,7 +68,7 @@ export default function FormContact() {
     setEnviando(true);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/contact`, {
+      const res = await fetch(`${process.env.BACKEND_PUBLIC_API_URL}/contact`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -102,22 +100,15 @@ export default function FormContact() {
   return (
     <div className="w-full md:w-2/3 bg-white p-8 rounded-lg shadow-xl border border-gray-200">
       <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900">
-          Envíanos un mensaje
-        </h2>
-        <p className="text-sm text-gray-600 mt-1">
-          Completa el formulario y te responderemos en menos de 24 horas
-        </p>
+        <h2 className="text-2xl font-bold text-gray-900">Envíanos un mensaje</h2>
+        <p className="text-sm text-gray-600 mt-1">Completa el formulario y te responderemos en menos de 24 horas</p>
       </div>
 
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {input.slice(0, 4).map((field, index) => (
             <div key={index} className="flex flex-col">
-              <label
-                htmlFor={field.name}
-                className="text-sm font-semibold text-gray-700 mb-1"
-              >
+              <label htmlFor={field.name} className="text-sm font-semibold text-gray-700 mb-1">
                 {field.label}
               </label>
               <input
@@ -136,10 +127,7 @@ export default function FormContact() {
 
         {input.slice(4, 5).map((field, index) => (
           <div key={index + 4} className="flex flex-col">
-            <label
-              htmlFor={field.name}
-              className="text-sm font-semibold text-gray-700 mb-1"
-            >
+            <label htmlFor={field.name} className="text-sm font-semibold text-gray-700 mb-1">
               {field.name}
             </label>
             <input
@@ -156,10 +144,7 @@ export default function FormContact() {
         ))}
         {input.slice(5).map((field, index) => (
           <div key={index + 5} className="flex flex-col">
-            <label
-              htmlFor={field.name}
-              className="text-sm font-semibold text-gray-700 mb-1"
-            >
+            <label htmlFor={field.name} className="text-sm font-semibold text-gray-700 mb-1">
               {field.name}
             </label>
             <textarea

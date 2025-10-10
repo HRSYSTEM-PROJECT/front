@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Check, X } from "lucide-react";
+import {useEffect, useState} from "react";
+import {Check, X} from "lucide-react";
 import axios from "axios";
 
 export default function PlanesPage() {
@@ -10,7 +10,7 @@ export default function PlanesPage() {
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/plan`);
+        const response = await axios.get(`${process.env.BACKEND_PUBLIC_API_URL}/plan`);
         setCurrentPlan(response.data.name);
         console.log(response.data);
       } catch (err) {
@@ -27,12 +27,12 @@ export default function PlanesPage() {
       price: "$0",
       description: "Perfecto para empezar y probar el sistema",
       features: [
-        { text: "Hasta 10 empleados", included: true },
-        { text: "Dashboard básico", included: true },
-        { text: "Registro de asistencia", included: true },
-        { text: "Gestión de categorías", included: true },
-        { text: "Reportes avanzados", included: false },
-        { text: "Notificaciones ilimitadas", included: false },
+        {text: "Hasta 10 empleados", included: true},
+        {text: "Dashboard básico", included: true},
+        {text: "Registro de asistencia", included: true},
+        {text: "Gestión de categorías", included: true},
+        {text: "Reportes avanzados", included: false},
+        {text: "Notificaciones ilimitadas", included: false},
       ],
     },
     {
@@ -42,14 +42,14 @@ export default function PlanesPage() {
       tag: "Más Popular",
       description: "Para empresas en crecimiento",
       features: [
-        { text: "Hasta 100 empleados", included: true },
-        { text: "Dashboard completo", included: true },
-        { text: "Registro de asistencia", included: true },
-        { text: "Gestión de categorías", included: true },
-        { text: "Reportes avanzados", included: true },
-        { text: "Notificaciones ilimitadas", included: true },
-        { text: "Múltiples administradores (hasta 3)", included: true },
-        { text: "API access", included: false },
+        {text: "Hasta 100 empleados", included: true},
+        {text: "Dashboard completo", included: true},
+        {text: "Registro de asistencia", included: true},
+        {text: "Gestión de categorías", included: true},
+        {text: "Reportes avanzados", included: true},
+        {text: "Notificaciones ilimitadas", included: true},
+        {text: "Múltiples administradores (hasta 3)", included: true},
+        {text: "API access", included: false},
       ],
     },
     {
@@ -58,14 +58,14 @@ export default function PlanesPage() {
       price: "$149",
       description: "Para grandes organizaciones",
       features: [
-        { text: "Empleados ilimitados", included: true },
-        { text: "Dashboard personalizado", included: true },
-        { text: "Registro de asistencia avanzado", included: true },
-        { text: "Gestión de categorías", included: true },
-        { text: "Reportes avanzados y personalizados", included: true },
-        { text: "Notificaciones ilimitadas", included: true },
-        { text: "Soporte 24/7 dedicado", included: true },
-        { text: "API access completo", included: true },
+        {text: "Empleados ilimitados", included: true},
+        {text: "Dashboard personalizado", included: true},
+        {text: "Registro de asistencia avanzado", included: true},
+        {text: "Gestión de categorías", included: true},
+        {text: "Reportes avanzados y personalizados", included: true},
+        {text: "Notificaciones ilimitadas", included: true},
+        {text: "Soporte 24/7 dedicado", included: true},
+        {text: "API access completo", included: true},
       ],
     },
   ];

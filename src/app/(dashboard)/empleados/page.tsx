@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
 import axios from "axios";
 import Link from "next/link";
-import { UserPlus } from "lucide-react";
-import { useRouter } from "next/navigation";
+import {UserPlus} from "lucide-react";
+import {useRouter} from "next/navigation";
 
 export interface Empleado {
   id: number;
@@ -21,7 +21,7 @@ export interface Empleado {
   age?: number;
   created_at: string;
 }
-const Avatar = ({ name }: { name: string }) => {
+const Avatar = ({name}: {name: string}) => {
   const names = name.split(" ");
   const initials = names
     .map((n) => n[0])
@@ -31,9 +31,7 @@ const Avatar = ({ name }: { name: string }) => {
   const colors = "bg-[#083E96] text-white";
 
   return (
-    <div
-      className={`flex items-center justify-center h-10 w-10 rounded-full ${colors} flex-shrink-0`}
-    >
+    <div className={`flex items-center justify-center h-10 w-10 rounded-full ${colors} flex-shrink-0`}>
       <span className="text-sm font-medium">{initials}</span>
     </div>
   );
@@ -60,23 +58,17 @@ export default function EmpleadoPage() {
     }
 
     try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_URL}/empleado`,
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
+      const response = await axios.get(`${process.env.BACKEND_PUBLIC_API_URL}/empleado`, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
       setEmpleados(response.data);
     } catch (err) {
       console.error(err);
 
       if (axios.isAxiosError(err)) {
-        if (
-          err.response &&
-          (err.response.status === 401 || err.response.status === 403)
-        ) {
+        if (err.response && (err.response.status === 401 || err.response.status === 403)) {
           setError("Sesión expirada o inválida. Inicie sesión nuevamente.");
           localStorage.removeItem("authToken");
           router.push("/");
@@ -111,34 +103,22 @@ export default function EmpleadoPage() {
       stroke="currentColor"
       strokeWidth={2}
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
     </svg>
   );
   if (loading) {
     return (
       <div className="container mx-auto p-4 sm:p-6 text-start">
-        <h1 className="text-3xl font-bold mt-4 sm:mt-8 text-black">
-          Empleados
-        </h1>
-        <p className="mt-8 text-center text-lg">
-          Cargando lista de empleados...
-        </p>
+        <h1 className="text-3xl font-bold mt-4 sm:mt-8 text-black">Empleados</h1>
+        <p className="mt-8 text-center text-lg">Cargando lista de empleados...</p>
       </div>
     );
   }
   if (empleados.length === 0 && !error) {
     return (
       <div className="container mx-auto p-4 sm:p-6 text-start">
-        <h1 className="text-3xl font-bold mt-4 sm:mt-8 text-black">
-          Empleados
-        </h1>
-        <p className="mt-8 text-center text-lg text-gray-600">
-          No hay empleados registrados.
-        </p>
+        <h1 className="text-3xl font-bold mt-4 sm:mt-8 text-black">Empleados</h1>
+        <p className="mt-8 text-center text-lg text-gray-600">No hay empleados registrados.</p>
       </div>
     );
   }
@@ -147,13 +127,9 @@ export default function EmpleadoPage() {
     <div className="container mx-auto p-4 sm:p-6 text-start">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold mt-4 sm:mt-8 text-black">
-            Empleados
-          </h1>
+          <h1 className="text-3xl font-bold mt-4 sm:mt-8 text-black">Empleados</h1>
           {error && <p className="text-red-500">{error}</p>}
-          <p className="text-gray-600 mt-3 sm:mt-5">
-            Gestiona y visualiza todos los empleados de la empresa
-          </p>
+          <p className="text-gray-600 mt-3 sm:mt-5">Gestiona y visualiza todos los empleados de la empresa</p>
         </div>
         <Link
           href="/registroEmpleados"
@@ -181,9 +157,7 @@ export default function EmpleadoPage() {
       </div>
 
       <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-        <h4 className="text-lg font-semibold mb-6">
-          Lista de Empleados ({empleados.length})
-        </h4>
+        <h4 className="text-lg font-semibold mb-6">Lista de Empleados ({empleados.length})</h4>
         <div className="border border-gray-300" />
 
         {empleadosFiltrados.map((empleado) => (

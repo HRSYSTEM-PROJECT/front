@@ -2,9 +2,9 @@
 
 import axios from "axios";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { FaGoogle, FaLinkedinIn } from "react-icons/fa";
-import { CompanyRegistration, Plan } from "@/context/AuthContext.type";
+import {useEffect, useState} from "react";
+import {FaGoogle, FaLinkedinIn} from "react-icons/fa";
+import {CompanyRegistration, Plan} from "@/context/AuthContext.type";
 
 interface FormState extends CompanyRegistration {
   repeatPassword: string;
@@ -98,9 +98,7 @@ export default function RegisterComponent() {
     const fetchPlans = async () => {
       setIsPlansLoading(true);
       try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/plan`
-        );
+        const response = await axios.get(`${process.env.BACKEND_PUBLIC_API_URL}/plan`);
         setPlans(response.data);
       } catch (err) {
         console.error("Error fetching planes:", err);
@@ -111,14 +109,11 @@ export default function RegisterComponent() {
     fetchPlans();
   }, []);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value, type } = e.target;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const {name, value, type} = e.target;
     setFormInput((prev) => ({
       ...prev,
-      [name]:
-        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+      [name]: type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
     }));
   };
 
@@ -133,9 +128,7 @@ export default function RegisterComponent() {
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{12,}$/;
 
     if (!passwordRegex.test(formInput.password)) {
-      setError(
-        "La contraseña debe tener al menos 12 caracteres, incluir una mayúscula, una minúscula y un número."
-      );
+      setError("La contraseña debe tener al menos 12 caracteres, incluir una mayúscula, una minúscula y un número.");
       return;
     }
     if (formInput.password !== formInput.repeatPassword) {
@@ -168,9 +161,7 @@ export default function RegisterComponent() {
       address: formInput.address,
       plan_id: formInput.plan_id,
       password: formInput.password,
-      logo_url:
-        formInput.logo_url ||
-        "https://www.shutterstock.com/es/search/image-not-found-icon",
+      logo_url: formInput.logo_url || "https://www.shutterstock.com/es/search/image-not-found-icon",
     };
 
     try {
@@ -184,58 +175,34 @@ export default function RegisterComponent() {
     if (type === "checkbox") return "mt-1 mr-2";
     const hasError = error && !formInput[name];
     return `w-full border rounded-lg px-3 py-2 focus:ring-2 outline-none placeholder-gray-300 ${
-      hasError
-        ? "border-red-500 focus:ring-red-500"
-        : "border-gray-300 focus:ring-blue-500"
+      hasError ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500"
     }`;
   };
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-white mt-10">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white shadow-lg rounded-2xl p-8 w-200 mb-10"
-      >
-        <h2 className="text-2xl font-bold text-center mb-2 text-black">
-          Crear Empresa
-        </h2>
-        <p className="text-gray-500 text-center mb-6">
-          Completa el formulario para comenzar
-        </p>
+      <form onSubmit={handleSubmit} className="bg-white shadow-lg rounded-2xl p-8 w-200 mb-10">
+        <h2 className="text-2xl font-bold text-center mb-2 text-black">Crear Empresa</h2>
+        <p className="text-gray-500 text-center mb-6">Completa el formulario para comenzar</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Inputs.map((input) => (
             <div className="mb-4" key={input.name}>
-              <label
-                htmlFor={input.name}
-                className="block text-sm font-medium mb-1 text-black"
-              >
+              <label htmlFor={input.name} className="block text-sm font-medium mb-1 text-black">
                 {input.label}
               </label>
               <input
                 type={input.type}
                 name={input.name}
                 placeholder={input.placeholder}
-                value={
-                  input.type === "checkbox"
-                    ? undefined
-                    : (formInput[input.name as keyof FormState] as string)
-                }
-                checked={
-                  input.type === "checkbox"
-                    ? (formInput[input.name as keyof FormState] as boolean)
-                    : undefined
-                }
+                value={input.type === "checkbox" ? undefined : (formInput[input.name as keyof FormState] as string)}
+                checked={input.type === "checkbox" ? (formInput[input.name as keyof FormState] as boolean) : undefined}
                 onChange={handleInputChange}
-                className={`text-sm ${getInputClass(
-                  input.name as keyof FormState,
-                  input.type
-                )}`}
+                className={`text-sm ${getInputClass(input.name as keyof FormState, input.type)}`}
               />
               {input.name === "password" && (
                 <p className="text-xs text-gray-500 mt-1">
-                  La contraseña debe tener al menos 12 caracteres, una
-                  mayúscula, una minúscula y un número.
+                  La contraseña debe tener al menos 12 caracteres, una mayúscula, una minúscula y un número.
                 </p>
               )}
             </div>
@@ -253,9 +220,7 @@ export default function RegisterComponent() {
               name="plan_id"
               id="plan_id"
               value={formInput.plan_id}
-              onChange={(e) =>
-                setFormInput({ ...formInput, plan_id: e.target.value })
-              }
+              onChange={(e) => setFormInput({...formInput, plan_id: e.target.value})}
               required
               className="border p-2 w-full rounded"
             >
@@ -325,10 +290,7 @@ export default function RegisterComponent() {
 
         <p className="text-center text-sm text-gray-600">
           ¿Ya tienes una cuenta?{" "}
-          <a
-            href="/login"
-            className="text-blue-600 font-medium hover:underline"
-          >
+          <a href="/login" className="text-blue-600 font-medium hover:underline">
             Inicia Sesión
           </a>
         </p>

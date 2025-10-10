@@ -1,7 +1,7 @@
 "use client";
-import { UserPlus } from "lucide-react";
-import { toast } from "react-toastify";
-import { useState } from "react";
+import {UserPlus} from "lucide-react";
+import {toast} from "react-toastify";
+import {useState} from "react";
 
 interface FormData {
   first_name: string;
@@ -104,8 +104,8 @@ export default function RegistroEmpleadosPage() {
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const { name, value } = e.target;
-    setFormValues((prev) => ({ ...prev, [name]: value }));
+    const {name, value} = e.target;
+    setFormValues((prev) => ({...prev, [name]: value}));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -114,18 +114,16 @@ export default function RegistroEmpleadosPage() {
     const formattedData = {
       ...formValues,
       dni: Number(formValues.dni),
-      salary: formValues.salary
-        ? Number(parseFloat(formValues.salary).toFixed(2))
-        : undefined,
+      salary: formValues.salary ? Number(parseFloat(formValues.salary).toFixed(2)) : undefined,
     };
 
     try {
-      if (!process.env.NEXT_PUBLIC_API_URL) {
+      if (!process.env.BACKEND_PUBLIC_API_URL) {
         throw new Error("La URL de la API no está definida");
       }
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/empleado`, {
+      const res = await fetch(`${process.env.BACKEND_PUBLIC_API_URL}/empleado`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type": "application/json"},
         credentials: "include",
         body: JSON.stringify(formattedData),
       });
@@ -134,7 +132,7 @@ export default function RegistroEmpleadosPage() {
       try {
         data = await res.json();
       } catch {
-        data = { message: "No se pudo parsear la respuesta del servidor" };
+        data = {message: "No se pudo parsear la respuesta del servidor"};
       }
 
       if (!res.ok) throw new Error(data.message || "Error desconocido");
@@ -142,13 +140,13 @@ export default function RegistroEmpleadosPage() {
       toast.success("Empleado creado con éxito");
       handleCancel();
 
-      const meRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+      const meRes = await fetch(`${process.env.BACKEND_PUBLIC_API_URL}/auth/me`, {
         credentials: "include",
       });
 
       const meData = await meRes.json();
       console.log("Usuario logueado:", meData);
-    } catch (error){
+    } catch (error) {
       if (error instanceof Error) {
         toast.error(`Error: ${error.message}`);
       }
@@ -172,33 +170,19 @@ export default function RegistroEmpleadosPage() {
 
   return (
     <div className="container mx-auto p-4 sm:p-6 text-start">
-      <h1 className="text-3xl font-bold mt-4 sm:mt-8 text-black">
-        Registro de Empleados
-      </h1>
-      <p className="text-gray-600 mt-3 sm:mt-5">
-        Complete el siguiente formulario para registrar un nuevo empleado.
-      </p>
+      <h1 className="text-3xl font-bold mt-4 sm:mt-8 text-black">Registro de Empleados</h1>
+      <p className="text-gray-600 mt-3 sm:mt-5">Complete el siguiente formulario para registrar un nuevo empleado.</p>
 
       <div className="mt-6 sm:mt-8 p-4 sm:p-6 bg-white rounded-lg shadow-lg">
         <div className="mb-6 pb-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">
-            Información Personal
-          </h2>
-          <p className="mt-1 text-sm text-gray-500">
-            Datos personales del empleado
-          </p>
+          <h2 className="text-xl font-semibold text-gray-800">Información Personal</h2>
+          <p className="mt-1 text-sm text-gray-500">Datos personales del empleado</p>
         </div>
 
-        <form
-          className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4"
-          onSubmit={handleSubmit}
-        >
+        <form className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4" onSubmit={handleSubmit}>
           {Inputs.map((input) => (
             <div key={input.name} className="flex flex-col">
-              <label
-                htmlFor={input.name}
-                className="mb-1 text-sm font-medium text-gray-700"
-              >
+              <label htmlFor={input.name} className="mb-1 text-sm font-medium text-gray-700">
                 {input.label}
               </label>
               <input
