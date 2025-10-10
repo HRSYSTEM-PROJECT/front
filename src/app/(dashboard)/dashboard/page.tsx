@@ -66,7 +66,7 @@ export default function DashboardPage() {
   // useEffect(() => {
   //   const fetchEmpresa = async () => {
   //     try {
-  //       const res = await fetch(`${process.env.BACKEND_PUBLIC_API_URL}/auth/me`, {
+  //       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/me`, {
   //         credentials: "include",
   //       });
   //       if (!res.ok) {

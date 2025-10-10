@@ -14,7 +14,7 @@ interface AuthContextType {
   // startLoginRedirect: (email: string, password: string) => Promise<void>;
 }
 
-const API_BASE_URL = process.env.BACKEND_PUBLIC_API_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 

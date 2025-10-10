@@ -118,10 +118,10 @@ export default function RegistroEmpleadosPage() {
     };
 
     try {
-      if (!process.env.BACKEND_PUBLIC_API_URL) {
+      if (!process.env.NEXT_PUBLIC_BACKEND_API_URL) {
         throw new Error("La URL de la API no está definida");
       }
-      const res = await fetch(`${process.env.BACKEND_PUBLIC_API_URL}/empleado`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         credentials: "include",
@@ -140,7 +140,7 @@ export default function RegistroEmpleadosPage() {
       toast.success("Empleado creado con éxito");
       handleCancel();
 
-      const meRes = await fetch(`${process.env.BACKEND_PUBLIC_API_URL}/auth/me`, {
+      const meRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/me`, {
         credentials: "include",
       });
 

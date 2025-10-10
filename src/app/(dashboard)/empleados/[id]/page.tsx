@@ -31,7 +31,7 @@ export default function EmpleadoDetailsPage({params}: Params) {
     }
 
     try {
-      const response = await axios.get(`${process.env.BACKEND_PUBLIC_API_URL}/empleado/${id}`, {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado/${id}`, {
         headers: {
           Authorization: `Bearer ${authToken}`,
         },

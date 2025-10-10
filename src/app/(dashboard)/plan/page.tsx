@@ -10,7 +10,7 @@ export default function PlanesPage() {
   useEffect(() => {
     const fetchPlans = async () => {
       try {
-        const response = await axios.get(`${process.env.BACKEND_PUBLIC_API_URL}/plan`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/plan`);
         setCurrentPlan(response.data.name);
         console.log(response.data);
       } catch (err) {

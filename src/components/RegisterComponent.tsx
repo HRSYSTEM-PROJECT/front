@@ -98,7 +98,7 @@ export default function RegisterComponent() {
     const fetchPlans = async () => {
       setIsPlansLoading(true);
       try {
-        const response = await axios.get(`${process.env.BACKEND_PUBLIC_API_URL}/plan`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/plan`);
         setPlans(response.data);
       } catch (err) {
         console.error("Error fetching planes:", err);
