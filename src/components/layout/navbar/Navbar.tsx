@@ -1,10 +1,9 @@
 "use client";
 import Link from "next/link";
-import { useAuth } from "../../../context/AuthContextProvider";
-import { LoginButton } from "@/components/LoginButton";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 
 export function Navbar() {
-  const { isAuthenticated, logout, company } = useAuth();
+  const isLoggedIn = true;
 
   const buttonClass =
     "px-4 py-2 rounded-md text-white font-medium bg-[#083E96] hover:bg-[#0a4ebb] transition-colors shadow-md whitespace-nowrap";
@@ -24,18 +23,20 @@ export function Navbar() {
             </div>
             <span className="text-2xl font-semibold text-black">SYSTEM</span>
           </Link>
-          {/* <Link
-            href="https://back-8cv1.onrender.com/login"
-            className={loginButtonClass}
-          >
-            Iniciar Sesión
-          </Link>
-          <Link href="/register" className={buttonClass}>
-            Registrarse
-          </Link> */}
-
           <div className="flex items-center gap-4">
-            <LoginButton />
+
+            <SignedOut>
+              <SignInButton mode="modal" fallbackRedirectUrl="/dashboard">
+                <button className="font-medium text-black hover:bg-[#0E6922] hover:text-white px-4 py-2 rounded-md transition-colors duration-300 whitespace-nowrap">
+                  Iniciar Sesión
+                </button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
+
+            
             <Link href="/register" className={buttonClass}>
               Registrarse
             </Link>

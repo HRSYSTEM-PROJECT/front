@@ -12,26 +12,26 @@ import {
 } from "lucide-react";
 import MetricsCards from "@/components/metricas/MetricsCards";
 
-interface Empresa {
-  id: string;
-  trade_name: string;
-  legal_name: string;
-  address: string;
-  phone_number: string;
-  email: string;
-  logo?: string;
-  created_at?: string;
-  token?: string;
-}
+// interface Empresa {
+//   id: string;
+//   trade_name: string;
+//   legal_name: string;
+//   address: string;
+//   phone_number: string;
+//   email: string;
+//   logo?: string;
+//   created_at?: string;
+//   token?: string;
+// }
 
-interface Employee {
-  id: number;
-  first_name: string;
-  last_name: string;
-  salary?: string;
-  estado?: string;
-  ausencias?: number;
-}
+// interface Employee {
+//   id: number;
+//   first_name: string;
+//   last_name: string;
+//   salary?: string;
+//   estado?: string;
+//   ausencias?: number;
+// }
 
 const admins = [
   {
@@ -69,10 +69,10 @@ const Avatar = ({ name }: { name: string }) => {
 };
 
 export default function DashboardPage() {
-  const [empresa, setEmpresa] = useState<Empresa | null>(null);
-  const [empleados, setEmpleados] = useState<Employee[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState<string | null>(null);
+  // const [empresa, setEmpresa] = useState<Empresa | null>(null);
+  // const [empleados, setEmpleados] = useState<Employee[]>([]);
+  // const [loading, setLoading] = useState(true);
+  // const [token, setToken] = useState<string | null>(null);
 
   // useEffect(() => {
   //   const fetchEmpresa = async () => {
@@ -120,10 +120,8 @@ export default function DashboardPage() {
       <h1 className="text-3xl font-bold">Dashboard</h1>
       <p className="text-gray-600 mb-6">
         Gestiona la información de{" "}
-        <strong className="font-bold">
-          {empresa?.trade_name || "Tu Empresa"}
-        </strong>{" "}
-        y configuración de administradores
+        <strong className="font-bold">{"Tu Empresa"}</strong> y configuración de
+        administradores
       </p>
 
       <div className="bg-white p-5 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full">
@@ -131,7 +129,7 @@ export default function DashboardPage() {
           <Building2 className="w-14 h-14 text-blue-600 bg-blue-100 p-4 rounded-md flex-shrink-0" />
           <div>
             <h4 className="text-lg font-medium text-gray-800 break-words">
-              {empresa?.trade_name || "[Nombre de la empresa]"}
+              {"[Nombre de la empresa]"}
             </h4>
           </div>
         </div>
@@ -142,7 +140,7 @@ export default function DashboardPage() {
             <div>
               <h4 className="text-gray-500 text-sm">Email</h4>
               <p className="text-gray-800 text-sm sm:text-base break-words">
-                {empresa?.email || "[Email de la empresa]"}
+                {"[Email de la empresa]"}
               </p>
             </div>
           </div>
@@ -152,7 +150,7 @@ export default function DashboardPage() {
             <div>
               <h4 className="text-gray-500 text-sm">Teléfono</h4>
               <p className="text-gray-800 text-sm sm:text-base">
-                {empresa?.phone_number || "[Teléfono de la empresa]"}
+                {"[Teléfono de la empresa]"}
               </p>
             </div>
           </div>
@@ -162,7 +160,7 @@ export default function DashboardPage() {
             <div>
               <h4 className="text-gray-500 text-sm">Dirección</h4>
               <p className="text-gray-800 text-sm sm:text-base break-words">
-                {empresa?.address || "[Dirección de la empresa]"}
+                {"[Dirección de la empresa]"}
               </p>
             </div>
           </div>
@@ -179,20 +177,20 @@ export default function DashboardPage() {
           <div className="flex items-start gap-3">
             <Users className="w-6 h-6 text-gray-900 mt-1 flex-shrink-0" />
             <div>
-              <h4 className="text-gray-500 text-sm">${empresa?.created_at}</h4>
+              <h4 className="text-gray-500 text-sm">Fecha de creación</h4>
               <p className="text-gray-800 text-sm sm:text-base">
-                Fecha de creación
+                [Fecha de creación]
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      <MetricsCards empleados={empleados} />
+      {/* <MetricsCards empleados={empleados} /> */}
 
       <div className="bg-white p-5 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full">
         <h2 className="text-lg sm:text-xl font-medium text-gray-800">
-          Información de {empresa?.trade_name || "[Nombre de la empresa]"}
+          Información de {"[Nombre de la empresa]"}
         </h2>
         <p className="text-gray-500 mb-6 text-sm sm:text-base">
           Actualiza los datos de tu empresa para mantener la información al día.
@@ -208,9 +206,7 @@ export default function DashboardPage() {
                 Nombre de la Empresa *
               </label>
               <input
-                placeholder={`${
-                  empresa?.trade_name || "[Nombre de la empresa]"
-                }`}
+                placeholder={`${"[Nombre de la empresa]"}`}
                 id="companyName"
                 className="border border-gray-300 rounded-md px-3 py-2 w-full text-sm sm:text-base"
               />
@@ -239,7 +235,7 @@ export default function DashboardPage() {
                 Email *
               </label>
               <input
-                placeholder={`${empresa?.email || "[Email de la empresa]"}`}
+                placeholder={`[Email de la empresa]`}
                 id="companyEmail"
                 type="email"
                 className="border border-gray-300 rounded-md px-3 py-2 w-full"
@@ -253,9 +249,7 @@ export default function DashboardPage() {
                 Teléfono
               </label>
               <input
-                placeholder={`${
-                  empresa?.phone_number || "[Teléfono de la empresa]"
-                }`}
+                placeholder={`[Teléfono de la empresa]`}
                 id="companyPhone"
                 type="tel"
                 className="border border-gray-300 rounded-md px-3 py-2 w-full"
@@ -269,9 +263,7 @@ export default function DashboardPage() {
                 Dirección
               </label>
               <input
-                placeholder={`${
-                  empresa?.address || "[Dirección de la empresa]"
-                }`}
+                placeholder={`[Dirección de la empresa]`}
                 id="address"
                 className="border border-gray-300 rounded-md px-3 py-2 w-full"
               />
