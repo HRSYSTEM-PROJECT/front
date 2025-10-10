@@ -22,16 +22,14 @@ export default async function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-    <html lang="en">
-      <head>
-        <link rel="icon" href="/favicon.svg" />
-      </head>
-      <body className={`${poppins.variable} antialiased`}>
-
-            <ToastProvider>{children}</ToastProvider>
-
-      </body>
-    </html>
+      <html lang="en">
+        <head>
+          <link rel="icon" href="/favicon.svg" />
+        </head>
+        <body className={`${poppins.variable} antialiased`}>
+          <ToastProvider>{children}</ToastProvider>
+        </body>
+      </html>
     </ClerkProvider>
   );
 }
