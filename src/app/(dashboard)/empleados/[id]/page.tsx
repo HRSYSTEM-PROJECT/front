@@ -1,23 +1,35 @@
 "use client";
-import {Mail, Phone, MapPin, Calendar, DollarSign, Briefcase, CheckCircle, XCircle, Edit, Trash} from "lucide-react";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  DollarSign,
+  Briefcase,
+  CheckCircle,
+  XCircle,
+  Edit,
+  Trash,
+} from "lucide-react";
 
 import axios from "axios";
-import React, {useEffect, useState} from "react";
-import {Empleado} from "../page";
-import {useAuth} from "@clerk/nextjs";
+import React, { useEffect, useState } from "react";
+import Swal from "sweetalert2";
+import { Empleado } from "../page";
+import { useAuth } from "@clerk/nextjs";
 
 interface Params {
-  params: {id: string};
+  params: { id: string };
 }
 
-export default function EmpleadoDetailsPage({params}: Params) {
-  const {id} = params;
+export default function EmpleadoDetailsPage({ params }: Params) {
+  const { id } = params;
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [empleadoDetails, setEmpleadoDetails] = useState<Empleado | null>(null);
 
   // Obtener getToken e isLoaded de Clerk
-  const {getToken, isLoaded} = useAuth();
+  const { getToken, isLoaded } = useAuth();
 
   const fetchEmpleadoDetails = async () => {
     // Verifica si Clerk está cargado antes de continuar
@@ -37,11 +49,15 @@ export default function EmpleadoDetailsPage({params}: Params) {
     }
 
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado/${id}`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
+
       setEmpleadoDetails(response.data);
     } catch (err) {
       console.error("Error al cargar detalles del empleado:", err);
@@ -49,7 +65,9 @@ export default function EmpleadoDetailsPage({params}: Params) {
       if (axios.isAxiosError(err)) {
         if (err.response) {
           if (err.response.status === 401 || err.response.status === 403) {
-            setError("Error de autenticación con el servidor. Intente recargar.");
+            setError(
+              "Error de autenticación con el servidor. Intente recargar."
+            );
           } else if (err.response.status === 404) {
             setError("Empleado no encontrado.");
           } else {
@@ -72,8 +90,66 @@ export default function EmpleadoDetailsPage({params}: Params) {
     }
   }, [id, isLoaded]); // Se agregó isLoaded a las dependencias
 
+   const handleDelete = async () => {
+    const result = await Swal.fire({
+      title: "¿Eliminar empleado?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const authToken = await getToken();
+        await axios.delete(
+          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado/${id}`,
+          { headers: { Authorization: `Bearer ${authToken}` } }
+        );
+        Swal.fire({
+          icon: "success",
+          title: "Empleado eliminado",
+          text: "El empleado fue eliminado correctamente.",
+        });
+      } catch (err) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Ocurrió un problema al eliminar el empleado.",
+        });
+      }
+    }
+  };
+
+  // 🔹 Confirmación para editar (ejemplo simple)
+  const handleEdit = async () => {
+    const result = await Swal.fire({
+      title: "¿Editar empleado?",
+      text: "¿Deseas modificar los datos de este empleado?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Sí, editar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (result.isConfirmed) {
+      Swal.fire({
+        icon: "info",
+        title: "Función no implementada",
+        text: "Aquí podrías redirigir a un formulario de edición.",
+      });
+    }
+  };
+
   if (loading) {
-    return <div className="container mx-auto p-8 text-center text-gray-600">Cargando detalles del empleado...</div>;
+    return (
+      <div className="container mx-auto p-8 text-center text-gray-600">
+        Cargando detalles del empleado...
+      </div>
+    );
   }
 
   if (error) {
@@ -94,13 +170,19 @@ export default function EmpleadoDetailsPage({params}: Params) {
           <h1 className="text-2xl sm:text-3xl font-bold mt-4 sm:mt-8 text-black">
             {empleado.first_name} {empleado.last_name}
           </h1>
-          <p className="text-gray-600 mt-2 sm:mt-4 text-sm sm:text-base">[Puesto o rol del empleado]</p>
+          <p className="text-gray-600 mt-2 sm:mt-4 text-sm sm:text-base">
+            [Puesto o rol del empleado]
+          </p>
         </div>
         <div className="flex gap-3">
-          <button className="bg-transparent hover:bg-green-700 text-black hover:text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-300 flex items-center gap-2">
+          <button 
+          onClick={handleEdit}
+          className="bg-transparent hover:bg-green-700 text-black hover:text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-300 flex items-center gap-2">
             <Edit className="h-4 w-4" /> Editar
           </button>
-          <button className="bg-red-700 hover:bg-red-800 text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-100 flex items-center gap-2 ">
+          <button 
+          onClick={handleDelete}
+          className="bg-red-700 hover:bg-red-800 text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-100 flex items-center gap-2 ">
             <Trash className="h-4 w-4" /> Eliminar
           </button>
         </div>
@@ -108,7 +190,9 @@ export default function EmpleadoDetailsPage({params}: Params) {
       <div className="min-h-screen bg-gray-100 mt-10 sm:mt-6 rounded-lg">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full">
           <div className="lg:col-span-2 bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Información Personal</h2>
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">
+              Información Personal
+            </h2>
             <p className="text-gray-500 mb-4">Datos personales del empleado</p>
 
             <div className="flex flex-col gap-4 text-gray-700">
@@ -166,19 +250,28 @@ export default function EmpleadoDetailsPage({params}: Params) {
               <h2 className="text-lg font-semibold mb-2">Estado</h2>
               <div className="flex items-center gap-3">
                 <span className="text-gray-500">Estado Actual</span>
-                <span className="bg-green-100 text-green-700 font-medium px-3 py-1 rounded-full text-sm">Activo</span>
+                <span className="bg-green-100 text-green-700 font-medium px-3 py-1 rounded-full text-sm">
+                  Activo
+                </span>
               </div>
             </div>
           </div>
 
           <div className="lg:col-span-2 bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Información Laboral</h2>
-            <p className="text-gray-500 mb-4">Datos relacionados con el empleo</p>
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">
+              Información Laboral
+            </h2>
+            <p className="text-gray-500 mb-4">
+              Datos relacionados con el empleo
+            </p>
 
             <div className="grid sm:grid-cols-2 gap-4 text-gray-700">
               <div className="flex items-center gap-2">
                 <Calendar className="w-10 h-10 text-green-600 bg-green-100 p-2 rounded-md flex-shrink-0" />
-                <span>Fecha de Ingreso: {new Date(empleado.created_at).toLocaleDateString("es-ES")}</span>
+                <span>
+                  Fecha de Ingreso:{" "}
+                  {new Date(empleado.created_at).toLocaleDateString("es-ES")}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <Briefcase className="w-10 h-10 text-green-600 bg-green-100 p-2 rounded-md flex-shrink-0" />
@@ -190,7 +283,9 @@ export default function EmpleadoDetailsPage({params}: Params) {
               </div>
               <div className="flex align-center gap-2">
                 <span className="font-medium">Tipo de Contrato:</span>
-                <span className="font-medium text-gray-700 inline-block w-max">Tiempo Indefinido</span>
+                <span className="font-medium text-gray-700 inline-block w-max">
+                  Tiempo Indefinido
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="font-medium">Categoría Laboral:</span>
@@ -209,7 +304,10 @@ export default function EmpleadoDetailsPage({params}: Params) {
                   <span className="font-medium">92%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-green-500 h-2 rounded-full" style={{width: "92%"}}></div>
+                  <div
+                    className="bg-green-500 h-2 rounded-full"
+                    style={{ width: "92%" }}
+                  ></div>
                 </div>
               </div>
 
@@ -219,7 +317,10 @@ export default function EmpleadoDetailsPage({params}: Params) {
                   <span className="font-medium">88%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-blue-500 h-2 rounded-full" style={{width: "88%"}}></div>
+                  <div
+                    className="bg-blue-500 h-2 rounded-full"
+                    style={{ width: "88%" }}
+                  ></div>
                 </div>
               </div>
 
