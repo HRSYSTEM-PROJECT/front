@@ -1,7 +1,16 @@
 "use client";
-import {useEffect, useState} from "react";
-import {Users, Building2, Mail, Phone, MapPin, Save, UserPlus, Key} from "lucide-react";
-import {useAuth} from "@clerk/nextjs";
+import { useEffect, useState } from "react";
+import {
+  Users,
+  Building2,
+  Mail,
+  Phone,
+  MapPin,
+  Save,
+  UserPlus,
+  Key,
+} from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
 import MetricsCards from "@/components/metricas/MetricsCards";
 
 // interface Empresa {
@@ -42,7 +51,7 @@ const admins = [
   },
 ];
 
-const Avatar = ({name}: {name: string}) => {
+const Avatar = ({ name }: { name: string }) => {
   const names = name.split(" ");
   const initials = names
     .map((n) => n[0])
@@ -52,15 +61,16 @@ const Avatar = ({name}: {name: string}) => {
   const colors = "bg-[#083E96] text-white";
 
   return (
-    <div className={`flex items-center justify-center h-10 w-10 rounded-full ${colors} flex-shrink-0`}>
+    <div
+      className={`flex items-center justify-center h-10 w-10 rounded-full ${colors} flex-shrink-0`}
+    >
       <span className="text-sm font-medium">{initials}</span>
     </div>
   );
 };
 
-const {isLoaded, getToken} = useAuth();
-
 export default function DashboardPage() {
+  const { isLoaded, getToken } = useAuth();
   // const [empresa, setEmpresa] = useState<Empresa | null>(null);
   // const [empleados, setEmpleados] = useState<Employee[]>([]);
   // const [loading, setLoading] = useState(true);
@@ -111,7 +121,8 @@ export default function DashboardPage() {
     <div className="container mx-auto px-4 sm:px-6 py-4 text-start max-w-full overflow-x-hidden">
       <h1 className="text-3xl font-bold">Dashboard</h1>
       <p className="text-gray-600 mb-6">
-        Gestiona la información de <strong className="font-bold">{"Tu Empresa"}</strong> y configuración de
+        Gestiona la información de{" "}
+        <strong className="font-bold">{"Tu Empresa"}</strong> y configuración de
         administradores
       </p>
 
@@ -119,7 +130,9 @@ export default function DashboardPage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
           <Building2 className="w-14 h-14 text-blue-600 bg-blue-100 p-4 rounded-md flex-shrink-0" />
           <div>
-            <h4 className="text-lg font-medium text-gray-800 break-words">{"[Nombre de la empresa]"}</h4>
+            <h4 className="text-lg font-medium text-gray-800 break-words">
+              {"[Nombre de la empresa]"}
+            </h4>
           </div>
         </div>
 
@@ -128,7 +141,9 @@ export default function DashboardPage() {
             <Mail className="w-6 h-6 text-gray-900 mt-1 flex-shrink-0" />
             <div>
               <h4 className="text-gray-500 text-sm">Email</h4>
-              <p className="text-gray-800 text-sm sm:text-base break-words">{"[Email de la empresa]"}</p>
+              <p className="text-gray-800 text-sm sm:text-base break-words">
+                {"[Email de la empresa]"}
+              </p>
             </div>
           </div>
 
@@ -136,7 +151,9 @@ export default function DashboardPage() {
             <Phone className="w-6 h-6 text-gray-900 mt-1 flex-shrink-0" />
             <div>
               <h4 className="text-gray-500 text-sm">Teléfono</h4>
-              <p className="text-gray-800 text-sm sm:text-base">{"[Teléfono de la empresa]"}</p>
+              <p className="text-gray-800 text-sm sm:text-base">
+                {"[Teléfono de la empresa]"}
+              </p>
             </div>
           </div>
 
@@ -144,7 +161,9 @@ export default function DashboardPage() {
             <MapPin className="w-6 h-6 text-gray-900 mt-1 flex-shrink-0" />
             <div>
               <h4 className="text-gray-500 text-sm">Dirección</h4>
-              <p className="text-gray-800 text-sm sm:text-base break-words">{"[Dirección de la empresa]"}</p>
+              <p className="text-gray-800 text-sm sm:text-base break-words">
+                {"[Dirección de la empresa]"}
+              </p>
             </div>
           </div>
 
@@ -152,14 +171,18 @@ export default function DashboardPage() {
             <Users className="w-6 h-6 text-gray-900 mt-1 flex-shrink-0" />
             <div>
               <h4 className="text-gray-500 text-sm">Empleados</h4>
-              <p className="text-gray-800 text-sm sm:text-base">[Cantidad de empleados]</p>
+              <p className="text-gray-800 text-sm sm:text-base">
+                [Cantidad de empleados]
+              </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <Users className="w-6 h-6 text-gray-900 mt-1 flex-shrink-0" />
             <div>
               <h4 className="text-gray-500 text-sm">Fecha de creación</h4>
-              <p className="text-gray-800 text-sm sm:text-base">[Fecha de creación]</p>
+              <p className="text-gray-800 text-sm sm:text-base">
+                [Fecha de creación]
+              </p>
             </div>
           </div>
         </div>
@@ -168,7 +191,9 @@ export default function DashboardPage() {
       {/* <MetricsCards empleados={empleados} /> */}
 
       <div className="bg-white p-5 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full">
-        <h2 className="text-lg sm:text-xl font-medium text-gray-800">Información de {"[Nombre de la empresa]"}</h2>
+        <h2 className="text-lg sm:text-xl font-medium text-gray-800">
+          Información de {"[Nombre de la empresa]"}
+        </h2>
         <p className="text-gray-500 mb-6 text-sm sm:text-base">
           Actualiza los datos de tu empresa para mantener la información al día.
         </p>
@@ -176,7 +201,10 @@ export default function DashboardPage() {
         <form className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div className="flex flex-col gap-2">
-              <label htmlFor="companyName" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="companyName"
+                className="text-sm font-medium text-gray-700"
+              >
                 Nombre de la Empresa *
               </label>
               <input
@@ -186,7 +214,10 @@ export default function DashboardPage() {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label htmlFor="industry" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="industry"
+                className="text-sm font-medium text-gray-700"
+              >
                 Industria
               </label>
               <input
@@ -199,7 +230,10 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col gap-2">
-              <label htmlFor="companyEmail" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="companyEmail"
+                className="text-sm font-medium text-gray-700"
+              >
                 Email *
               </label>
               <input
@@ -210,7 +244,10 @@ export default function DashboardPage() {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label htmlFor="companyPhone" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="companyPhone"
+                className="text-sm font-medium text-gray-700"
+              >
                 Teléfono
               </label>
               <input
@@ -221,7 +258,10 @@ export default function DashboardPage() {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <label htmlFor="address" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="address"
+                className="text-sm font-medium text-gray-700"
+              >
                 Dirección
               </label>
               <input
@@ -233,7 +273,10 @@ export default function DashboardPage() {
 
             <div className="md:grid-cols-2 gap-6">
               <div className="flex flex-col gap-2">
-                <label htmlFor="taxId" className="text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="taxId"
+                  className="text-sm font-medium text-gray-700"
+                >
                   CUIT
                 </label>
                 <input
@@ -256,7 +299,9 @@ export default function DashboardPage() {
 
       <div className="bg-white p-5 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full">
         <h2 className="text-lg font-medium text-gray-800">Administradores</h2>
-        <p className="text-gray-500 mb-6 text-sm sm:text-base">Gestiona los usuarios con acceso administrativo</p>
+        <p className="text-gray-500 mb-6 text-sm sm:text-base">
+          Gestiona los usuarios con acceso administrativo
+        </p>
 
         {admins.map((admin) => (
           <div
@@ -278,7 +323,9 @@ export default function DashboardPage() {
           </div>
         ))}
 
-        <h2 className="text-lg font-medium text-gray-800 mt-10">Agregar nuevo administrador</h2>
+        <h2 className="text-lg font-medium text-gray-800 mt-10">
+          Agregar nuevo administrador
+        </h2>
         <button className="mt-6 flex flex-wrap items-center justify-center sm:justify-start gap-2 bg-[#083E96] hover:bg-[#0a4ebb] text-white px-4 py-2 rounded-md transition text-sm sm:text-base">
           <UserPlus className="h-4 w-4" />
           Agregar Administrador
@@ -286,12 +333,19 @@ export default function DashboardPage() {
       </div>
 
       <div className="bg-white p-5 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full">
-        <h2 className="text-lg font-medium text-gray-800">Cambiar Contraseña</h2>
-        <p className="text-gray-500 mb-6 text-sm sm:text-base">Actualiza tu contraseña de acceso.</p>
+        <h2 className="text-lg font-medium text-gray-800">
+          Cambiar Contraseña
+        </h2>
+        <p className="text-gray-500 mb-6 text-sm sm:text-base">
+          Actualiza tu contraseña de acceso.
+        </p>
 
         <form className="flex flex-col gap-6">
           <div className="flex flex-col gap-2">
-            <label htmlFor="currentPassword" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="currentPassword"
+              className="text-sm font-medium text-gray-700"
+            >
               Contraseña Actual *
             </label>
             <input
@@ -302,7 +356,10 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label htmlFor="newPassword" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="newPassword"
+              className="text-sm font-medium text-gray-700"
+            >
               Nueva Contraseña *
             </label>
             <input
@@ -313,7 +370,10 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+            <label
+              htmlFor="confirmPassword"
+              className="text-sm font-medium text-gray-700"
+            >
               Confirmar Nueva Contraseña *
             </label>
             <input
