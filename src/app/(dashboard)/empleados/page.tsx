@@ -1,10 +1,10 @@
 "use client";
 
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
-import {UserPlus} from "lucide-react";
-import {useAuth} from "@clerk/nextjs";
+import { UserPlus } from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
 
 export interface Empleado {
   id: number;
@@ -21,7 +21,7 @@ export interface Empleado {
   age?: number;
   created_at: string;
 }
-const Avatar = ({name}: {name: string}) => {
+const Avatar = ({ name }: { name: string }) => {
   const names = name.split(" ");
   const initials = names
     .map((n) => n[0])
@@ -31,7 +31,9 @@ const Avatar = ({name}: {name: string}) => {
   const colors = "bg-[#083E96] text-white";
 
   return (
-    <div className={`flex items-center justify-center h-10 w-10 rounded-full ${colors} flex-shrink-0`}>
+    <div
+      className={`flex items-center justify-center h-10 w-10 rounded-full ${colors} flex-shrink-0`}
+    >
       <span className="text-sm font-medium">{initials}</span>
     </div>
   );
@@ -43,8 +45,7 @@ export default function EmpleadoPage() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
 
-  //-----Token desde Clerk-----//
-  const {getToken, isLoaded} = useAuth(); // isLoaded se usa para el useEffect
+  const { getToken, isLoaded } = useAuth();
 
   const fetchEmpleados = async () => {
     if (!isLoaded) {
@@ -54,31 +55,49 @@ export default function EmpleadoPage() {
     setLoading(true);
     setError("");
 
-    // 1. Obtener el token de sesión (JWT) de Clerk
     const authToken = await getToken();
 
     if (!authToken) {
-      // Esto solo debería ocurrir si hay un problema en Clerk después de la carga inicial.
       setError("No se pudo obtener el token de autenticación.");
       setLoading(false);
       return;
     }
 
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado`,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
       setEmpleados(response.data);
     } catch (err) {
       console.error(err);
 
       if (axios.isAxiosError(err)) {
-        if (err.response && (err.response.status === 401 || err.response.status === 403)) {
-          setError("Error de autenticación con el servidor. Intente recargar.");
+        if (err.response) {
+          // Agrega esto para ver si el servidor envía un mensaje de error en el cuerpo
+          const serverMessage =
+            err.response.data?.message || err.response.data?.error || "";
+          console.log("Mensaje del servidor (500):", serverMessage);
+
+          if (err.response.status === 401 || err.response.status === 403) {
+            setError(
+              "Error de autenticación con el servidor. Intente recargar."
+            );
+          } else if (err.response.status === 500) {
+            // Muestra el mensaje de error si existe, sino un mensaje genérico
+            setError(
+              serverMessage ||
+                "Error interno del servidor (500). Consulte los logs del backend."
+            );
+          } else {
+            setError("No se pudieron cargar los empleados.");
+          }
         } else {
-          setError("No se pudieron cargar los empleados.");
+          setError("Error de red: El servidor no respondió.");
         }
       } else {
         setError("Ocurrió un error inesperado.");
@@ -88,12 +107,11 @@ export default function EmpleadoPage() {
     }
   };
 
-  // El useEffect se ejecuta solo cuando Clerk haya terminado de cargar.
   useEffect(() => {
     if (isLoaded) {
       fetchEmpleados();
     }
-  }, [isLoaded]); // Se ejecuta cuando isLoaded cambia
+  }, [isLoaded]);
 
   const empleadosFiltrados = empleados.filter((empleado) => {
     const busquedaLower = search.toLowerCase();
@@ -112,15 +130,23 @@ export default function EmpleadoPage() {
       stroke="currentColor"
       strokeWidth={2}
     >
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+      />
     </svg>
   );
 
   if (loading) {
     return (
       <div className="container mx-auto p-4 sm:p-6 text-start">
-        <h1 className="text-3xl font-bold mt-4 sm:mt-8 text-black">Empleados</h1>
-        <p className="mt-8 text-center text-lg">Cargando lista de empleados...</p>
+        <h1 className="text-3xl font-bold mt-4 sm:mt-8 text-black">
+          Empleados
+        </h1>
+        <p className="mt-8 text-center text-lg">
+          Cargando lista de empleados...
+        </p>
       </div>
     );
   }
@@ -128,8 +154,12 @@ export default function EmpleadoPage() {
   if (empleados.length === 0 && !error) {
     return (
       <div className="container mx-auto p-4 sm:p-6 text-start">
-        <h1 className="text-3xl font-bold mt-4 sm:mt-8 text-black">Empleados</h1>
-        <p className="mt-8 text-center text-lg text-gray-600">No hay empleados registrados.</p>
+        <h1 className="text-3xl font-bold mt-4 sm:mt-8 text-black">
+          Empleados
+        </h1>
+        <p className="mt-8 text-center text-lg text-gray-600">
+          No hay empleados registrados.
+        </p>
       </div>
     );
   }
@@ -138,9 +168,13 @@ export default function EmpleadoPage() {
     <div className="container mx-auto p-4 sm:p-6 text-start">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold mt-4 sm:mt-8 text-black">Empleados</h1>
+          <h1 className="text-3xl font-bold mt-4 sm:mt-8 text-black">
+            Empleados
+          </h1>
           {error && <p className="text-red-500">{error}</p>}
-          <p className="text-gray-600 mt-3 sm:mt-5">Gestiona y visualiza todos los empleados de la empresa</p>
+          <p className="text-gray-600 mt-3 sm:mt-5">
+            Gestiona y visualiza todos los empleados de la empresa
+          </p>
         </div>
         <Link
           href="/registroEmpleados"
@@ -168,7 +202,9 @@ export default function EmpleadoPage() {
       </div>
 
       <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-        <h4 className="text-lg font-semibold mb-6">Lista de Empleados ({empleados.length})</h4>
+        <h4 className="text-lg font-semibold mb-6">
+          Lista de Empleados ({empleados.length})
+        </h4>
         <div className="border border-gray-300" />
 
         {empleadosFiltrados.map((empleado) => (
