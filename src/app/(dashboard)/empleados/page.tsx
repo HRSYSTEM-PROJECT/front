@@ -5,6 +5,7 @@ import axios from "axios";
 import Link from "next/link";
 import {UserPlus} from "lucide-react";
 import {useRouter} from "next/navigation";
+import {useAuth} from "@clerk/nextjs";
 
 export interface Empleado {
   id: number;
@@ -44,16 +45,24 @@ export default function EmpleadoPage() {
   const [search, setSearch] = useState("");
   const router = useRouter();
 
+  //-----Token desde Clerk-----//
+  const {getToken, isLoaded} = useAuth(); // isLoaded se usa para el useEffect
+
   const fetchEmpleados = async () => {
+    if (!isLoaded) {
+      return;
+    }
+
     setLoading(true);
     setError("");
 
-    const authToken = localStorage.getItem("authToken");
+    // 1. Obtener el token de sesión (JWT) de Clerk
+    const authToken = await getToken({template: "session"});
 
     if (!authToken) {
-      setError("Usuario no autenticado. Por favor, inicie sesión.");
+      // Esto solo debería ocurrir si hay un problema en Clerk después de la carga inicial.
+      setError("No se pudo obtener el token de autenticación.");
       setLoading(false);
-      router.push("/");
       return;
     }
 
@@ -69,9 +78,7 @@ export default function EmpleadoPage() {
 
       if (axios.isAxiosError(err)) {
         if (err.response && (err.response.status === 401 || err.response.status === 403)) {
-          setError("Sesión expirada o inválida. Inicie sesión nuevamente.");
-          localStorage.removeItem("authToken");
-          router.push("/");
+          setError("Error de autenticación con el servidor. Intente recargar.");
         } else {
           setError("No se pudieron cargar los empleados.");
         }
@@ -82,9 +89,13 @@ export default function EmpleadoPage() {
       setLoading(false);
     }
   };
+
+  // El useEffect se ejecuta solo cuando Clerk haya terminado de cargar.
   useEffect(() => {
-    fetchEmpleados();
-  }, []);
+    if (isLoaded) {
+      fetchEmpleados();
+    }
+  }, [isLoaded]); // Se ejecuta cuando isLoaded cambia
 
   const empleadosFiltrados = empleados.filter((empleado) => {
     const busquedaLower = search.toLowerCase();
@@ -106,6 +117,7 @@ export default function EmpleadoPage() {
       <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
     </svg>
   );
+
   if (loading) {
     return (
       <div className="container mx-auto p-4 sm:p-6 text-start">
@@ -114,6 +126,7 @@ export default function EmpleadoPage() {
       </div>
     );
   }
+
   if (empleados.length === 0 && !error) {
     return (
       <div className="container mx-auto p-4 sm:p-6 text-start">
