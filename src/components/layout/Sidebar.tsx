@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 // import { useAuth } from "@/context/AuthContextProvider";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Swal from "sweetalert2";
+
 import {
   LayoutDashboard,
   Users,
@@ -57,6 +59,30 @@ export function Sidebar({
     { name: "Notificaciones", href: "/notificaciones", icon: Bell },
     { name: "Mensajería", href: "/mensajeria", icon: MessageCircle },
   ];
+
+  const handleCerrarSesion = () => {
+    Swal.fire({
+      title: "¿Cerrar sesión?",
+      text: "Se cerrará tu sesión actual.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#0E6922",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, cerrar sesión",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire({
+          title: "Sesión cerrada",
+          text: "Has cerrado sesión correctamente.",
+          icon: "success",
+          confirmButtonColor: "#0E6922",
+        }).then(() => {
+          window.location.href = "https://back-8cv1.onrender.com/logout";
+        });
+      }
+    });
+  };
 
   return (
     <aside
@@ -134,19 +160,16 @@ export function Sidebar({
           }`}
         >
           <button
-            // onClick={logout}
+            onClick={handleCerrarSesion}
             className={`flex items-center w-full p-3 rounded-lg text-black hover:bg-[#0E6922] hover:text-white border border-gray-300 transition-colors cursor-pointer ${
               isExpanded ? "justify-start" : "justify-center"
             }`}
           >
             <LogOut className="w-5 h-5 min-w-[20px]" />
             {isExpanded && (
-              <Link
-                className="ml-3 transition-opacity duration-300 "
-                href="https://back-8cv1.onrender.com/logout"
-              >
-                Cerrar Sesión
-              </Link>
+              <span className="ml-3 transition-opacity duration-300">
+                cerrar sesión
+              </span>
             )}
           </button>
         </div>
