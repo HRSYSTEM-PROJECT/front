@@ -3,8 +3,8 @@ import {Mail, Phone, MapPin, Calendar, DollarSign, Briefcase, CheckCircle, XCirc
 
 import axios from "axios";
 import React, {useEffect, useState} from "react";
-import {useRouter} from "next/dist/client/components/navigation";
 import {Empleado} from "../page";
+import {useAuth} from "@clerk/nextjs";
 
 interface Params {
   params: {id: string};
@@ -12,21 +12,27 @@ interface Params {
 
 export default function EmpleadoDetailsPage({params}: Params) {
   const {id} = params;
-  const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [empleadoDetails, setEmpleadoDetails] = useState<Empleado | null>(null);
 
+  // Obtener getToken e isLoaded de Clerk
+  const {getToken, isLoaded} = useAuth();
+
   const fetchEmpleadoDetails = async () => {
+    // Verifica si Clerk está cargado antes de continuar
+    if (!isLoaded) {
+      return;
+    }
     setLoading(true);
     setError("");
 
-    const authToken = localStorage.getItem("authToken");
+    // Obtener el token de sesión (JWT) de Clerk
+    const authToken = await getToken({template: "session"});
 
     if (!authToken) {
-      setError("Usuario no autenticado.");
+      setError("No se pudo obtener el token de autenticación.");
       setLoading(false);
-      router.push("/");
       return;
     }
 
@@ -43,8 +49,7 @@ export default function EmpleadoDetailsPage({params}: Params) {
       if (axios.isAxiosError(err)) {
         if (err.response) {
           if (err.response.status === 401 || err.response.status === 403) {
-            localStorage.removeItem("authToken");
-            router.push("/");
+            setError("Error de autenticación con el servidor. Intente recargar.");
           } else if (err.response.status === 404) {
             setError("Empleado no encontrado.");
           } else {
@@ -62,8 +67,10 @@ export default function EmpleadoDetailsPage({params}: Params) {
   };
 
   useEffect(() => {
-    fetchEmpleadoDetails();
-  }, [id]);
+    if (isLoaded && id) {
+      fetchEmpleadoDetails();
+    }
+  }, [id, isLoaded]); // Se agregó isLoaded a las dependencias
 
   if (loading) {
     return <div className="container mx-auto p-8 text-center text-gray-600">Cargando detalles del empleado...</div>;
