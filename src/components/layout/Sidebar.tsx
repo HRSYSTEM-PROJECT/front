@@ -148,7 +148,7 @@ export function Sidebar({onToggle}: {onToggle: (expanded: boolean) => void}) {
             }`}
           >
             <LogOut className="w-5 h-5 min-w-[20px]" />
-            {isExpanded && <span className="ml-3 transition-opacity duration-300">cerrar sesión</span>}
+            {isExpanded && <span className="ml-3 transition-opacity duration-300">Cerrar sesión</span>}
           </button>
         </div>
       </div>

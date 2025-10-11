@@ -64,15 +64,14 @@ export default function DashboardPage() {
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
   const [empleados, setEmpleados] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
-  // const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchEmpresa = async () => {
       if (!isLoaded) {
-        return; // Espera a que Clerk cargue
+        return;
       }
 
-      setLoading(true); // 1. Obtener el token de Clerk
+      setLoading(true);
       const authToken = await getToken();
 
       if (!authToken) {
