@@ -55,7 +55,7 @@ export default function EmpleadoPage() {
     setError("");
 
     // 1. Obtener el token de sesión (JWT) de Clerk
-    const authToken = await getToken({template: "session"});
+    const authToken = await getToken();
 
     if (!authToken) {
       // Esto solo debería ocurrir si hay un problema en Clerk después de la carga inicial.

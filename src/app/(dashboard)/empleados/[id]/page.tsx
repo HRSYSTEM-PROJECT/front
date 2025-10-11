@@ -28,7 +28,7 @@ export default function EmpleadoDetailsPage({params}: Params) {
     setError("");
 
     // Obtener el token de sesión (JWT) de Clerk
-    const authToken = await getToken({template: "session"});
+    const authToken = await getToken();
 
     if (!authToken) {
       setError("No se pudo obtener el token de autenticación.");

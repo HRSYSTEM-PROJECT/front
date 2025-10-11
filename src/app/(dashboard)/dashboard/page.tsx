@@ -73,7 +73,7 @@ export default function DashboardPage() {
       }
 
       setLoading(true); // 1. Obtener el token de Clerk
-      const authToken = await getToken({template: "session"});
+      const authToken = await getToken();
 
       if (!authToken) {
         console.error("No se pudo obtener el token de autenticación.");
