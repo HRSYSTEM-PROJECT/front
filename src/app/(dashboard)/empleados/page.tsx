@@ -4,7 +4,6 @@ import {useEffect, useState} from "react";
 import axios from "axios";
 import Link from "next/link";
 import {UserPlus} from "lucide-react";
-import {useRouter} from "next/navigation";
 import {useAuth} from "@clerk/nextjs";
 
 export interface Empleado {
@@ -43,7 +42,6 @@ export default function EmpleadoPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const router = useRouter();
 
   //-----Token desde Clerk-----//
   const {getToken, isLoaded} = useAuth(); // isLoaded se usa para el useEffect
