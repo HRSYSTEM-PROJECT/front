@@ -18,6 +18,21 @@ interface FormData {
   department_id: string;
   position_id: string;
 }
+interface Department {
+  id: string;
+  nombre: string;
+  descripcion: string;
+}
+interface Position {
+  id: string;
+  name: string;
+  description: string;
+}
+
+interface FormattedData extends Omit<FormData, "dni" | "salary"> {
+  dni: number;
+  salary?: number;
+}
 
 export default function RegistroEmpleadosPage() {
   const [formData, setFormData] = useState<FormData>({
@@ -32,8 +47,8 @@ export default function RegistroEmpleadosPage() {
     department_id: "",
     position_id: "",
   });
-  const [departments, setDepartments] = useState<any[]>([]);
-  const [positions, setPositions] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [positions, setPositions] = useState<Position[]>([]);
   const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
 
@@ -141,12 +156,13 @@ export default function RegistroEmpleadosPage() {
       return;
     }
 
-    let formattedData: any = { ...formData };
-
-    formattedData.dni = Number(formData.dni);
-    formattedData.salary = formData.salary
-      ? Number(parseFloat(formData.salary).toFixed(2))
-      : undefined;
+    const formattedData: FormattedData = {
+      ...formData,
+      dni: Number(formData.dni),
+      salary: formData.salary
+        ? Number(parseFloat(formData.salary).toFixed(2))
+        : undefined,
+    };
 
     if (formattedData.phone_number === "") {
       delete formattedData.phone_number;
