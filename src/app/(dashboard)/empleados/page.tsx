@@ -78,7 +78,6 @@ export default function EmpleadoPage() {
 
       if (axios.isAxiosError(err)) {
         if (err.response) {
-          // Agrega esto para ver si el servidor envía un mensaje de error en el cuerpo
           const serverMessage =
             err.response.data?.message || err.response.data?.error || "";
           console.log("Mensaje del servidor (500):", serverMessage);
@@ -88,7 +87,6 @@ export default function EmpleadoPage() {
               "Error de autenticación con el servidor. Intente recargar."
             );
           } else if (err.response.status === 500) {
-            // Muestra el mensaje de error si existe, sino un mensaje genérico
             setError(
               serverMessage ||
                 "Error interno del servidor (500). Consulte los logs del backend."

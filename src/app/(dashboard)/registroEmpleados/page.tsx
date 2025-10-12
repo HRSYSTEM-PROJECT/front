@@ -1,7 +1,8 @@
 "use client";
-import {UserPlus} from "lucide-react";
-import {toast} from "react-toastify";
-import {useState} from "react";
+import { UserPlus } from "lucide-react";
+import { toast } from "react-toastify";
+import { useState, useEffect } from "react";
+import { useAuth, useUser } from "@clerk/nextjs";
 
 interface FormData {
   first_name: string;
@@ -14,147 +15,101 @@ interface FormData {
   imgUrl?: string;
   salary?: string;
   email: string;
+  department_id: string;
+  position_id: string;
 }
 
-const Inputs = [
-  {
-    label: "Nombre *",
-    name: "first_name",
-    type: "text",
-    placeholder: "Nombre del empleado",
-    required: true,
-  },
-  {
-    label: "Apellido *",
-    name: "last_name",
-    type: "text",
-    placeholder: "Apellido del empleado",
-    required: true,
-  },
-  {
-    label: "DNI *",
-    name: "dni",
-    type: "number",
-    placeholder: "DNI del empleado",
-    required: true,
-  },
-  {
-    label: "CUIL *",
-    name: "cuil",
-    type: "text",
-    placeholder: "CUIL del empleado",
-    required: true,
-  },
-  {
-    label: "Número de Teléfono",
-    name: "phone_number",
-    type: "text",
-    placeholder: "Número de teléfono del empleado",
-    required: false,
-  },
-  {
-    label: "Dirección",
-    name: "address",
-    type: "text",
-    placeholder: "Dirección del empleado",
-    required: false,
-  },
-  {
-    label: "Fecha de Nacimiento",
-    name: "birthdate",
-    type: "date",
-    placeholder: "Fecha de nacimiento del empleado",
-    required: false,
-  },
-  {
-    label: "Foto del empleado",
-    name: "imgUrl",
-    type: "text",
-    placeholder: "Foto del empleado",
-    required: false,
-  },
-  {
-    label: "Salario",
-    name: "salary",
-    type: "number",
-    placeholder: "Salario del empleado",
-    required: false,
-  },
-  {
-    label: "Email *",
-    name: "email",
-    type: "email",
-    placeholder: "Email del empleado",
-    required: true,
-  },
-];
-
 export default function RegistroEmpleadosPage() {
-  const [formValues, setFormValues] = useState<FormData>({
+  const [formData, setFormData] = useState<FormData>({
     first_name: "",
     last_name: "",
     dni: "",
     cuil: "",
     phone_number: "",
-    address: "",
-    birthdate: "",
+    email: "",
     imgUrl: "",
     salary: "",
-    email: "",
+    department_id: "",
+    position_id: "",
   });
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [positions, setPositions] = useState<any[]>([]);
+  const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const {name, value} = e.target;
-    setFormValues((prev) => ({...prev, [name]: value}));
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!isLoaded || !user) {
+        console.log(
+          "DEBUG: Clerk no está cargado o no hay usuario. Omitiendo fetch inicial."
+        );
+        return;
+      }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+      const token = await getToken();
+      if (!token) {
+        console.error(
+          "ERROR-DEBUG: No se pudo obtener el token para cargar departamentos/puestos."
+        );
+        return;
+      }
 
-    const formattedData = {
-      ...formValues,
-      dni: Number(formValues.dni),
-      salary: formValues.salary ? Number(parseFloat(formValues.salary).toFixed(2)) : undefined,
+      console.log(
+        "DEBUG: Token obtenido. Intentando cargar departamentos y puestos."
+      );
+
+      const authConfig = {
+        headers: { Authorization: `Bearer ${token}` },
+      };
+
+      try {
+        const [depRes, posRes] = await Promise.all([
+          fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/departamento`,
+            authConfig
+          ),
+          fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/position`,
+            authConfig
+          ),
+        ]);
+
+        if (!depRes.ok) {
+          console.error(
+            `ERROR-FETCH: Departamento falló con estado ${depRes.status}`
+          );
+          throw new Error("Fallo en la carga de departamentos.");
+        }
+        if (!posRes.ok) {
+          console.error(
+            `ERROR-FETCH: Puesto falló con estado ${posRes.status}`
+          );
+          throw new Error("Fallo en la carga de puestos.");
+        }
+
+        const depData = await depRes.json();
+        const posData = await posRes.json();
+        console.log("DEBUG: Departamentos y puestos cargados con éxito.");
+
+        if (Array.isArray(depData)) setDepartments(depData);
+        if (Array.isArray(posData)) setPositions(posData);
+      } catch (error) {
+        console.error("Error cargando datos:", error);
+      }
     };
 
-    try {
-      if (!process.env.NEXT_PUBLIC_BACKEND_API_URL) {
-        throw new Error("La URL de la API no está definida");
-      }
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado`, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        credentials: "include",
-        body: JSON.stringify(formattedData),
-      });
+    fetchData();
+  }, [isLoaded, user, getToken]);
 
-      let data;
-      try {
-        data = await res.json();
-      } catch {
-        data = {message: "No se pudo parsear la respuesta del servidor"};
-      }
-
-      if (!res.ok) throw new Error(data.message || "Error desconocido");
-
-      toast.success("Empleado creado con éxito");
-      handleCancel();
-
-      const meRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/me`, {
-        credentials: "include",
-      });
-
-      const meData = await meRes.json();
-      console.log("Usuario logueado:", meData);
-    } catch (error) {
-      if (error instanceof Error) {
-        toast.error(`Error: ${error.message}`);
-      }
-    }
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ): void => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleCancel = () => {
-    setFormValues({
+    setFormData({
       first_name: "",
       last_name: "",
       dni: "",
@@ -165,24 +120,174 @@ export default function RegistroEmpleadosPage() {
       imgUrl: "",
       salary: "",
       email: "",
+      department_id: "",
+      position_id: "",
     });
+  };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!user) {
+      toast.error("Error: Usuario no autenticado. Inicie sesión de nuevo.");
+      return;
+    }
+
+    const token = await getToken();
+    if (!token) {
+      console.error(
+        "ERROR-DEBUG: No se pudo obtener el token para el envío del formulario."
+      );
+      toast.error("Error: No se pudo obtener el token de autenticación.");
+      return;
+    }
+
+    let formattedData: any = { ...formData };
+
+    formattedData.dni = Number(formData.dni);
+    formattedData.salary = formData.salary
+      ? Number(parseFloat(formData.salary).toFixed(2))
+      : undefined;
+
+    if (formattedData.phone_number === "") {
+      delete formattedData.phone_number;
+    }
+    if (formattedData.address === "") {
+      delete formattedData.address;
+    }
+    if (formattedData.birthdate === "") {
+      delete formattedData.birthdate;
+    }
+    if (formattedData.imgUrl === "") {
+      delete formattedData.imgUrl;
+    }
+    if (formattedData.salary === undefined) {
+      delete formattedData.salary;
+    }
+    console.log("DEBUG: Datos a enviar al backend:", formattedData);
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(formattedData),
+        }
+      );
+      console.log(
+        `DEBUG: Respuesta de la API recibida con estado: ${res.status}`
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error("ERROR-API:", data);
+        throw new Error(
+          data.message || `Error ${res.status}: Falló la creación del empleado.`
+        );
+      }
+      toast.success("Empleado creado con éxito 🎉");
+      handleCancel();
+    } catch (error) {
+      console.error("ERROR-CATCH:", error);
+      if (error instanceof Error) toast.error(`Error: ${error.message}`);
+    }
   };
 
   return (
     <div className="container mx-auto p-4 sm:p-6 text-start">
-      <h1 className="text-3xl font-bold mt-4 sm:mt-8 text-black">Registro de Empleados</h1>
-      <p className="text-gray-600 mt-3 sm:mt-5">Complete el siguiente formulario para registrar un nuevo empleado.</p>
+      <h1 className="text-3xl font-bold mt-4 sm:mt-8 text-black">
+        Registro de Empleados
+      </h1>
+      <p className="text-gray-600 mt-3 sm:mt-5">
+        Complete el siguiente formulario para registrar un nuevo empleado.
+      </p>
 
       <div className="mt-6 sm:mt-8 p-4 sm:p-6 bg-white rounded-lg shadow-lg">
-        <div className="mb-6 pb-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">Información Personal</h2>
-          <p className="mt-1 text-sm text-gray-500">Datos personales del empleado</p>
-        </div>
-
-        <form className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4" onSubmit={handleSubmit}>
-          {Inputs.map((input) => (
+        <form
+          className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4"
+          onSubmit={handleSubmit}
+        >
+          {[
+            {
+              label: "Nombre *",
+              name: "first_name",
+              type: "text",
+              placeholder: "Nombre del empleado",
+              required: true,
+            },
+            {
+              label: "Apellido *",
+              name: "last_name",
+              type: "text",
+              placeholder: "Apellido del empleado",
+              required: true,
+            },
+            {
+              label: "DNI *",
+              name: "dni",
+              type: "number",
+              placeholder: "DNI del empleado",
+              required: true,
+            },
+            {
+              label: "CUIL *",
+              name: "cuil",
+              type: "text",
+              placeholder: "CUIL del empleado",
+              required: true,
+            },
+            {
+              label: "Número de Teléfono",
+              name: "phone_number",
+              type: "text",
+              placeholder: "Número de teléfono",
+              required: false,
+            },
+            {
+              label: "Dirección",
+              name: "address",
+              type: "text",
+              placeholder: "Dirección del empleado",
+              required: false,
+            },
+            {
+              label: "Fecha de Nacimiento",
+              name: "birthdate",
+              type: "date",
+              placeholder: "Fecha de nacimiento",
+              required: false,
+            },
+            {
+              label: "Foto del empleado",
+              name: "imgUrl",
+              type: "text",
+              placeholder: "URL de la foto",
+              required: false,
+            },
+            {
+              label: "Salario",
+              name: "salary",
+              type: "number",
+              placeholder: "Salario del empleado",
+              required: false,
+            },
+            {
+              label: "Email *",
+              name: "email",
+              type: "email",
+              placeholder: "Email del empleado",
+              required: true,
+            },
+          ].map((input) => (
             <div key={input.name} className="flex flex-col">
-              <label htmlFor={input.name} className="mb-1 text-sm font-medium text-gray-700">
+              <label
+                htmlFor={input.name}
+                className="mb-1 text-sm font-medium text-gray-700"
+              >
                 {input.label}
               </label>
               <input
@@ -191,12 +296,59 @@ export default function RegistroEmpleadosPage() {
                 name={input.name}
                 placeholder={input.placeholder}
                 required={input.required}
-                value={formValues[input.name as keyof FormData] || ""}
+                value={formData[input.name as keyof FormData] || ""}
                 onChange={handleChange}
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#083E96] focus:border-[#083E96] text-sm"
               />
             </div>
           ))}
+          <div className="flex flex-col">
+            <label
+              htmlFor="department_id"
+              className="mb-1 text-sm font-medium text-gray-700"
+            >
+              Departamento *
+            </label>
+            <select
+              id="department_id"
+              name="department_id"
+              required
+              value={formData.department_id}
+              onChange={handleChange}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#083E96] focus:border-[#083E96] text-sm"
+            >
+              <option value="">Seleccione un departamento</option>
+              {departments.map((dep, index) => (
+                <option key={index} value={dep.id}>
+                  {dep.nombre}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col">
+            <label
+              htmlFor="position_id"
+              className="mb-1 text-sm font-medium text-gray-700"
+            >
+              Puesto *
+            </label>
+            <select
+              id="position_id"
+              name="position_id"
+              required
+              value={formData.position_id}
+              onChange={handleChange}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#083E96] focus:border-[#083E96] text-sm"
+            >
+              <option value="">Seleccione un puesto</option>
+              {positions.map((pos, index) => (
+                <option key={index} value={pos.id}>
+                  {pos.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div className="md:col-span-2 flex flex-col sm:flex-row gap-4 mt-6">
             <button
