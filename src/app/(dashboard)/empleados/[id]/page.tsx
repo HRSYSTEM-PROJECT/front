@@ -10,26 +10,54 @@ import {
   XCircle,
   Edit,
   Trash,
+  Trash2,
 } from "lucide-react";
-
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import Swal from "sweetalert2";
-import { Empleado } from "../page";
 import { useAuth } from "@clerk/nextjs";
+import { toast } from "react-toastify";
+import { useParams } from "next/navigation";
+import AsistenciaForm from "@/components/asistencias/FormAsistencias";
+import Swal from "sweetalert2";
 
-interface Params {
-  params: { id: string };
+interface EmpleadoDetails {
+  id: string;
+  first_name: string;
+  last_name: string;
+  dni: string;
+  cuil: string;
+  phone_number?: string;
+  address?: string;
+  birthdate?: string;
+  imgUrl?: string;
+  position?: string;
+  salary?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  email: string;
+  age?: number;
+  created_at: string;
 }
 
-export default function EmpleadoDetailsPage({ params }: Params) {
-  const { id } = params;
+interface Ausencia {
+  id: string;
+  start_date: string;
+  end_date: string;
+  description: string;
+}
+
+export default function EmpleadoDetailsPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const { id } = useParams<{ id: string }>();
+  const { getToken, isLoaded } = useAuth();
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [empleadoDetails, setEmpleadoDetails] = useState<Empleado | null>(null);
-
-  // Obtener getToken e isLoaded de Clerk
-  const { getToken, isLoaded } = useAuth();
+  const [empleado, setEmpleado] = useState<EmpleadoDetails | null>(null);
+  const [ausencias, setAusencias] = useState<Ausencia[]>([]);
 
   const fetchEmpleadoDetails = async () => {
     if (!isLoaded) {
@@ -75,32 +103,19 @@ export default function EmpleadoDetailsPage({ params }: Params) {
     const authToken = await getToken();
 
     try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado/${id}`,
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/absence`,
+        {
+          employee_id: id,
+          start_date: new Date().toISOString().split("T")[0],
+          end_date: new Date().toISOString().split("T")[0],
+          description: "Ausencia registrada automáticamente",
+        },
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
+            "Content-Type": "application/json",
           },
-        }
-      );
-
-      setEmpleadoDetails(response.data);
-    } catch (err) {
-      console.error("Error al cargar detalles del empleado:", err);
-
-      if (axios.isAxiosError(err)) {
-        if (err.response) {
-          if (err.response.status === 401 || err.response.status === 403) {
-            setError(
-              "Error de autenticación con el servidor. Intente recargar."
-            );
-          } else if (err.response.status === 404) {
-            setError("Empleado no encontrado.");
-          } else {
-            setError("Error al cargar los detalles.");
-          }
-        } else {
-          setError("Error de red o conexión al servidor.");
         }
       );
 
@@ -160,66 +175,8 @@ export default function EmpleadoDetailsPage({ params }: Params) {
     cargarDatos();
   }, [id, isLoaded]);
 
-   const handleDelete = async () => {
-    const result = await Swal.fire({
-      title: "¿Eliminar empleado?",
-      text: "Esta acción no se puede deshacer.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar",
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-    });
-
-    if (result.isConfirmed) {
-      try {
-        const authToken = await getToken();
-        await axios.delete(
-          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado/${id}`,
-          { headers: { Authorization: `Bearer ${authToken}` } }
-        );
-        Swal.fire({
-          icon: "success",
-          title: "Empleado eliminado",
-          text: "El empleado fue eliminado correctamente.",
-        });
-      } catch (err) {
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Ocurrió un problema al eliminar el empleado.",
-        });
-      }
-    }
-  };
-
-  // 🔹 Confirmación para editar (ejemplo simple)
-  const handleEdit = async () => {
-    const result = await Swal.fire({
-      title: "¿Editar empleado?",
-      text: "¿Deseas modificar los datos de este empleado?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Sí, editar",
-      cancelButtonText: "Cancelar",
-    });
-
-    if (result.isConfirmed) {
-      Swal.fire({
-        icon: "info",
-        title: "Función no implementada",
-        text: "Aquí podrías redirigir a un formulario de edición.",
-      });
-    }
-  };
-
   if (loading) {
-    return (
-      <div className="container mx-auto p-8 text-center text-gray-600">
-        Cargando detalles del empleado...
-      </div>
-    );
+    return <div className="text-center py-10">Cargando...</div>;
   }
 
   if (!empleado) {
@@ -236,18 +193,6 @@ export default function EmpleadoDetailsPage({ params }: Params) {
           <p className="text-gray-600 mt-2 sm:mt-4 text-sm sm:text-base">
             [Puesto o rol del empleado]
           </p>
-        </div>
-        <div className="flex gap-3">
-          <button 
-          onClick={handleEdit}
-          className="bg-transparent hover:bg-green-700 text-black hover:text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-300 flex items-center gap-2">
-            <Edit className="h-4 w-4" /> Editar
-          </button>
-          <button 
-          onClick={handleDelete}
-          className="bg-red-700 hover:bg-red-800 text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-100 flex items-center gap-2 ">
-            <Trash className="h-4 w-4" /> Eliminar
-          </button>
         </div>
       </div>
       <div className="min-h-screen bg-gray-100 mt-10 sm:mt-6 rounded-lg">
