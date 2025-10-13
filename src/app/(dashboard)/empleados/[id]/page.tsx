@@ -10,44 +10,63 @@ import {
   XCircle,
   Edit,
   Trash,
+  Trash2,
 } from "lucide-react";
-
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import Swal from "sweetalert2";
-import { Empleado } from "../page";
 import { useAuth } from "@clerk/nextjs";
+import { toast } from "react-toastify";
+import { useParams } from "next/navigation";
+import AsistenciaForm from "@/components/asistencias/FormAsistencias";
+import Swal from "sweetalert2";
 
-interface Params {
-  params: { id: string };
+interface EmpleadoDetails {
+  id: string;
+  first_name: string;
+  last_name: string;
+  dni: string;
+  cuil: string;
+  phone_number?: string;
+  address?: string;
+  birthdate?: string;
+  imgUrl?: string;
+  position?: string;
+  salary?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  email: string;
+  age?: number;
+  created_at: string;
 }
 
-export default function EmpleadoDetailsPage({ params }: Params) {
-  const { id } = params;
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [empleadoDetails, setEmpleadoDetails] = useState<Empleado | null>(null);
+interface Ausencia {
+  id: string;
+  start_date: string;
+  end_date: string;
+  description: string;
+}
 
-  // Obtener getToken e isLoaded de Clerk
+export default function EmpleadoDetailsPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const { id } = useParams<{ id: string }>();
   const { getToken, isLoaded } = useAuth();
 
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [empleado, setEmpleado] = useState<EmpleadoDetails | null>(null);
+  const [ausencias, setAusencias] = useState<Ausencia[]>([]);
+
   const fetchEmpleadoDetails = async () => {
-    // Verifica si Clerk está cargado antes de continuar
     if (!isLoaded) {
       return;
     }
     setLoading(true);
     setError("");
 
-    // Obtener el token de sesión (JWT) de Clerk
     const authToken = await getToken();
-
-    if (!authToken) {
-      setError("No se pudo obtener el token de autenticación.");
-      setLoading(false);
-      return;
-    }
-
     try {
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado/${id}`,
@@ -57,111 +76,112 @@ export default function EmpleadoDetailsPage({ params }: Params) {
           },
         }
       );
-
-      setEmpleadoDetails(response.data);
+      setEmpleado(response.data);
     } catch (err) {
       console.error("Error al cargar detalles del empleado:", err);
-
-      if (axios.isAxiosError(err)) {
-        if (err.response) {
-          if (err.response.status === 401 || err.response.status === 403) {
-            setError(
-              "Error de autenticación con el servidor. Intente recargar."
-            );
-          } else if (err.response.status === 404) {
-            setError("Empleado no encontrado.");
-          } else {
-            setError("Error al cargar los detalles.");
-          }
-        } else {
-          setError("Error de red o conexión al servidor.");
-        }
-      } else {
-        setError("Ocurrió un error inesperado.");
-      }
-    } finally {
-      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (isLoaded && id) {
-      fetchEmpleadoDetails();
-    }
-  }, [id, isLoaded]); // Se agregó isLoaded a las dependencias
+  const fetchAusencias = async () => {
+    if (!isLoaded) return;
+    const authToken = await getToken();
 
-   const handleDelete = async () => {
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/absence/employee/${id}`,
+        {
+          headers: { Authorization: `Bearer ${authToken}` },
+        }
+      );
+      setAusencias(res.data);
+    } catch (error) {
+      console.error("Error al obtener ausencias:", error);
+    }
+  };
+  const handleMarcarAusente = async () => {
+    if (!isLoaded) return;
+    const authToken = await getToken();
+
+    try {
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/absence`,
+        {
+          employee_id: id,
+          start_date: new Date().toISOString().split("T")[0],
+          end_date: new Date().toISOString().split("T")[0],
+          description: "Ausencia registrada automáticamente",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      toast.success("Ausencia registrada exitosamente");
+      fetchAusencias();
+    } catch (error) {
+      console.error("Error al registrar ausencia:", error);
+      toast.error("Error al registrar la ausencia");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
     const result = await Swal.fire({
-      title: "¿Eliminar empleado?",
-      text: "Esta acción no se puede deshacer.",
+      title: "¿Estás seguro?",
+      text: "Esta acción eliminará la ausencia permanentemente.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar",
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
-    });
-
-    if (result.isConfirmed) {
-      try {
-        const authToken = await getToken();
-        await axios.delete(
-          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado/${id}`,
-          { headers: { Authorization: `Bearer ${authToken}` } }
-        );
-        Swal.fire({
-          icon: "success",
-          title: "Empleado eliminado",
-          text: "El empleado fue eliminado correctamente.",
-        });
-      } catch (err) {
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Ocurrió un problema al eliminar el empleado.",
-        });
-      }
-    }
-  };
-
-  // 🔹 Confirmación para editar (ejemplo simple)
-  const handleEdit = async () => {
-    const result = await Swal.fire({
-      title: "¿Editar empleado?",
-      text: "¿Deseas modificar los datos de este empleado?",
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonText: "Sí, editar",
+      confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
     });
-
-    if (result.isConfirmed) {
+    if (!result.isConfirmed) return;
+    try {
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/absence/${id}`
+      );
+      setAusencias((prev) => prev.filter((a) => a.id !== id));
       Swal.fire({
-        icon: "info",
-        title: "Función no implementada",
-        text: "Aquí podrías redirigir a un formulario de edición.",
+        title: "Eliminada",
+        text: "La ausencia fue eliminada correctamente ✅",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        title: "Error",
+        text: "No se pudo eliminar la ausencia ❌",
+        icon: "error",
       });
     }
   };
 
+  useEffect(() => {
+    if (!isLoaded || !id) return;
+
+    const cargarDatos = async () => {
+      try {
+        await Promise.all([fetchEmpleadoDetails(), fetchAusencias()]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarDatos();
+  }, [id, isLoaded]);
+
   if (loading) {
-    return (
-      <div className="container mx-auto p-8 text-center text-gray-600">
-        Cargando detalles del empleado...
-      </div>
-    );
+    return <div className="text-center py-10">Cargando...</div>;
   }
 
-  if (error) {
-    return (
-      <div className="container mx-auto p-8 text-center text-red-600">
-        <h1 className="text-xl font-semibold">Error de Carga</h1>
-        <p>{error}</p>
-      </div>
-    );
+  if (!empleado) {
+    return <div className="text-center py-10">Empleado no encontrado</div>;
   }
-
-  const empleado = empleadoDetails as Empleado;
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-4 text-start max-w-full overflow-x-hidden">
@@ -173,18 +193,6 @@ export default function EmpleadoDetailsPage({ params }: Params) {
           <p className="text-gray-600 mt-2 sm:mt-4 text-sm sm:text-base">
             [Puesto o rol del empleado]
           </p>
-        </div>
-        <div className="flex gap-3">
-          <button 
-          onClick={handleEdit}
-          className="bg-transparent hover:bg-green-700 text-black hover:text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-300 flex items-center gap-2">
-            <Edit className="h-4 w-4" /> Editar
-          </button>
-          <button 
-          onClick={handleDelete}
-          className="bg-red-700 hover:bg-red-800 text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-100 flex items-center gap-2 ">
-            <Trash className="h-4 w-4" /> Eliminar
-          </button>
         </div>
       </div>
       <div className="min-h-screen bg-gray-100 mt-10 sm:mt-6 rounded-lg">
@@ -233,13 +241,22 @@ export default function EmpleadoDetailsPage({ params }: Params) {
 
           <div className="flex flex-col gap-4">
             <div className="bg-white rounded-lg shadow p-4">
-              <h2 className="text-lg font-semibold mb-3">Acciones Rápidas</h2>
-              <div className="flex flex-col gap-2">
-                <button className="bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-medium flex items-center justify-center gap-2 cursor-pointer">
-                  <CheckCircle className="w-4 h-4" />
-                  Marcar Presente
+              <h2 className="text-lg font-semibold mb-5 text-center">
+                Acciones Rápidas
+              </h2>
+              <div className="flex justify-between mb-4">
+                <button className="bg-transparent hover:bg-green-700 text-black hover:text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-300 flex items-center gap-2">
+                  <Edit className="h-4 w-4" /> Editar Empleado
                 </button>
-                <button className="bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium flex items-center justify-center gap-2 cursor-pointer">
+                <button className="bg-red-700 hover:bg-red-800 text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-100 flex items-center gap-2 ">
+                  <Trash className="h-4 w-4" /> Eliminar Empleado
+                </button>
+              </div>
+              <div className="flex flex-col gap-2 mt-10">
+                <button
+                  className="bg-transparent hover:bg-green-700 text-black hover:text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-300 flex items-center gap-2 w-full justify-center"
+                  onClick={handleMarcarAusente}
+                >
                   <XCircle className="w-4 h-4" />
                   Marcar Ausente
                 </button>
@@ -294,7 +311,7 @@ export default function EmpleadoDetailsPage({ params }: Params) {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-4">
+          {/* <div className="bg-white rounded-lg shadow p-4">
             <h2 className="text-lg font-semibold mb-3">Estadísticas</h2>
 
             <div className="space-y-3">
@@ -328,6 +345,63 @@ export default function EmpleadoDetailsPage({ params }: Params) {
                 <p className="text-gray-500">Días trabajados este mes</p>
                 <p className="text-2xl font-bold text-gray-800">18 días</p>
               </div>
+            </div>
+          </div> */}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full mt-6">
+          <div className="lg:col-span-2 bg-white rounded-lg shadow p-6 mt-4">
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">
+              Ausencias
+            </h2>
+            <div className="flex justify-between gap-6 mt-8">
+              <div className="flex-1 p-4 bg-white rounded-lg">
+                {ausencias.length === 0 ? (
+                  <p className="text-gray-500 italic text-center py-4">
+                    No hay ausencias registradas.
+                  </p>
+                ) : (
+                  <ul className="space-y-3">
+                    {ausencias.map((a) => (
+                      <li
+                        key={a.id}
+                        className="p-3 border border-gray-100 rounded-lg bg-white shadow-sm hover:shadow-md transition duration-200 ease-in-out"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-base font-semibold text-[#083E96]">
+                              <span className="mr-2">🗓️</span>
+                              {a.start_date === a.end_date
+                                ? a.start_date
+                                : `${a.start_date} → ${a.end_date}`}
+                            </p>
+                            <span
+                              className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full mt-2 ${
+                                a.description.includes("automáticamente")
+                                  ? "bg-blue-100 text-blue-800"
+                                  : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {a.description}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => handleDelete(a.id)}
+                            className="ml-3 hover:text-2xl hover:text-red-600 transition cursor-pointer"
+                            title="Eliminar ausencia"
+                          >
+                            <Trash2 />
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-5 mt-4">
+            <div className="flex-1 max-w-xl">
+              <AsistenciaForm id={id} onSuccess={fetchAusencias} />
             </div>
           </div>
         </div>
