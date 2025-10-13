@@ -1,5 +1,14 @@
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
 
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: string;
+  time: string | { $date: string };
+  read: boolean;
+}
+
 export const getNotifications = async (token: string) => {
   const res = await fetch(`${API_URL}/notifications`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -81,7 +90,7 @@ export const getCronNotifications = async (token: string) => {
   });
   const data = await response.json();
 
-  const cronNotifications = data.notifications.filter((n :any) =>
+  const cronNotifications = data.notifications.filter((n: Notification) =>
     ["holiday_reminder", "birthday_reminder", "subscription_expiring", "subscription_expired"].includes(n.type)
   );
 
