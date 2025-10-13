@@ -1,29 +1,89 @@
-import axios from "axios";
+const API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL; // tu backend base URL
-
-export const getNotifications = async (token: string | null) => {
-  const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/notifications`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+export const getNotifications = async (token: string) => {
+  const res = await fetch(`${API_URL}/notifications`, {
+    headers: { Authorization: `Bearer ${token}` },
   });
-  return response.data;
-  console.log("hola mundo");
+  return res.json();
 };
 
-export const markAsRead = async (id: number) => {
-  await axios.post(`${API_URL}/notifications/mark-read/${id}`);
+export const markAsRead = async (token: string, notificationId: string) => {
+  const res = await fetch(
+    `${API_URL}/notifications/mark-read/${notificationId}`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+  return res.json();
 };
 
-export const markAllAsRead = async () => {
-  await axios.post(`${API_URL}/notifications/mark-all-read`);
+export const markAllAsRead = async (token: string) => {
+  const res = await fetch(`${API_URL}/notifications/mark-all-read`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  console.log("Status:", res.status);
+  const text = await res.text();
+  console.log("Body:", text);
+
+  if (!res.ok) {
+    throw new Error(`Error al marcar todas como leídas: ${res.status}`);
+  }
 };
 
-export const deleteNotification = async (id: number) => {
-  await axios.delete(`${API_URL}/notifications/${id}`);
+export const deleteNotification = async (
+  token: string,
+  notificationId: string
+) => {
+  const res = await fetch(`${API_URL}/notifications/${notificationId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
 };
 
-export const deleteAllNotifications = async () => {
-  await axios.delete(`${API_URL}/notifications/delete-all`);
+export const scheduleReminder = async (
+  token: string,
+  title: string,
+  message: string,
+  scheduledDate: string,
+  type = "custom_notification"
+) => {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/notifications/schedule-reminder`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        title,
+        message,
+        scheduledDate,
+        type,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Error al agendar recordatorio");
+  }
+
+  return response.json();
+};
+
+export const getCronNotifications = async (token: string) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/notifications`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const data = await response.json();
+
+  const cronNotifications = data.notifications.filter((n :any) =>
+    ["holiday_reminder", "birthday_reminder", "subscription_expiring", "subscription_expired"].includes(n.type)
+  );
+
+  return cronNotifications;
 };
