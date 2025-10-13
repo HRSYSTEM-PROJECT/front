@@ -8,6 +8,12 @@ interface Employee {
   estado?: string;
   ausencias?: number;
 }
+interface ausencias {
+  id: number;
+  employeeId: number;
+  date: string;
+  reason: string;
+}
 
 export default function MetricsCards({
   empleados,
