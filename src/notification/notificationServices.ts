@@ -2,10 +2,14 @@ import axios from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL; // tu backend base URL
 
-
-export const getNotifications = async () => {
-  const res = await axios.get(`${API_URL}/notifications`);
-  return res.data;
+export const getNotifications = async (token: string | null) => {
+  const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/notifications`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+  console.log("hola mundo");
 };
 
 export const markAsRead = async (id: number) => {
