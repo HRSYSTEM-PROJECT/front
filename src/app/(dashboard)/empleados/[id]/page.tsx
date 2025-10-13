@@ -19,6 +19,7 @@ import { toast } from "react-toastify";
 import { useParams } from "next/navigation";
 import AsistenciaForm from "@/components/asistencias/FormAsistencias";
 import Swal from "sweetalert2";
+import { auth } from "@clerk/nextjs/server";
 
 interface EmpleadoDetails {
   id: string;
@@ -30,7 +31,8 @@ interface EmpleadoDetails {
   address?: string;
   birthdate?: string;
   imgUrl?: string;
-  position?: string;
+  position_id: string;
+  department_id?: string;
   salary?: number;
   createdAt?: string;
   updatedAt?: string;
@@ -46,6 +48,18 @@ interface Ausencia {
   description: string;
 }
 
+interface Department {
+  id: string;
+  nombre: string;
+  descripcion: string;
+}
+
+interface Position {
+  id: string;
+  name: string;
+  description: string;
+}
+
 export default function EmpleadoDetailsPage({
   params,
 }: {
@@ -58,6 +72,8 @@ export default function EmpleadoDetailsPage({
   const [loading, setLoading] = useState(true);
   const [empleado, setEmpleado] = useState<EmpleadoDetails | null>(null);
   const [ausencias, setAusencias] = useState<Ausencia[]>([]);
+  const [positions, setPositions] = useState<Position[]>([]); // ⬅️ Nuevo Estado
+  const [departments, setDepartments] = useState<Department[]>([]);
 
   const fetchEmpleadoDetails = async () => {
     if (!isLoaded) {
@@ -76,6 +92,7 @@ export default function EmpleadoDetailsPage({
           },
         }
       );
+      console.log("Datos del empleado:", response.data);
       setEmpleado(response.data);
     } catch (err) {
       console.error("Error al cargar detalles del empleado:", err);
@@ -127,6 +144,30 @@ export default function EmpleadoDetailsPage({
     }
   };
 
+  const fetchPositions = async (authToken: string) => {
+    try {
+      const posRes = await axios.get(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/position`,
+        { headers: { Authorization: `Bearer ${authToken}` } }
+      );
+      if (Array.isArray(posRes.data)) setPositions(posRes.data);
+    } catch (error) {
+      console.error("Error al obtener puestos:", error);
+    }
+  };
+
+  const fetchDepartments = async (authToken: string) => {
+    try {
+      const depRes = await axios.get(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/departamento`,
+        { headers: { Authorization: `Bearer ${authToken}` } }
+      );
+      if (Array.isArray(depRes.data)) setDepartments(depRes.data);
+    } catch (error) {
+      console.error("Error al obtener departamentos:", error);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     const result = await Swal.fire({
       title: "¿Estás seguro?",
@@ -163,17 +204,28 @@ export default function EmpleadoDetailsPage({
 
   useEffect(() => {
     if (!isLoaded || !id) return;
-
     const cargarDatos = async () => {
+      const authToken = await getToken();
+      if (!authToken) {
+        console.error("Error: No se pudo obtener el token de autenticación.");
+        setLoading(false);
+        return;
+      }
+
       try {
-        await Promise.all([fetchEmpleadoDetails(), fetchAusencias()]);
+        await Promise.all([
+          fetchEmpleadoDetails(),
+          fetchAusencias(),
+          fetchPositions(authToken),
+          fetchDepartments(authToken),
+        ]);
       } finally {
         setLoading(false);
       }
     };
 
     cargarDatos();
-  }, [id, isLoaded]);
+  }, [id, isLoaded, getToken]);
 
   if (loading) {
     return <div className="text-center py-10">Cargando...</div>;
@@ -182,6 +234,14 @@ export default function EmpleadoDetailsPage({
   if (!empleado) {
     return <div className="text-center py-10">Empleado no encontrado</div>;
   }
+  const currentPosition = positions.find(
+    (pos) => pos.id === empleado.position_id
+  );
+  const currentDepartment = departments.find(
+    (dep) => dep.id === empleado.department_id
+  );
+  const positionName = currentPosition?.name || "Posición no especificada";
+  const departmentName = currentDepartment?.nombre || "No asignado";
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-4 text-start max-w-full overflow-x-hidden">
@@ -191,7 +251,7 @@ export default function EmpleadoDetailsPage({
             {empleado.first_name} {empleado.last_name}
           </h1>
           <p className="text-gray-600 mt-2 sm:mt-4 text-sm sm:text-base">
-            [Puesto o rol del empleado]
+            {positionName} - {departmentName}
           </p>
         </div>
       </div>
@@ -292,7 +352,7 @@ export default function EmpleadoDetailsPage({
               </div>
               <div className="flex items-center gap-2">
                 <Briefcase className="w-10 h-10 text-green-600 bg-green-100 p-2 rounded-md flex-shrink-0" />
-                <span>Departamento: </span>
+                <span>Departamento: {departmentName}</span>
               </div>
               <div className="flex items-center gap-2">
                 <DollarSign className="w-10 h-10 text-orange-500 bg-orange-100 p-2 rounded-md flex-shrink-0" />
@@ -310,43 +370,6 @@ export default function EmpleadoDetailsPage({
               </div>
             </div>
           </div>
-
-          {/* <div className="bg-white rounded-lg shadow p-4">
-            <h2 className="text-lg font-semibold mb-3">Estadísticas</h2>
-
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span>Asistencia</span>
-                  <span className="font-medium">92%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-green-500 h-2 rounded-full"
-                    style={{ width: "92%" }}
-                  ></div>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between mb-1">
-                  <span>Desempeño</span>
-                  <span className="font-medium">88%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-500 h-2 rounded-full"
-                    style={{ width: "88%" }}
-                  ></div>
-                </div>
-              </div>
-
-              <div className="pt-2">
-                <p className="text-gray-500">Días trabajados este mes</p>
-                <p className="text-2xl font-bold text-gray-800">18 días</p>
-              </div>
-            </div>
-          </div> */}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full mt-6">
           <div className="lg:col-span-2 bg-white rounded-lg shadow p-6 mt-4">

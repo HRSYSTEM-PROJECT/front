@@ -34,22 +34,20 @@ interface Employee {
   ausencias?: number;
 }
 
-const admins = [
-  {
-    id: 1,
-    name: "Admin",
-    last_name: "Principal",
-    email: "admin@techsolutions.com",
-    role: "Super Admin",
-  },
-  {
-    id: 2,
-    name: "María",
-    last_name: "Gónzalez",
-    email: "maria.gonzalez@techsolutions.com",
-    role: "Admin",
-  },
-];
+interface Ausencia {
+  id: number;
+  employee_id: number;
+  date: string;
+  reason: string;
+}
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  first_name: string;
+  last_name: string | null;
+}
 
 const Avatar = ({ name }: { name: string }) => {
   const names = name.split(" ");
@@ -73,10 +71,13 @@ export default function DashboardPage() {
   const { isLoaded, getToken } = useAuth();
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
   const [empleados, setEmpleados] = useState<Employee[]>([]);
+  const [adminPrincipal, setAdminPrincipal] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [ausencias, setAusencias] = useState<Ausencia[]>([]);
+  const [salarioTotal, setSalarioTotal] = useState<number>(0);
 
   useEffect(() => {
-    const fetchEmpresa = async () => {
+    const fetchData = async () => {
       if (!isLoaded) {
         return;
       }
@@ -90,41 +91,90 @@ export default function DashboardPage() {
         return;
       }
 
-      try {
+      const fetchEmpresa = async () => {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/me`,
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-          }
+          { headers: { Authorization: `Bearer ${authToken}` } }
         );
-
         if (!res.ok) {
-          if (res.status === 401 || res.status === 403) {
-            console.error(
-              "Autenticación fallida con el backend. El middleware de Clerk debería haber impedido esto."
-            );
-          }
-          throw new Error(`Fallo de solicitud: ${res.status}`);
+          console.error(`Fallo de solicitud de empresa: ${res.status}`);
+          throw new Error("Error al cargar datos de la empresa.");
         }
 
         const data = await res.json();
-
         if (data && data.user && data.user.company) {
           setEmpresa(data.user.company);
         }
+        if (data && data.user) {
+          const fullName = `${data.user.first_name || ""} ${
+            data.user.last_name || ""
+          }`.trim();
+          setAdminPrincipal({
+            id: data.user.id,
+            name: fullName,
+            email: data.user.email,
+            first_name: data.user.first_name,
+            last_name: data.user.last_name,
+          });
+        }
+      };
+      const fetchEmpleados = async () => {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado`,
+          { headers: { Authorization: `Bearer ${authToken}` } }
+        );
+        if (!res.ok) {
+          console.error(`Fallo de solicitud de empleados: ${res.status}`);
+          throw new Error("Error al cargar datos de empleados.");
+        }
+
+        const data: Employee[] = await res.json();
+
+        const total = data.reduce((sum, empleado) => {
+          const salarioNumerico = empleado.salary
+            ? parseFloat(empleado.salary)
+            : 0;
+          return sum + salarioNumerico;
+        }, 0);
+        setEmpleados(data);
+        setSalarioTotal(total);
+      };
+
+      const fetchAusencias = async () => {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/absence`,
+          { headers: { Authorization: `Bearer ${authToken}` } }
+        );
+        if (!res.ok)
+          throw new Error(`Fallo de solicitud de ausencias: ${res.status}`);
+        const data = await res.json();
+        setAusencias(data);
+      };
+
+      try {
+        await Promise.all([fetchEmpresa(), fetchEmpleados(), fetchAusencias()]);
       } catch (error) {
-        console.error("Error al traer empresa:", error);
+        console.error("Fallo al cargar datos del dashboard:", error);
       } finally {
         setLoading(false);
       }
     };
 
     if (isLoaded) {
-      fetchEmpresa();
+      fetchData();
     }
   }, [isLoaded, getToken]);
+
+  const displayedAdmins = [];
+
+  if (adminPrincipal) {
+    displayedAdmins.push({
+      id: adminPrincipal.id,
+      name: adminPrincipal.name,
+      email: adminPrincipal.email,
+      role: "Super Admin",
+    });
+  }
 
   if (loading) {
     return <p>Cargando...</p>;
@@ -139,8 +189,8 @@ export default function DashboardPage() {
       <h1 className="text-3xl font-bold">Dashboard</h1>
       <p className="text-gray-600 mb-6">
         Gestiona la información de{" "}
-        <strong className="font-bold">{"Tu Empresa"}</strong> y configuración de
-        administradores
+        <strong className="font-bold">{empresa.legal_name}</strong> y
+        configuración de administradores
       </p>
 
       <div className="bg-white p-5 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full">
@@ -169,7 +219,7 @@ export default function DashboardPage() {
             <div>
               <h4 className="text-gray-500 text-sm">Teléfono</h4>
               <p className="text-gray-800 text-sm sm:text-base">
-                {"[Teléfono de la empresa]"}
+                {empresa.phone_number || "[Teléfono de la empresa]"}
               </p>
             </div>
           </div>
@@ -179,7 +229,7 @@ export default function DashboardPage() {
             <div>
               <h4 className="text-gray-500 text-sm">Dirección</h4>
               <p className="text-gray-800 text-sm sm:text-base break-words">
-                {"[Dirección de la empresa]"}
+                {empresa.address || "[Dirección de la empresa]"}
               </p>
             </div>
           </div>
@@ -189,7 +239,7 @@ export default function DashboardPage() {
             <div>
               <h4 className="text-gray-500 text-sm">Empleados</h4>
               <p className="text-gray-800 text-sm sm:text-base">
-                [Cantidad de empleados]
+                {empleados.length}
               </p>
             </div>
           </div>
@@ -198,18 +248,20 @@ export default function DashboardPage() {
             <div>
               <h4 className="text-gray-500 text-sm">Fecha de creación</h4>
               <p className="text-gray-800 text-sm sm:text-base">
-                [Fecha de creación]
+                {empresa.created_at
+                  ? new Date(empresa.created_at).toLocaleDateString()
+                  : "[Fecha de creación]"}
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      <MetricsCards empleados={empleados} />
+      <MetricsCards empleados={empleados} ausencias={ausencias} />
 
       <div className="bg-white p-5 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full">
         <h2 className="text-lg sm:text-xl font-medium text-gray-800">
-          Información de {"[Nombre de la empresa]"}
+          Información de {empresa.legal_name}
         </h2>
         <p className="text-gray-500 mb-6 text-sm sm:text-base">
           Actualiza los datos de tu empresa para mantener la información al día.
@@ -225,7 +277,9 @@ export default function DashboardPage() {
                 Nombre de la Empresa *
               </label>
               <input
-                placeholder={`${"[Nombre de la empresa]"}`}
+                placeholder={`${
+                  empresa.legal_name || "[Nombre de la empresa]"
+                }`}
                 id="companyName"
                 className="border border-gray-300 rounded-md px-3 py-2 w-full text-sm sm:text-base"
               />
@@ -254,7 +308,7 @@ export default function DashboardPage() {
                 Email *
               </label>
               <input
-                placeholder={`[Email de la empresa]`}
+                placeholder={`${empresa.email || "[Email de la empresa]"}`}
                 id="companyEmail"
                 type="email"
                 className="border border-gray-300 rounded-md px-3 py-2 w-full"
@@ -268,7 +322,9 @@ export default function DashboardPage() {
                 Teléfono
               </label>
               <input
-                placeholder={`[Teléfono de la empresa]`}
+                placeholder={`${
+                  empresa.phone_number || "[Teléfono de la empresa]"
+                }`}
                 id="companyPhone"
                 type="tel"
                 className="border border-gray-300 rounded-md px-3 py-2 w-full"
@@ -282,7 +338,9 @@ export default function DashboardPage() {
                 Dirección
               </label>
               <input
-                placeholder={`[Dirección de la empresa]`}
+                placeholder={`${
+                  empresa.address || "[Dirección de la empresa]"
+                }`}
                 id="address"
                 className="border border-gray-300 rounded-md px-3 py-2 w-full"
               />
@@ -319,17 +377,16 @@ export default function DashboardPage() {
         <p className="text-gray-500 mb-6 text-sm sm:text-base">
           Gestiona los usuarios con acceso administrativo
         </p>
-
-        {admins.map((admin) => (
+        {displayedAdmins.map((admin) => (
           <div
             key={admin.id}
             className="flex flex-col sm:flex-row sm:items-center sm:justify-between border border-gray-200 rounded-lg p-4 mb-3 hover:bg-gray-50 transition"
           >
             <div className="flex items-center gap-3 flex-wrap">
-              <Avatar name={`${admin.name} ${admin.last_name}`} />
+              <Avatar name={`${admin.name}`} />
               <div>
                 <p className="font-medium text-gray-900 text-sm sm:text-base">
-                  {admin.name} {admin.last_name}
+                  {admin.name}
                 </p>
                 <p className="text-sm text-gray-500">{admin.email}</p>
               </div>
