@@ -399,7 +399,7 @@ export default function EmpleadoDetailsPage({
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow p-4 mt-4">
+          <div className="bg-white rounded-lg shadow p-5 mt-4">
             <div className="flex-1 max-w-xl">
               <AsistenciaForm id={id} onSuccess={fetchAusencias} />
             </div>
