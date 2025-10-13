@@ -9,6 +9,7 @@ export const getNotifications = async (token: string | null) => {
     },
   });
   return response.data;
+  console.log("hola mundo");
 };
 
 export const markAsRead = async (id: number) => {

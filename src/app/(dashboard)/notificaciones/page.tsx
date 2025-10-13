@@ -9,6 +9,7 @@ import {
   deleteNotification,
   deleteAllNotifications,
 } from "../../../notification/notificationServices";
+import { useAuth } from "@clerk/nextjs";
 
 interface Notification {
   id: number;
@@ -22,11 +23,14 @@ interface Notification {
 export default function NotificacionesPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const { getToken, isLoaded } = useAuth();
 
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const data = await getNotifications();
+        const authToken = await getToken();
+        const data = await getNotifications(authToken);
+        console.log("hola mundo");
         setNotifications(data);
       } catch (error) {
         console.error("Error al obtener notificaciones:", error);
