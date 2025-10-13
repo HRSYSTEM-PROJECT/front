@@ -1,52 +1,75 @@
 "use client";
-
 import { useEffect, useState } from "react";
-import { Bell, Trash2, CheckCircle2, Calendar, AlertCircle, UserPlus, DollarSign, TrendingUp } from "lucide-react";
-import {
-  getNotifications,
-  markAsRead,
-  markAllAsRead,
-  deleteNotification,
-  deleteAllNotifications,
-} from "../../../notification/notificationServices";
 import { useAuth } from "@clerk/nextjs";
+import { Bell, Calendar, CheckCircle, Trash2 } from "lucide-react";
+import { toast } from "react-toastify";
+import {
+  deleteNotification,
+  getCronNotifications,
+  getNotifications,
+  markAllAsRead,
+  markAsRead,
+  scheduleReminder,
+} from "@/notification/notificationServices";
 
 interface Notification {
-  id: number;
+  id: string;
   title: string;
   message: string;
+  type: string;
   time: string;
-  type: "employee" | "absence" | "alert" | "payroll" | "productivity" | "update" | "evaluation";
   read: boolean;
 }
 
-export default function NotificacionesPage() {
+export default function NotificationsPage() {
+  const { getToken } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { getToken, isLoaded } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [reminder, setReminder] = useState({
+    title: "",
+    message: "",
+    scheduledDate: "",
+  });
+  const [cronEvents, setCronEvents] = useState<Notification[]>([]);
+  
+
+  const loadNotifications = async () => {
+    setLoading(true);
+    try {
+      const token = await getToken();
+      const data = await getNotifications(token!);
+      setNotifications(data.notifications || []);
+    } catch (err) {
+      console.error("Error cargando notificaciones:", err);
+      toast.error("No se pudieron cargar las notificaciones");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadCronEvents = async () => {
+    try {
+      const token = await getToken();
+      const events = await getCronNotifications(token!);
+      setCronEvents(events);
+    } catch (err) {
+      console.error("Error cargando eventos automáticos:", err);
+      toast.error("No se pudieron cargar los eventos automáticos");
+    }
+  };
 
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const authToken = await getToken();
-        const data = await getNotifications(authToken);
-        console.log("hola mundo");
-        setNotifications(data);
-      } catch (error) {
-        console.error("Error al obtener notificaciones:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNotifications();
+    loadNotifications();
+    loadCronEvents();
   }, []);
 
-  const handleMarkAsRead = async (id: number) => {
+  const handleMarkAsRead = async (id: string) => {
     try {
-      await markAsRead(id);
+      const token = await getToken();
+      await markAsRead(token!, id);
+
       setNotifications((prev) =>
-        prev.map((notificacion) => (notificacion.id === id ? { ...notificacion, read: true } : notificacion))
+        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
       );
     } catch (error) {
       console.error("Error al marcar como leída:", error);
@@ -55,116 +78,221 @@ export default function NotificacionesPage() {
 
   const handleMarkAllAsRead = async () => {
     try {
-      await markAllAsRead();
-      setNotifications((prev) => prev.map((notificacion) => ({ ...notificacion, read: true })));
+      const token = await getToken();
+      await markAllAsRead(token!);
+
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
     } catch (error) {
       console.error("Error al marcar todas como leídas:", error);
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     try {
-      await deleteNotification(id);
-      setNotifications((prev) => prev.filter((notificacion) => notificacion.id !== id));
-    } catch (error) {
-      console.error("Error al eliminar notificación:", error);
+      const token = await getToken();
+      await deleteNotification(token!, id);
+      toast.success("Notificación eliminada");
+      loadNotifications();
+    } catch {
+      toast.error("Error al eliminar la notificación");
     }
   };
 
-  const handleDeleteAll = async () => {
+  const handleScheduleReminder = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      await deleteAllNotifications();
-      setNotifications([]);
+      const token = await getToken();
+      await scheduleReminder(
+        token!,
+        reminder.title,
+        reminder.message,
+        reminder.scheduledDate
+      );
+      toast.success("Recordatorio programado correctamente");
+      setReminder({ title: "", message: "", scheduledDate: "" });
     } catch (error) {
-      console.error("Error al eliminar todas:", error);
+      toast.error("Error al programar el recordatorio");
+      console.error(error);
     }
   };
 
-  const getIcon = (type: Notification["type"]) => {
-    const base = "w-6 h-6 p-1.5 rounded-md";
-    switch (type) {
-      case "employee":
-        return <UserPlus className={`${base} text-blue-600 bg-blue-100`} />;
-      case "absence":
-        return <Calendar className={`${base} text-green-600 bg-green-100`} />;
-      case "alert":
-        return <AlertCircle className={`${base} text-red-600 bg-red-100`} />;
-      case "payroll":
-        return <DollarSign className={`${base} text-orange-600 bg-orange-100`} />;
-      case "productivity":
-        return <TrendingUp className={`${base} text-green-600 bg-green-100`} />;
-      case "update":
-        return <AlertCircle className={`${base} text-orange-600 bg-orange-100`} />;
-      default:
-        return <Bell className={`${base} text-gray-600 bg-gray-100`} />;
+  const handleCreateTestNotification = async () => {
+    try {
+      const token = await getToken();
+      await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/notifications/simple`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title: "Notificación de prueba",
+            message: "Notificación creada desde el frontend",
+            type: "test",
+            time: new Date().toISOString(),
+            read: false,
+          }),
+        }
+      );
+      toast.success("Notificación creada");
+      loadNotifications();
+    } catch (err) {
+      toast.error("Error creando notificación");
     }
   };
-
-  if (loading) {
-    return <div className="text-center py-10 text-gray-500">Cargando notificaciones...</div>;
-  }
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Notificaciones</h1>
-          <p className="text-gray-600 text-sm">Mantente al día con las actualizaciones del sistema</p>
-        </div>
-        <div className="flex space-x-2">
-          <button
-            onClick={handleMarkAllAsRead}
-            className="flex items-center gap-2 border border-gray-300 rounded-md px-3 py-2 text-sm hover:bg-gray-100"
-          >
-            <CheckCircle2 className="w-4 h-4" /> Marcar todas como leídas
-          </button>
-          <button
-            onClick={handleDeleteAll}
-            className="flex items-center gap-2 border border-gray-300 rounded-md px-3 py-2 text-sm hover:bg-gray-100 text-red-600"
-          >
-            <Trash2 className="w-4 h-4" /> Eliminar todas
-          </button>
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        {notifications.length === 0 ? (
-          <div className="text-center py-20 text-gray-500">
-            <Bell className="mx-auto w-10 h-10 mb-3 text-gray-400" />
-            No tienes notificaciones.
-          </div>
-        ) : (
-          notifications.map((n) => (
-            <div
-              key={n.id}
-              className={`flex items-start justify-between p-4 rounded-lg border transition ${
-                n.read ? "bg-white border-gray-200" : "bg-blue-50 border-blue-200"
-              }`}
+    <div className="container mx-auto px-4 sm:px-6 py-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold flex items-center gap-3 text-gray-800">
+              <Bell className="text-[#083E96] w-7 h-7" /> Notificaciones
+            </h1>
+            <button
+              onClick={handleMarkAllAsRead}
+              className="bg-[#083E96] hover:bg-[#0a4ebb] text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200 shadow-md hover:shadow-lg"
             >
-              <div className="flex gap-3">
-                {getIcon(n.type)}
-                <div>
-                  <h3 className="font-semibold text-gray-900">{n.title}</h3>
-                  <p className="text-sm text-gray-700">{n.message}</p>
-                  <p className="text-xs text-gray-500 mt-1">{n.time}</p>
-                </div>
+              Marcar como leídas
+            </button>
+          </div>
+          <div className="min-h-[200px] max-h-[60vh] overflow-y-auto pr-2">
+            {loading ? (
+              <p className="text-gray-500 text-center py-10">
+                Cargando notificaciones...
+              </p>
+            ) : notifications.length === 0 ? (
+              <div className="text-center py-10 border-2 border-dashed border-gray-200 rounded-xl mt-4">
+                <p className="text-gray-500 italic text-lg">
+                  🎉 ¡Todo limpio! No hay notificaciones registradas.
+                </p>
               </div>
-              <div className="text-right space-y-1">
-                {!n.read && (
-                  <button
-                    onClick={() => handleMarkAsRead(n.id)}
-                    className="text-sm text-blue-700 hover:underline block"
+            ) : (
+              <ul className="space-y-4">
+                {notifications.map((n) => (
+                  <li
+                    key={n.id}
+                    className={`group flex justify-between items-start p-5 border-l-4 rounded-xl transition duration-300 ease-in-out cursor-pointer hover:shadow-md ${
+                      n.read
+                        ? "bg-gray-100 border-l-gray-200"
+                        : "bg-blue-50 border-l-[#083E96]"
+                    }`}
                   >
-                    Marcar como leída
-                  </button>
-                )}
-                <button onClick={() => handleDelete(n.id)} className="text-sm text-red-600 hover:underline block">
-                  Eliminar
-                </button>
-              </div>
-            </div>
-          ))
-        )}
+                    <div className="flex-grow">
+                      <h3
+                        className={`font-bold text-lg ${
+                          n.read ? "text-gray-600" : "text-gray-800"
+                        }`}
+                      >
+                        {n.title}
+                      </h3>
+                      <p className="text-gray-600 mt-1">{n.message}</p>
+                      <p className="text-gray-400 text-xs mt-2">
+                        {new Date(n.time).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      {!n.read && (
+                        <button
+                          onClick={() => handleMarkAsRead(n.id)}
+                          className="text-green-500 hover:text-green-700 p-2 rounded-full hover:bg-green-50"
+                          title="Marcar como leída"
+                        >
+                          <CheckCircle size={20} />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDelete(n.id)}
+                        className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50"
+                        title="Eliminar notificación"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="mt-10 mb-10">
+            <h3>🔄 Eventos Automáticos</h3>
+            {cronEvents.length === 0 ? (
+              <p className="text-gray-500 italic mt-2">
+                No hay eventos automáticos
+              </p>
+            ) : (
+              cronEvents.map((event) => (
+                <div key={event.id} className="cron-event">
+                  <h4>{event.title}</h4>
+                  <p>{event.message}</p>
+                  <span>{new Date(event.time).toLocaleDateString()}</span>
+                </div>
+              ))
+            )}
+          </div>
+
+          <button
+            onClick={handleCreateTestNotification}
+            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition font-medium mt-6 shadow-md"
+          >
+            Crear notificación de prueba
+          </button>
+        </div>
+
+        <form
+          onSubmit={handleScheduleReminder}
+          className="bg-white p-6 rounded-xl shadow-lg border border-gray-100 self-start"
+        >
+          <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <Calendar className="text-[#083E96] w-5 h-5" /> Programar
+            recordatorio
+          </h2>
+
+          <div className="flex flex-col gap-4">
+            <input
+              type="text"
+              placeholder="Título"
+              value={reminder.title}
+              onChange={(e) =>
+                setReminder((prev) => ({ ...prev, title: e.target.value }))
+              }
+              className="border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 outline-none"
+              required
+            />
+            <textarea
+              placeholder="Mensaje"
+              value={reminder.message}
+              onChange={(e) =>
+                setReminder((prev) => ({ ...prev, message: e.target.value }))
+              }
+              className="border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 outline-none resize-none"
+              rows={3}
+              required
+            />
+            <input
+              type="datetime-local"
+              value={reminder.scheduledDate}
+              onChange={(e) =>
+                setReminder((prev) => ({
+                  ...prev,
+                  scheduledDate: e.target.value,
+                }))
+              }
+              className="border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 outline-none"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="mt-6 bg-[#083E96] hover:bg-[#0a4ebb] text-white px-6 py-2.5 rounded-lg transition duration-200 font-medium w-full shadow-md"
+          >
+            Agendar recordatorio
+          </button>
+        </form>
       </div>
     </div>
   );
