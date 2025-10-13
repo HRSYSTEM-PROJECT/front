@@ -3,6 +3,8 @@ import { UserPlus } from "lucide-react";
 import { toast } from "react-toastify";
 import { useState, useEffect } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
+import Swal from "sweetalert2";
 
 interface FormData {
   first_name: string;
@@ -51,6 +53,8 @@ export default function RegistroEmpleadosPage() {
   const [positions, setPositions] = useState<Position[]>([]);
   const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
+  const router = useRouter();
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -205,11 +209,29 @@ export default function RegistroEmpleadosPage() {
           data.message || `Error ${res.status}: Falló la creación del empleado.`
         );
       }
-      toast.success("Empleado creado con éxito 🎉");
-      handleCancel();
+      // toast.success("Empleado creado con éxito 🎉");
+      // handleCancel();
+      await Swal.fire({
+  icon: "success",
+  title: "Empleado registrado",
+  text: "El empleado se registró correctamente 🎉",
+  confirmButtonColor: "#083E96",
+  confirmButtonText: "Ver empleados",
+});
+
+handleCancel(); // limpia el formulario
+router.push("/empleados"); 
     } catch (error) {
       console.error("ERROR-CATCH:", error);
-      if (error instanceof Error) toast.error(`Error: ${error.message}`);
+      // if (error instanceof Error) toast.error(`Error: ${error.message}`);
+      if (error instanceof Error) {
+  Swal.fire({
+    icon: "error",
+    title: "Error",
+    text: error.message || "Ocurrió un error al registrar el empleado.",
+    confirmButtonColor: "#d33",
+  });
+}
     }
   };
 
