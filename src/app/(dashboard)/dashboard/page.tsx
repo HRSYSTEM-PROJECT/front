@@ -34,7 +34,7 @@ interface Employee {
   ausencias?: number;
 }
 
-interface Ausencia {
+export interface Ausencia {
   id: number;
   employee_id: number;
   date: string;

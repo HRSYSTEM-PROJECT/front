@@ -1,3 +1,4 @@
+import { Ausencia } from "@/app/(dashboard)/dashboard/page";
 import { Users, CalendarX, DollarSign, TrendingUp } from "lucide-react";
 
 interface Employee {
@@ -8,19 +9,13 @@ interface Employee {
   estado?: string;
   ausencias?: number;
 }
-interface ausencias {
-  id: number;
-  employeeId: number;
-  date: string;
-  reason: string;
-}
 
 export default function MetricsCards({
   empleados,
   ausencias,
 }: {
   empleados: Employee[];
-  ausencias: ausencias[];
+  ausencias: Ausencia[];
 }) {
   const totalEmpleados = empleados.length;
   const ausenciasMes = ausencias.length;
