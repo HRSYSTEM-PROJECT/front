@@ -20,7 +20,7 @@ export default function MetricsCards({
   ausencias,
 }: {
   empleados: Employee[];
-  ausencias: any[];
+  ausencias: ausencias[];
 }) {
   const totalEmpleados = empleados.length;
   const ausenciasMes = ausencias.length;
