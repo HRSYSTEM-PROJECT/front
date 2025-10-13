@@ -1,3 +1,4 @@
+import { Ausencia } from "@/app/(dashboard)/dashboard/page";
 import { Users, CalendarX, DollarSign, TrendingUp } from "lucide-react";
 
 interface Employee {
@@ -9,14 +10,20 @@ interface Employee {
   ausencias?: number;
 }
 
-export default function MetricsCards({ empleados }: { empleados: Employee[] }) {
+export default function MetricsCards({
+  empleados,
+  ausencias,
+}: {
+  empleados: Employee[];
+  ausencias: Ausencia[];
+}) {
   const totalEmpleados = empleados.length;
-  const ausenciasMes = 8.5;
+  const ausenciasMes = ausencias.length;
   const sueldosTotales = empleados.reduce(
     (acc, emp) => acc + (parseFloat(emp.salary || "0") || 0),
     0
   );
-  const productividad = 94.2;
+  // const productividad = 94.2;
 
   const cards = [
     {
@@ -26,8 +33,8 @@ export default function MetricsCards({ empleados }: { empleados: Employee[] }) {
       color: "text-blue-600",
     },
     {
-      titulo: "Ausencias del Mes",
-      valor: `${ausenciasMes}%`,
+      titulo: "Total Ausencias",
+      valor: ausenciasMes,
       icon: CalendarX,
       color: "text-orange-600",
     },
@@ -37,12 +44,12 @@ export default function MetricsCards({ empleados }: { empleados: Employee[] }) {
       icon: DollarSign,
       color: "text-green-600",
     },
-    {
-      titulo: "Productividad",
-      valor: `${productividad}%`,
-      icon: TrendingUp,
-      color: "text-emerald-600",
-    },
+    // {
+    //   titulo: "Productividad",
+    //   valor: `${productividad}%`,
+    //   icon: TrendingUp,
+    //   color: "text-emerald-600",
+    // },
   ];
 
   return (
