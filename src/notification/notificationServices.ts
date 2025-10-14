@@ -10,6 +10,7 @@ interface Notification {
   time: string | { $date: string };
   read: boolean;
 }
+console.log("hola");
 
 export const getNotifications = async (token: string | null) => {
   try {
