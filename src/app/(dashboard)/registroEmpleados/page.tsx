@@ -55,7 +55,6 @@ export default function RegistroEmpleadosPage() {
   const { getToken } = useAuth();
   const router = useRouter();
 
-
   useEffect(() => {
     const fetchData = async () => {
       if (!isLoaded || !user) {
@@ -212,26 +211,26 @@ export default function RegistroEmpleadosPage() {
       // toast.success("Empleado creado con éxito 🎉");
       // handleCancel();
       await Swal.fire({
-  icon: "success",
-  title: "Empleado registrado",
-  text: "El empleado se registró correctamente 🎉",
-  confirmButtonColor: "#083E96",
-  confirmButtonText: "Ver empleados",
-});
+        icon: "success",
+        title: "Empleado registrado",
+        text: "El empleado se registró correctamente 🎉",
+        confirmButtonColor: "#083E96",
+        confirmButtonText: "Ver empleados",
+      });
 
-handleCancel(); // limpia el formulario
-router.push("/empleados"); 
+      handleCancel(); // limpia el formulario
+      router.push("/empleados");
     } catch (error) {
       console.error("ERROR-CATCH:", error);
       // if (error instanceof Error) toast.error(`Error: ${error.message}`);
       if (error instanceof Error) {
-  Swal.fire({
-    icon: "error",
-    title: "Error",
-    text: error.message || "Ocurrió un error al registrar el empleado.",
-    confirmButtonColor: "#d33",
-  });
-}
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: error.message || "Ocurrió un error al registrar el empleado.",
+          confirmButtonColor: "#d33",
+        });
+      }
     }
   };
 
