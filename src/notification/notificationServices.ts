@@ -27,11 +27,18 @@ export const markAsRead = async (token: string, notificationId: string) => {
   return res.json();
 };
 
-    // ✅ devolver solo el array de notificaciones
-    return response.data.notifications || [];
-  } catch (error) {
-    console.error("❌ Error al obtener notificaciones:", error);
-    return [];
+export const markAllAsRead = async (token: string) => {
+  const res = await fetch(`${API_URL}/notifications/mark-all-read`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  console.log("Status:", res.status);
+  const text = await res.text();
+  console.log("Body:", text);
+
+  if (!res.ok) {
+    throw new Error(`Error al marcar todas como leídas: ${res.status}`);
   }
 };
 
@@ -78,13 +85,21 @@ export const scheduleReminder = async (
 };
 
 export const getCronNotifications = async (token: string) => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/notifications`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/notifications`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
   const data = await response.json();
 
   const cronNotifications = data.notifications.filter((n: Notification) =>
-    ["holiday_reminder", "birthday_reminder", "subscription_expiring", "subscription_expired"].includes(n.type)
+    [
+      "holiday_reminder",
+      "birthday_reminder",
+      "subscription_expiring",
+      "subscription_expired",
+    ].includes(n.type)
   );
 
   return cronNotifications;
