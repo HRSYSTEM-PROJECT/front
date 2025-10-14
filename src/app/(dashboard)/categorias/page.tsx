@@ -1,7 +1,5 @@
-export default function CategoriasPage() {
-  return (
-    <div>
-      <h1>Categorías</h1>
-    </div>
-  );
+import { redirect } from "next/navigation";
+
+export default function CategoriasRedirectPage() {
+  redirect("/categorias/departamentos");
 }
