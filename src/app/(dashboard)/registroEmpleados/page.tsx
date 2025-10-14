@@ -59,7 +59,6 @@ export default function RegistroEmpleadosPage() {
   const { getToken } = useAuth();
   const router = useRouter();
 
-  // 📦 Cargar departamentos y puestos
   useEffect(() => {
     const fetchData = async () => {
       if (!isLoaded || !user) {
