@@ -17,6 +17,7 @@ import {
   LogOut,
   ChevronRight,
   ChevronLeft,
+  Settings
 } from "lucide-react";
 
 export function Sidebar({onToggle}: {onToggle: (expanded: boolean) => void}) {
@@ -56,6 +57,7 @@ export function Sidebar({onToggle}: {onToggle: (expanded: boolean) => void}) {
     {name: "Plan de suscripción", href: "/plan", icon: CreditCard},
     {name: "Notificaciones", href: "/notificaciones", icon: Bell},
     {name: "Mensajería", href: "/mensajeria", icon: MessageCircle},
+    {name: "Seguridad", href: "/configuracion", icon: Settings},
   ];
 
   // Lógica de cerrar sesión modificada

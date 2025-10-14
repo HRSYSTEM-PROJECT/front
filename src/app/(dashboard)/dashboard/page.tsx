@@ -10,10 +10,12 @@ import {
   UserPlus,
   Key,
 } from "lucide-react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, UserProfile } from "@clerk/nextjs";
 import MetricsCards from "@/components/metricas/MetricsCards";
+import ActualizacionEmpresa from "@/components/actualizacionEmpresa";
+import EmpresaForm from "@/components/actualizacionEmpresa";
 
-interface Empresa {
+export interface Empresa {
   id: string;
   trade_name: string;
   legal_name: string;
@@ -259,7 +261,9 @@ export default function DashboardPage() {
 
       <MetricsCards empleados={empleados} ausencias={ausencias} />
 
-      <div className="bg-white p-5 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full">
+      <EmpresaForm empresa={empresa} />
+
+      {/* <div className="bg-white p-5 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full">
         <h2 className="text-lg sm:text-xl font-medium text-gray-800">
           Información de {empresa.legal_name}
         </h2>
@@ -370,7 +374,7 @@ export default function DashboardPage() {
             Guardar Cambios
           </button>
         </form>
-      </div>
+      </div> */}
 
       <div className="bg-white p-5 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full">
         <h2 className="text-lg font-medium text-gray-800">Administradores</h2>
@@ -403,64 +407,6 @@ export default function DashboardPage() {
         <button className="mt-6 flex flex-wrap items-center justify-center sm:justify-start gap-2 bg-[#083E96] hover:bg-[#0a4ebb] text-white px-4 py-2 rounded-md transition text-sm sm:text-base">
           <UserPlus className="h-4 w-4" />
           Agregar Administrador
-        </button>
-      </div>
-
-      <div className="bg-white p-5 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full">
-        <h2 className="text-lg font-medium text-gray-800">
-          Cambiar Contraseña
-        </h2>
-        <p className="text-gray-500 mb-6 text-sm sm:text-base">
-          Actualiza tu contraseña de acceso.
-        </p>
-
-        <form className="flex flex-col gap-6">
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor="currentPassword"
-              className="text-sm font-medium text-gray-700"
-            >
-              Contraseña Actual *
-            </label>
-            <input
-              id="currentPassword"
-              type="password"
-              className="border border-gray-300 rounded-md px-3 py-2 w-full text-sm sm:text-base"
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor="newPassword"
-              className="text-sm font-medium text-gray-700"
-            >
-              Nueva Contraseña *
-            </label>
-            <input
-              id="newPassword"
-              type="password"
-              className="border border-gray-300 rounded-md px-3 py-2 w-full text-sm sm:text-base"
-            />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label
-              htmlFor="confirmPassword"
-              className="text-sm font-medium text-gray-700"
-            >
-              Confirmar Nueva Contraseña *
-            </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              className="border border-gray-300 rounded-md px-3 py-2 w-full text-sm sm:text-base"
-            />
-          </div>
-        </form>
-
-        <button className="mt-6 flex flex-wrap items-center justify-center sm:justify-start gap-2 bg-[#083E96] hover:bg-[#0a4ebb] text-white px-4 py-2 rounded-md transition text-sm sm:text-base">
-          <Key className="h-4 w-4" />
-          Actualizar Contraseña
         </button>
       </div>
     </div>

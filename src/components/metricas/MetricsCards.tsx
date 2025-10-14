@@ -18,7 +18,12 @@ export default function MetricsCards({
   ausencias: Ausencia[];
 }) {
   const totalEmpleados = empleados.length;
-  const ausenciasMes = ausencias.length;
+
+  const employeeIds = empleados.map((e) => e.id);
+  const ausenciasMes = ausencias.filter((a) =>
+    employeeIds.includes(a.employee_id)
+  ).length;
+
   const sueldosTotales = empleados.reduce(
     (acc, emp) => acc + (parseFloat(emp.salary || "0") || 0),
     0
