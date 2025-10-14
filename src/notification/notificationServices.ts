@@ -12,17 +12,8 @@ export const getNotifications = async (token: string | null) => {
 
     console.log("📬 Datos del backend:", response.data);
 
-    const data = response.data;
-
-    // ✅ Asegurarse de devolver un array siempre
-    if (Array.isArray(data)) {
-      return data;
-    } else if (data.notifications && Array.isArray(data.notifications)) {
-      return data.notifications;
-    } else {
-      console.warn("⚠️ El backend devolvió un formato inesperado:", data);
-      return [];
-    }
+    // ✅ devolver solo el array de notificaciones
+    return response.data.notifications || [];
   } catch (error) {
     console.error("❌ Error al obtener notificaciones:", error);
     return [];
