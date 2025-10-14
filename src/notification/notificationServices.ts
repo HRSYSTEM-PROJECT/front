@@ -27,18 +27,11 @@ export const markAsRead = async (token: string, notificationId: string) => {
   return res.json();
 };
 
-export const markAllAsRead = async (token: string) => {
-  const res = await fetch(`${API_URL}/notifications/mark-all-read`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  console.log("Status:", res.status);
-  const text = await res.text();
-  console.log("Body:", text);
-
-  if (!res.ok) {
-    throw new Error(`Error al marcar todas como leídas: ${res.status}`);
+    // ✅ devolver solo el array de notificaciones
+    return response.data.notifications || [];
+  } catch (error) {
+    console.error("❌ Error al obtener notificaciones:", error);
+    return [];
   }
 };
 
