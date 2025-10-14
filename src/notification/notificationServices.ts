@@ -1,3 +1,5 @@
+import axios from "axios";
+
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
 
 interface Notification {
@@ -9,36 +11,25 @@ interface Notification {
   read: boolean;
 }
 
-export const getNotifications = async (token: string) => {
-  const res = await fetch(`${API_URL}/notifications`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.json();
-};
+export const getNotifications = async (token: string | null) => {
+  try {
+    const response = await axios.get(`${API_URL}/notifications`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-export const markAsRead = async (token: string, notificationId: string) => {
-  const res = await fetch(
-    `${API_URL}/notifications/mark-read/${notificationId}`,
-    {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-    }
-  );
-  return res.json();
-};
+    console.log("Datos del backend:", response.data);
 
-    // ✅ devolver solo el array de notificaciones
+    // Devolver solo el array de notificaciones
     return response.data.notifications || [];
   } catch (error) {
-    console.error("❌ Error al obtener notificaciones:", error);
+    console.error("Error al obtener notificaciones:", error);
     return [];
   }
 };
 
-export const deleteNotification = async (
-  token: string,
-  notificationId: string
-) => {
+export const deleteNotification = async (token: string, notificationId: string) => {
   const res = await fetch(`${API_URL}/notifications/${notificationId}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
@@ -53,22 +44,19 @@ export const scheduleReminder = async (
   scheduledDate: string,
   type = "custom_notification"
 ) => {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/notifications/schedule-reminder`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        title,
-        message,
-        scheduledDate,
-        type,
-      }),
-    }
-  );
+  const response = await fetch(`${API_URL}/notifications/schedule-reminder`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      title,
+      message,
+      scheduledDate,
+      type,
+    }),
+  });
 
   if (!response.ok) {
     throw new Error("Error al agendar recordatorio");
@@ -78,7 +66,7 @@ export const scheduleReminder = async (
 };
 
 export const getCronNotifications = async (token: string) => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/notifications`, {
+  const response = await fetch(`${API_URL}/notifications`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   const data = await response.json();
