@@ -62,9 +62,6 @@ export default function RegistroEmpleadosPage() {
   useEffect(() => {
     const fetchData = async () => {
       if (!isLoaded || !user) {
-        console.log(
-          "DEBUG: Clerk no está cargado o no hay usuario. Omitiendo fetch inicial."
-        );
         return;
       }
 
@@ -75,11 +72,6 @@ export default function RegistroEmpleadosPage() {
         );
         return;
       }
-
-      console.log(
-        "DEBUG: Token obtenido. Intentando cargar departamentos y puestos."
-      );
-
       const authConfig = {
         headers: { Authorization: `Bearer ${token}` },
       };
@@ -97,29 +89,20 @@ export default function RegistroEmpleadosPage() {
         ]);
 
         if (!depRes.ok) {
-          console.error(
-            `ERROR-FETCH: Departamento falló con estado ${depRes.status}`
-          );
           throw new Error("Fallo en la carga de departamentos.");
         }
         if (!posRes.ok) {
-          console.error(
-            `ERROR-FETCH: Puesto falló con estado ${posRes.status}`
-          );
           throw new Error("Fallo en la carga de puestos.");
-        }
-
+        }        
         const depData = await depRes.json();
         const posData = await posRes.json();
-        console.log("DEBUG: Departamentos y puestos cargados con éxito.");
-
         if (Array.isArray(depData)) setDepartments(depData);
         if (Array.isArray(posData)) setPositions(posData);
       } catch (error) {
         console.error("Error cargando datos:", error);
       }
     };
-
+    
     fetchData();
   }, [isLoaded, user, getToken]);
 
@@ -157,9 +140,6 @@ export default function RegistroEmpleadosPage() {
 
     const token = await getToken();
     if (!token) {
-      console.error(
-        "ERROR-DEBUG: No se pudo obtener el token para el envío del formulario."
-      );
       toast.error("Error: No se pudo obtener el token de autenticación.");
       return;
     }
@@ -180,9 +160,6 @@ export default function RegistroEmpleadosPage() {
         delete formattedData[key as keyof FormattedData];
       }
     });
-
-    console.log("DEBUG: Datos a enviar al backend:", formattedData);
-
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado`,
@@ -298,6 +275,7 @@ export default function RegistroEmpleadosPage() {
               name: "salary",
               type: "number",
               placeholder: "Salario del empleado",
+              min: "0",
             },
             {
               label: "Email *",
@@ -322,6 +300,7 @@ export default function RegistroEmpleadosPage() {
                 required={input.required}
                 value={formData[input.name as keyof FormData] || ""}
                 onChange={handleChange}
+                min={input.min}
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#083E96] focus:border-[#083E96] text-sm"
               />
             </div>
