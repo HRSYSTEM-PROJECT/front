@@ -62,7 +62,7 @@ const NewDepartmentForm: React.FC<NewDepartmentFormProps> = ({
   return (
     <div className="bg-white rounded-lg shadow-xl p-6 border border-blue-100">
       <h2 className="text-xl font-semibold mb-4 text-gray-800">
-        Crear Nuevo Departamento
+        Crear nuevo departamento
       </h2>
       <p className="text-sm text-gray-600 mb-6">
         Complete los datos del nuevo departamento
