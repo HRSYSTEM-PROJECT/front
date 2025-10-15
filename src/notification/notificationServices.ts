@@ -85,13 +85,21 @@ export const scheduleReminder = async (
 };
 
 export const getCronNotifications = async (token: string) => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/notifications`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/notifications`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
   const data = await response.json();
 
   const cronNotifications = data.notifications.filter((n: Notification) =>
-    ["holiday_reminder", "birthday_reminder", "subscription_expiring", "subscription_expired"].includes(n.type)
+    [
+      "holiday_reminder",
+      "birthday_reminder",
+      "subscription_expiring",
+      "subscription_expired",
+    ].includes(n.type)
   );
 
   return cronNotifications;
