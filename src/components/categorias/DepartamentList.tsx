@@ -1,8 +1,8 @@
-"use client"; // Es necesario ya que usas hooks de React y de Clerk.
+"use client";
 import { deleteDepartment } from "@/services/DepartamentService";
 import { Departmento } from "@/types/categorias";
 import { useAuth } from "@clerk/nextjs";
-import { Edit, Trash2, Users } from "lucide-react";
+import { Trash2, Users } from "lucide-react";
 import React from "react";
 import Swal from "sweetalert2";
 
@@ -59,9 +59,6 @@ const DepartmentCard: React.FC<DepartmentCardProps> = ({
       <div className="flex justify-between items-start mb-3">
         <h3 className="text-xl font-semibold text-gray-900">{dept.nombre}</h3>
         <div className="flex space-x-2">
-          <button className="text-gray-500 hover:text-blue-600 transition">
-            <Edit className="h-5 w-5 cursor-pointer" />
-          </button>
           <button
             className="text-gray-500 hover:text-red-600 transition"
             onClick={handleDelete}
