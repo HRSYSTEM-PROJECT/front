@@ -63,53 +63,53 @@ export default function RegistroEmpleadosPage() {
   useEffect(() => {
     const fetchData = async () => {
       if (!isLoaded || !user) {
-        console.log("DEBUG: Clerk no está cargado o no hay usuario. Omitiendo fetch inicial.");
         return;
       }
 
       const token = await getToken();
       if (!token) {
-        console.error("ERROR-DEBUG: No se pudo obtener el token para cargar departamentos/puestos.");
+        console.error(
+          "ERROR-DEBUG: No se pudo obtener el token para cargar departamentos/puestos."
+        );
         return;
       }
-
-      console.log("DEBUG: Token obtenido. Intentando cargar departamentos y puestos.");
-
       const authConfig = {
         headers: { Authorization: `Bearer ${token}` },
       };
 
       try {
         const [depRes, posRes] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/departamento`, authConfig),
-          fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/position`, authConfig),
+          fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/departamento`,
+            authConfig
+          ),
+          fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/position`,
+            authConfig
+          ),
         ]);
 
         if (!depRes.ok) {
-          console.error(`ERROR-FETCH: Departamento falló con estado ${depRes.status}`);
           throw new Error("Fallo en la carga de departamentos.");
         }
         if (!posRes.ok) {
-          console.error(`ERROR-FETCH: Puesto falló con estado ${posRes.status}`);
           throw new Error("Fallo en la carga de puestos.");
-        }
-
+        }        
         const depData = await depRes.json();
         const posData = await posRes.json();
-        console.log("DEBUG: Departamentos y puestos cargados con éxito.");
-
         if (Array.isArray(depData)) setDepartments(depData);
         if (Array.isArray(posData)) setPositions(posData);
       } catch (error) {
         console.error("Error cargando datos:", error);
       }
     };
-
+    
     fetchData();
   }, [isLoaded, user, getToken]);
 
-  // 📋 Manejo de inputs
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -132,7 +132,6 @@ export default function RegistroEmpleadosPage() {
     });
   };
 
-  // ✅ Enviar formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -143,7 +142,6 @@ export default function RegistroEmpleadosPage() {
 
     const token = await getToken();
     if (!token) {
-      console.error("ERROR-DEBUG: No se pudo obtener el token para el envío del formulario.");
       toast.error("Error: No se pudo obtener el token de autenticación.");
       return;
     }
@@ -151,35 +149,40 @@ export default function RegistroEmpleadosPage() {
     const formattedData: FormattedData = {
       ...formData,
       dni: Number(formData.dni),
-      salary: formData.salary ? Number(parseFloat(formData.salary).toFixed(2)) : undefined,
+      salary: formData.salary
+        ? Number(parseFloat(formData.salary).toFixed(2))
+        : undefined,
     };
 
-    // eliminar campos vacíos opcionales
     Object.keys(formattedData).forEach((key) => {
-      if (formattedData[key as keyof FormattedData] === "" || formattedData[key as keyof FormattedData] === undefined) {
+      if (
+        formattedData[key as keyof FormattedData] === "" ||
+        formattedData[key as keyof FormattedData] === undefined
+      ) {
         delete formattedData[key as keyof FormattedData];
       }
     });
-
-    console.log("DEBUG: Datos a enviar al backend:", formattedData);
-
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formattedData),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(formattedData),
+        }
+      );
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || `Error ${res.status}: Falló la creación del empleado.`);
+        throw new Error(
+          data.message || `Error ${res.status}: Falló la creación del empleado.`
+        );
       }
 
-      // ✅ Alerta de éxito
       await Swal.fire({
         icon: "success",
         title: "Empleado registrado",
@@ -187,29 +190,7 @@ export default function RegistroEmpleadosPage() {
         confirmButtonColor: "#083E96",
         confirmButtonText: "Ver empleados",
       });
-
-      // 🔔 Crear notificación
-      try {
-        await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/notifications`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            title: "Nuevo empleado registrado",
-            message: `Se agregó a ${formattedData.first_name} ${formattedData.last_name} al sistema.`,
-            type: "employee",
-            time: new Date().toISOString(),
-            read: false,
-          }),
-        });
-        console.log("✅ Notificación creada exitosamente");
-      } catch (notifError) {
-        console.error("⚠️ Error al crear la notificación:", notifError);
-      }
-
-      handleCancel(); // limpia el formulario
+      handleCancel();
       router.push("/empleados");
     } catch (error) {
       console.error("ERROR-CATCH:", error);
@@ -224,16 +205,28 @@ export default function RegistroEmpleadosPage() {
     }
   };
 
-  // 🧱 Render del componente
   return (
     <div className="container mx-auto p-4 sm:p-6 text-start">
-      <h1 className="text-3xl font-bold mt-4 sm:mt-8 text-black">Registro de Empleados</h1>
-      <p className="text-gray-600 mt-3 sm:mt-5">Complete el siguiente formulario para registrar un nuevo empleado.</p>
+      <h1 className="text-3xl font-bold mt-4 sm:mt-8 text-black">
+        Registro de Empleados
+      </h1>
+      <p className="text-gray-600 mt-3 sm:mt-5">
+        Complete el siguiente formulario para registrar un nuevo empleado.
+      </p>
 
       <div className="mt-6 sm:mt-8 p-4 sm:p-6 bg-white rounded-lg shadow-lg">
-        <form className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4" onSubmit={handleSubmit}>
+        <form
+          className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4"
+          onSubmit={handleSubmit}
+        >
           {[
-            { label: "Nombre *", name: "first_name", type: "text", placeholder: "Nombre del empleado", required: true },
+            {
+              label: "Nombre *",
+              name: "first_name",
+              type: "text",
+              placeholder: "Nombre del empleado",
+              required: true,
+            },
             {
               label: "Apellido *",
               name: "last_name",
@@ -241,17 +234,64 @@ export default function RegistroEmpleadosPage() {
               placeholder: "Apellido del empleado",
               required: true,
             },
-            { label: "DNI *", name: "dni", type: "number", placeholder: "DNI del empleado", required: true },
-            { label: "CUIL *", name: "cuil", type: "text", placeholder: "CUIL del empleado", required: true },
-            { label: "Número de Teléfono", name: "phone_number", type: "text", placeholder: "Número de teléfono" },
-            { label: "Dirección", name: "address", type: "text", placeholder: "Dirección del empleado" },
-            { label: "Fecha de Nacimiento", name: "birthdate", type: "date", placeholder: "Fecha de nacimiento" },
-            { label: "Foto del empleado", name: "imgUrl", type: "text", placeholder: "URL de la foto" },
-            { label: "Salario", name: "salary", type: "number", placeholder: "Salario del empleado" },
-            { label: "Email *", name: "email", type: "email", placeholder: "Email del empleado", required: true },
+            {
+              label: "DNI *",
+              name: "dni",
+              type: "number",
+              placeholder: "DNI del empleado",
+              required: true,
+            },
+            {
+              label: "CUIL *",
+              name: "cuil",
+              type: "text",
+              placeholder: "CUIL del empleado",
+              required: true,
+            },
+            {
+              label: "Número de Teléfono",
+              name: "phone_number",
+              type: "text",
+              placeholder: "Número de teléfono",
+            },
+            {
+              label: "Dirección",
+              name: "address",
+              type: "text",
+              placeholder: "Dirección del empleado",
+            },
+            {
+              label: "Fecha de Nacimiento",
+              name: "birthdate",
+              type: "date",
+              placeholder: "Fecha de nacimiento",
+            },
+            {
+              label: "Foto del empleado",
+              name: "imgUrl",
+              type: "text",
+              placeholder: "URL de la foto",
+            },
+            {
+              label: "Salario",
+              name: "salary",
+              type: "number",
+              placeholder: "Salario del empleado",
+              min: "0",
+            },
+            {
+              label: "Email *",
+              name: "email",
+              type: "email",
+              placeholder: "Email del empleado",
+              required: true,
+            },
           ].map((input) => (
             <div key={input.name} className="flex flex-col">
-              <label htmlFor={input.name} className="mb-1 text-sm font-medium text-gray-700">
+              <label
+                htmlFor={input.name}
+                className="mb-1 text-sm font-medium text-gray-700"
+              >
                 {input.label}
               </label>
               <input
@@ -262,14 +302,17 @@ export default function RegistroEmpleadosPage() {
                 required={input.required}
                 value={formData[input.name as keyof FormData] || ""}
                 onChange={handleChange}
+                min={input.min}
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#083E96] focus:border-[#083E96] text-sm"
               />
             </div>
           ))}
 
-          {/* Departamentos */}
           <div className="flex flex-col">
-            <label htmlFor="department_id" className="mb-1 text-sm font-medium text-gray-700">
+            <label
+              htmlFor="department_id"
+              className="mb-1 text-sm font-medium text-gray-700"
+            >
               Departamento *
             </label>
             <select
@@ -289,9 +332,11 @@ export default function RegistroEmpleadosPage() {
             </select>
           </div>
 
-          {/* Puestos */}
           <div className="flex flex-col">
-            <label htmlFor="position_id" className="mb-1 text-sm font-medium text-gray-700">
+            <label
+              htmlFor="position_id"
+              className="mb-1 text-sm font-medium text-gray-700"
+            >
               Puesto *
             </label>
             <select
@@ -311,7 +356,6 @@ export default function RegistroEmpleadosPage() {
             </select>
           </div>
 
-          {/* Botones */}
           <div className="md:col-span-2 flex flex-col sm:flex-row gap-4 mt-6">
             <button
               type="submit"
