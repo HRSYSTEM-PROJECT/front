@@ -1,12 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import {
-  Users,
-  Building2,
-  Mail,
-  Phone,
-  MapPin,
-} from "lucide-react";
+import { Users, Building2, Mail, Phone, MapPin } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
 import MetricsCards from "@/components/metricas/MetricsCards";
 import EmpresaForm from "@/components/actualizacionEmpresa";
@@ -31,6 +25,7 @@ interface Employee {
   salary?: string;
   estado?: string;
   ausencias?: number;
+  email?: string;
 }
 
 export interface Ausencia {
@@ -46,6 +41,8 @@ interface User {
   email: string;
   first_name: string;
   last_name: string | null;
+  role_id?: string | null;
+  employee_id?: string | null;
 }
 
 const Avatar = ({ name }: { name: string }) => {
@@ -81,15 +78,10 @@ export default function DashboardPage() {
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/user`,
         { headers: { Authorization: `Bearer ${authToken}` } }
       );
-
-      if (!res.ok) {
-        console.error(`Fallo de solicitud de administradores: ${res.status}`);
-        throw new Error("Error al cargar administradores.");
-      }
       const data: User[] = await res.json();
       setOtrosAdmins(data);
     } catch (error) {
-      console.error("Error al obtener la lista de administradores:", error);
+      console.error("Error al obtener la lista de usuarios:", error);
     }
   };
 
@@ -107,7 +99,6 @@ export default function DashboardPage() {
         setLoading(false);
         return;
       }
-
       const fetchEmpresa = async () => {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/me`,
@@ -135,6 +126,7 @@ export default function DashboardPage() {
           });
         }
       };
+
       const fetchEmpleados = async () => {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado`,
@@ -161,8 +153,9 @@ export default function DashboardPage() {
       };
 
       try {
+        await fetchEmpresa();
+
         await Promise.all([
-          fetchEmpresa(),
           fetchEmpleados(),
           fetchAusencias(),
           fetchAdmins(authToken),
@@ -186,21 +179,34 @@ export default function DashboardPage() {
     role: string;
   }[] = [];
   const adminIds = new Set();
+  const currentEmployeeEmails = new Set(
+    empleados.map((e) => e.email?.toLowerCase())
+  );
+  const superAdminEmail = adminPrincipal?.email.toLowerCase();
 
   if (adminPrincipal) {
     displayedAdmins.push({
       id: adminPrincipal.id,
-      name: adminPrincipal.first_name,
+      name: adminPrincipal.name,
       email: adminPrincipal.email,
       role: "Super Admin",
     });
     adminIds.add(adminPrincipal.id);
   }
+
   otrosAdmins.forEach((admin) => {
-    if (!adminIds.has(admin.id)) {
+    const adminEmail = admin.email.toLowerCase();
+
+    if (
+      adminEmail !== superAdminEmail &&
+      currentEmployeeEmails.has(adminEmail) &&
+      !!admin.last_name &&
+      !adminIds.has(admin.id)
+    ) {
       const fullName = `${admin.first_name || ""} ${
         admin.last_name || ""
       }`.trim();
+
       displayedAdmins.push({
         id: admin.id,
         name: fullName,
