@@ -1,18 +1,13 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 
 const toast = {
   success: (msg: string) => console.log(`✅ ${msg}`),
   error: (msg: string) => console.error(`❌ ${msg}`),
 };
-
-interface Plan {
-  id: string;
-  name: string;
-  price: number;
-}
 
 interface FormState {
   trade_name: string;
@@ -43,24 +38,12 @@ export default function RegisterComponent() {
     logo_url: "",
   });
 
-  const [planes, setPlanes] = useState<Plan[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchPlanes = async () => {
-      try {
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/plan`
-        );
-        setPlanes(res.data);
-      } catch (err) {
-        toast.error("Error al cargar los planes.");
-      }
-    };
-    fetchPlanes();
-  }, []);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRepeatPassword, setShowRepeatPassword] = useState(false);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -78,26 +61,28 @@ export default function RegisterComponent() {
     setError(null);
     setIsSubmitting(true);
 
+    const password = formInput.password.trim();
+    const repeatPassword = formInput.repeatPassword.trim();
+
     if (!formInput.acceptedTerms) {
       setError("Debes aceptar los términos y condiciones.");
       setIsSubmitting(false);
       return;
     }
-    if (formInput.password !== formInput.repeatPassword) {
+
+    if (password !== repeatPassword) {
       setError("Las contraseñas no coinciden.");
       setIsSubmitting(false);
       return;
     }
-
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{12,}$/;
-    if (!passwordRegex.test(formInput.password)) {
+    if (!passwordRegex.test(password)) {
       setError(
         "La contraseña debe tener al menos 12 caracteres, una mayúscula, una minúscula y un número."
       );
       setIsSubmitting(false);
       return;
     }
-
     try {
       const apiUrl = `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/onboarding`;
 
@@ -108,7 +93,6 @@ export default function RegisterComponent() {
         phone_number: formInput.phone_number,
         email: formInput.email,
         name: formInput.name,
-        plan_id: formInput.plan_id,
         password: formInput.password,
         logo_url:
           formInput.logo_url ||
@@ -116,10 +100,20 @@ export default function RegisterComponent() {
       };
 
       const res = await axios.post(apiUrl, payload);
-      toast.success("Usuario y empresa registrados correctamente 🎉");
 
+      toast.success("Usuario y empresa registrados correctamente 🎉");
       router.push("/dashboard");
     } catch (err) {
+      console.error(err);
+      if (axios.isAxiosError(err)) {
+        setError(
+          err.response?.data?.message ||
+            JSON.stringify(err.response?.data) ||
+            "Error del servidor"
+        );
+      } else {
+        setError("Error al registrar la empresa.");
+      }
       console.error(err);
       if (axios.isAxiosError(err) && err.response) {
         setError(err.response.data.message || "Error del servidor");
@@ -144,7 +138,6 @@ export default function RegisterComponent() {
         )}
         <form onSubmit={handleSubmit} className="">
           <div className="grid grid-cols-2 gap-12 w-full">
-
             <div className="">
               <fieldset className="space-y-3">
                 <legend className="font-semibold text-center text-gray-800 border-b pb-1">
@@ -168,24 +161,52 @@ export default function RegisterComponent() {
                   className="w-full border rounded px-3 py-2"
                   required
                 />
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Contraseña"
-                  value={formInput.password}
-                  onChange={handleInputChange}
-                  className="w-full border rounded px-3 py-2"
-                  required
-                />
-                <input
-                  type="password"
-                  name="repeatPassword"
-                  placeholder="Repetir contraseña"
-                  value={formInput.repeatPassword}
-                  onChange={handleInputChange}
-                  className="w-full border rounded px-3 py-2"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    placeholder="Contraseña"
+                    value={formInput.password}
+                    onChange={handleInputChange}
+                    className="w-full border rounded px-3 py-2 pr-10"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPassword(true);
+                      setTimeout(() => setShowPassword(false), 3000);
+                    }}
+                    className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700 cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+                <div className="relative">
+                  <input
+                    type={showRepeatPassword ? "text" : "password"}
+                    name="repeatPassword"
+                    placeholder="Repetir contraseña"
+                    value={formInput.repeatPassword}
+                    onChange={handleInputChange}
+                    className="w-full border rounded px-3 py-2 pr-10"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowRepeatPassword(true);
+                      setTimeout(() => setShowRepeatPassword(false), 3000);
+                    }}
+                    className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700 cursor-pointer"
+                  >
+                    {showRepeatPassword ? (
+                      <EyeOff size={20} />
+                    ) : (
+                      <Eye size={20} />
+                    )}
+                  </button>
+                </div>
               </fieldset>
             </div>
             <div>
@@ -229,20 +250,6 @@ export default function RegisterComponent() {
                   className="w-full border rounded px-3 py-2"
                   required
                 />
-                <select
-                  name="plan_id"
-                  value={formInput.plan_id}
-                  onChange={handleInputChange}
-                  className="w-full border rounded px-3 py-2"
-                  required
-                >
-                  <option value="">Seleccionar plan</option>
-                  {planes.map((plan) => (
-                    <option key={plan.id} value={plan.id}>
-                      {plan.name} - ${plan.price}
-                    </option>
-                  ))}
-                </select>
               </fieldset>
             </div>
           </div>
@@ -255,22 +262,33 @@ export default function RegisterComponent() {
               onChange={handleInputChange}
               className="mr-2 mt-10"
             />
-            <label htmlFor="acceptedTerms" className="text-lg text-gray-700 mt-10">
-              He leído y acepto los <a href="/terminos" className="text-[#083E96]">términos</a> y <a href="/privacidad" className="text-[#083E96]">condiciones</a>
+            <label
+              htmlFor="acceptedTerms"
+              className="text-lg text-gray-700 mt-10"
+            >
+              He leído y acepto los{" "}
+              <a href="/terminos" className="text-[#083E96]">
+                términos
+              </a>{" "}
+              y{" "}
+              <a href="/privacidad" className="text-[#083E96]">
+                condiciones
+              </a>
             </label>
           </div>
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`w-full py-3 rounded-lg font-semibold mt-10 ${
-              isSubmitting
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-[#083E96] hover:bg-[#063070] text-white"
-            }`}
-          >
-            {isSubmitting ? "Creando cuenta..." : "Crear cuenta y empresa"}
-          </button>
+          <div className="flex justify-center">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`w-100 py-3 rounded-lg cursor-pointer font-semibold mt-10 ${
+                isSubmitting
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-[#083E96] hover:bg-[#063070] text-white"
+              }`}
+            >
+              {isSubmitting ? "Creando cuenta..." : "Crear cuenta y empresa"}
+            </button>
+          </div>
         </form>
       </div>
     </div>

@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { Bell, Calendar, CheckCircle, Trash2 } from "lucide-react";
-import { toast } from "react-toastify";
 import {
   deleteNotification,
   getCronNotifications,
@@ -11,6 +10,7 @@ import {
   markAsRead,
   scheduleReminder,
 } from "@/notification/notificationServices";
+import { toast } from "react-toastify";
 
 interface Notification {
   id: string;

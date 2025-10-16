@@ -1,19 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
-import {
-  Users,
-  Building2,
-  Mail,
-  Phone,
-  MapPin,
-  Save,
-  UserPlus,
-  Key,
-} from "lucide-react";
-import { useAuth, UserProfile } from "@clerk/nextjs";
+import { Users, Building2, Mail, Phone, MapPin } from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
 import MetricsCards from "@/components/metricas/MetricsCards";
-import ActualizacionEmpresa from "@/components/actualizacionEmpresa";
 import EmpresaForm from "@/components/actualizacionEmpresa";
+import Link from "next/link";
 
 export interface Empresa {
   id: string;
@@ -34,6 +25,7 @@ interface Employee {
   salary?: string;
   estado?: string;
   ausencias?: number;
+  email?: string;
 }
 
 export interface Ausencia {
@@ -49,6 +41,8 @@ interface User {
   email: string;
   first_name: string;
   last_name: string | null;
+  role_id?: string | null;
+  employee_id?: string | null;
 }
 
 const Avatar = ({ name }: { name: string }) => {
@@ -76,7 +70,20 @@ export default function DashboardPage() {
   const [adminPrincipal, setAdminPrincipal] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [ausencias, setAusencias] = useState<Ausencia[]>([]);
-  const [salarioTotal, setSalarioTotal] = useState<number>(0);
+  const [otrosAdmins, setOtrosAdmins] = useState<User[]>([]);
+
+  const fetchAdmins = async (authToken: string) => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/user`,
+        { headers: { Authorization: `Bearer ${authToken}` } }
+      );
+      const data: User[] = await res.json();
+      setOtrosAdmins(data);
+    } catch (error) {
+      console.error("Error al obtener la lista de usuarios:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -92,7 +99,6 @@ export default function DashboardPage() {
         setLoading(false);
         return;
       }
-
       const fetchEmpresa = async () => {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/auth/me`,
@@ -120,6 +126,7 @@ export default function DashboardPage() {
           });
         }
       };
+
       const fetchEmpleados = async () => {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado`,
@@ -131,15 +138,7 @@ export default function DashboardPage() {
         }
 
         const data: Employee[] = await res.json();
-
-        const total = data.reduce((sum, empleado) => {
-          const salarioNumerico = empleado.salary
-            ? parseFloat(empleado.salary)
-            : 0;
-          return sum + salarioNumerico;
-        }, 0);
         setEmpleados(data);
-        setSalarioTotal(total);
       };
 
       const fetchAusencias = async () => {
@@ -154,7 +153,13 @@ export default function DashboardPage() {
       };
 
       try {
-        await Promise.all([fetchEmpresa(), fetchEmpleados(), fetchAusencias()]);
+        await fetchEmpresa();
+
+        await Promise.all([
+          fetchEmpleados(),
+          fetchAusencias(),
+          fetchAdmins(authToken),
+        ]);
       } catch (error) {
         console.error("Fallo al cargar datos del dashboard:", error);
       } finally {
@@ -167,7 +172,17 @@ export default function DashboardPage() {
     }
   }, [isLoaded, getToken]);
 
-  const displayedAdmins = [];
+  const displayedAdmins: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  }[] = [];
+  const adminIds = new Set();
+  const currentEmployeeEmails = new Set(
+    empleados.map((e) => e.email?.toLowerCase())
+  );
+  const superAdminEmail = adminPrincipal?.email.toLowerCase();
 
   if (adminPrincipal) {
     displayedAdmins.push({
@@ -176,7 +191,31 @@ export default function DashboardPage() {
       email: adminPrincipal.email,
       role: "Super Admin",
     });
+    adminIds.add(adminPrincipal.id);
   }
+
+  otrosAdmins.forEach((admin) => {
+    const adminEmail = admin.email.toLowerCase();
+
+    if (
+      adminEmail !== superAdminEmail &&
+      currentEmployeeEmails.has(adminEmail) &&
+      !!admin.last_name &&
+      !adminIds.has(admin.id)
+    ) {
+      const fullName = `${admin.first_name || ""} ${
+        admin.last_name || ""
+      }`.trim();
+
+      displayedAdmins.push({
+        id: admin.id,
+        name: fullName,
+        email: admin.email,
+        role: "Admin",
+      });
+      adminIds.add(admin.id);
+    }
+  });
 
   if (loading) {
     return <p>Cargando...</p>;
@@ -263,119 +302,6 @@ export default function DashboardPage() {
 
       <EmpresaForm empresa={empresa} />
 
-      {/* <div className="bg-white p-5 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full">
-        <h2 className="text-lg sm:text-xl font-medium text-gray-800">
-          Información de {empresa.legal_name}
-        </h2>
-        <p className="text-gray-500 mb-6 text-sm sm:text-base">
-          Actualiza los datos de tu empresa para mantener la información al día.
-        </p>
-
-        <form className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="companyName"
-                className="text-sm font-medium text-gray-700"
-              >
-                Nombre de la Empresa *
-              </label>
-              <input
-                placeholder={`${
-                  empresa.legal_name || "[Nombre de la empresa]"
-                }`}
-                id="companyName"
-                className="border border-gray-300 rounded-md px-3 py-2 w-full text-sm sm:text-base"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="industry"
-                className="text-sm font-medium text-gray-700"
-              >
-                Industria
-              </label>
-              <input
-                placeholder="[Industria de la empresa]"
-                id="industry"
-                className="border border-gray-300 rounded-md px-3 py-2 w-full text-sm sm:text-base"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="companyEmail"
-                className="text-sm font-medium text-gray-700"
-              >
-                Email *
-              </label>
-              <input
-                placeholder={`${empresa.email || "[Email de la empresa]"}`}
-                id="companyEmail"
-                type="email"
-                className="border border-gray-300 rounded-md px-3 py-2 w-full"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="companyPhone"
-                className="text-sm font-medium text-gray-700"
-              >
-                Teléfono
-              </label>
-              <input
-                placeholder={`${
-                  empresa.phone_number || "[Teléfono de la empresa]"
-                }`}
-                id="companyPhone"
-                type="tel"
-                className="border border-gray-300 rounded-md px-3 py-2 w-full"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="address"
-                className="text-sm font-medium text-gray-700"
-              >
-                Dirección
-              </label>
-              <input
-                placeholder={`${
-                  empresa.address || "[Dirección de la empresa]"
-                }`}
-                id="address"
-                className="border border-gray-300 rounded-md px-3 py-2 w-full"
-              />
-            </div>
-
-            <div className="md:grid-cols-2 gap-6">
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="taxId"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  CUIT
-                </label>
-                <input
-                  placeholder="[CUIT de la empresa]"
-                  id="taxId"
-                  className="border border-gray-300 rounded-md px-3 py-2 w-full"
-                />
-              </div>
-            </div>
-          </div>
-          <button
-            type="submit"
-            className="flex flex-wrap items-center justify-center sm:justify-start gap-2 bg-[#083E96] hover:bg-[#0a4ebb] text-white px-4 py-2 rounded-md transition text-sm sm:text-base"
-          >
-            <Save className="h-4 w-4" />
-            Guardar Cambios
-          </button>
-        </form>
-      </div> */}
-
       <div className="bg-white p-5 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full">
         <h2 className="text-lg font-medium text-gray-800">Administradores</h2>
         <p className="text-gray-500 mb-6 text-sm sm:text-base">
@@ -400,14 +326,14 @@ export default function DashboardPage() {
             </span>
           </div>
         ))}
-
-        <h2 className="text-lg font-medium text-gray-800 mt-10">
-          Agregar nuevo administrador
-        </h2>
-        <button className="mt-6 flex flex-wrap items-center justify-center sm:justify-start gap-2 bg-[#083E96] hover:bg-[#0a4ebb] text-white px-4 py-2 rounded-md transition text-sm sm:text-base">
-          <UserPlus className="h-4 w-4" />
-          Agregar Administrador
-        </button>
+        <p className="text-gray-500 mb-6 text-sm sm:text-base mt-10 text-center italic">
+          Para designar a un empleado como administrador, ve a la vista de
+          detalles del{" "}
+          <Link href="/empleados" className="font-medium text-[#083E96]">
+            empleado
+          </Link>{" "}
+          y ajusta su rol.
+        </p>
       </div>
     </div>
   );

@@ -2,7 +2,7 @@
 import { deletePosition } from "@/services/PositionService";
 import { Posicion } from "@/types/categorias";
 import { useAuth } from "@clerk/nextjs";
-import { Edit, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import Swal from "sweetalert2";
 
 interface PositionListProps {
@@ -87,7 +87,7 @@ const PositionList: React.FC<PositionListProps> = ({
                 Posición
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Departamento
+                Descripción
               </th>
               {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Rango Salarial
