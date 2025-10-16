@@ -6,20 +6,18 @@ import {
   Calendar,
   DollarSign,
   Briefcase,
-  CheckCircle,
   XCircle,
   Edit,
   Trash,
   Trash2,
 } from "lucide-react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "react-toastify";
 import { useParams } from "next/navigation";
 import AsistenciaForm from "@/components/asistencias/FormAsistencias";
 import Swal from "sweetalert2";
-import { auth } from "@clerk/nextjs/server";
 
 interface EmpleadoDetails {
   id: string;
@@ -72,7 +70,7 @@ export default function EmpleadoDetailsPage({
   const [loading, setLoading] = useState(true);
   const [empleado, setEmpleado] = useState<EmpleadoDetails | null>(null);
   const [ausencias, setAusencias] = useState<Ausencia[]>([]);
-  const [positions, setPositions] = useState<Position[]>([]); // ⬅️ Nuevo Estado
+  const [positions, setPositions] = useState<Position[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
 
   const fetchEmpleadoDetails = async () => {
@@ -243,6 +241,99 @@ export default function EmpleadoDetailsPage({
   const positionName = currentPosition?.name || "Posición no especificada";
   const departmentName = currentDepartment?.nombre || "No asignado";
 
+  const handleDesignarAdmin = async () => {
+    if (!isLoaded || !empleado) return;
+
+    const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{12,}$/;
+    const validationMessage =
+      "La contraseña debe tener un mínimo de 12 caracteres, incluyendo al menos una mayúscula, una minúscula y un número.";
+
+    const { value: adminPassword, isConfirmed: passwordConfirmed } =
+      await Swal.fire({
+        title: "Confirma tu Contraseña",
+        text: `Para confirmar a ${empleado.first_name} ${empleado.last_name} como Administrador, ingresa tu contraseña.`,
+        input: "password",
+        inputPlaceholder: "Ingresa tu contraseña",
+        inputAttributes: {
+          maxlength: "50",
+          autocapitalize: "off",
+          autocorrect: "off",
+        },
+        showCancelButton: true,
+        confirmButtonColor: "#083E96",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Confirmar",
+        cancelButtonText: "Cancelar",
+      });
+
+    if (!passwordConfirmed) {
+      return;
+    }
+
+    if (!adminPassword || adminPassword.trim() === "") {
+      toast.error("Debes ingresar tu contraseña para confirmar.");
+      return;
+    }
+
+    const result = await Swal.fire({
+      title: "¿Confirmar designación?",
+      text: `¿Estás seguro de que deseas designar a ${empleado.first_name} ${empleado.last_name} como Administrador?`,
+      icon: "info",
+      showCancelButton: true,
+      confirmButtonColor: "#083E96",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, designar",
+      cancelButtonText: "Cancelar",
+
+      inputValidator: (value) => {
+        if (!value) {
+          return "Debes ingresar tu contraseña.";
+        }
+        if (!PASSWORD_REGEX.test(value)) {
+          return validationMessage;
+        }
+        return null;
+      },
+    });
+
+    if (!result.isConfirmed) return;
+
+    const authToken = await getToken();
+    const payload = {
+      employee_id: empleado.id,
+      email: empleado.email,
+      password: adminPassword,
+      first_name: empleado.first_name,
+      last_name: empleado.last_name,
+    };
+
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/user`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log(
+        "Usuario creado/actualizado como administrador:",
+        response.data
+      );
+      toast.success(
+        `¡${empleado.first_name} ${empleado.last_name} ha sido designado como Administrador!`
+      );
+    } catch (err) {
+      console.error("Error al designar como administrador:", err);
+      toast.error("Hubo un error al intentar designar como administrador.");
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="container mx-auto px-4 sm:px-6 py-4 text-start max-w-full overflow-x-hidden">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -253,6 +344,15 @@ export default function EmpleadoDetailsPage({
           <p className="text-gray-600 mt-2 sm:mt-4 text-sm sm:text-base">
             {positionName} - {departmentName}
           </p>
+        </div>
+        <div>
+          <button
+            onClick={handleDesignarAdmin}
+            disabled={loading}
+            className="bg-[#083E96] hover:bg-[#0a4ebb] disabled:bg-gray-400 text-white py-2 px-4 rounded-lg cursor-pointer transition duration-150 ease-in-out"
+          >
+            {loading ? "Procesando..." : "Designar como Administrador"}
+          </button>
         </div>
       </div>
       <div className="min-h-screen bg-gray-100 mt-10 sm:mt-6 rounded-lg">
@@ -275,7 +375,7 @@ export default function EmpleadoDetailsPage({
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-10 h-10 text-blue-600 bg-blue-100 p-2 rounded-md flex-shrink-0" />
-                  <span>{empleado.address}</span>
+                  <span>{empleado.address || "No informado"}</span>
                 </div>
               </div>
               <div className="flex gap-4 sm:gap-10">

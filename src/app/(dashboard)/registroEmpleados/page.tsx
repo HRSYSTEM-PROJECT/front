@@ -94,7 +94,7 @@ export default function RegistroEmpleadosPage() {
         }
         if (!posRes.ok) {
           throw new Error("Fallo en la carga de puestos.");
-        }        
+        }
         const depData = await depRes.json();
         const posData = await posRes.json();
         if (Array.isArray(depData)) setDepartments(depData);
@@ -103,7 +103,7 @@ export default function RegistroEmpleadosPage() {
         console.error("Error cargando datos:", error);
       }
     };
-    
+
     fetchData();
   }, [isLoaded, user, getToken]);
 
@@ -162,6 +162,40 @@ export default function RegistroEmpleadosPage() {
         delete formattedData[key as keyof FormattedData];
       }
     });
+
+    const confirmationResult = await Swal.fire({
+      title: "¿Confirmar Registro de Empleado?",
+      html: `
+            <p class="text-gray-700 mb-2 font-medium">Se registrará el siguiente empleado:</p>
+            <div class="text-left p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <p><strong>Nombre:</strong> ${formData.first_name} ${
+        formData.last_name
+      }</p>
+                <p><strong>Email:</strong> ${formData.email}</p>
+                <p><strong>DNI:</strong> ${formData.dni}</p>
+                ${
+                  formData.salary
+                    ? `<p><strong>Salario:</strong> ${
+                        formData.salary || "No asignado"
+                      }</p>`
+                    : ""
+                }
+                <p class="text-xs italic mt-2 text-gray-500">
+                    Confirme que los datos son correctos.
+                </p>
+            </div>
+        `,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#083E96",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, Registrar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!confirmationResult.isConfirmed) {
+      return;
+    }
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado`,

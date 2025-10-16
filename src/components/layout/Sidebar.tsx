@@ -9,7 +9,6 @@ import {
   LayoutDashboard,
   Users,
   UserPlus,
-  Briefcase,
   Building2,
   CreditCard,
   Bell,
