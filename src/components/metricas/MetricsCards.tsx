@@ -1,5 +1,5 @@
 import { Ausencia } from "@/app/(dashboard)/dashboard/page";
-import { Users, CalendarX, DollarSign, TrendingUp } from "lucide-react";
+import { Users, CalendarX, DollarSign } from "lucide-react";
 
 interface Employee {
   id: number;
@@ -28,7 +28,6 @@ export default function MetricsCards({
     (acc, emp) => acc + (parseFloat(emp.salary || "0") || 0),
     0
   );
-  // const productividad = 94.2;
 
   const cards = [
     {
@@ -49,12 +48,6 @@ export default function MetricsCards({
       icon: DollarSign,
       color: "text-green-600",
     },
-    // {
-    //   titulo: "Productividad",
-    //   valor: `${productividad}%`,
-    //   icon: TrendingUp,
-    //   color: "text-emerald-600",
-    // },
   ];
 
   return (

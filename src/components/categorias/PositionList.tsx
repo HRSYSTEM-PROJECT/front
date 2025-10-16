@@ -2,7 +2,7 @@
 import { deletePosition } from "@/services/PositionService";
 import { Posicion } from "@/types/categorias";
 import { useAuth } from "@clerk/nextjs";
-import { Edit, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import Swal from "sweetalert2";
 
 interface PositionListProps {

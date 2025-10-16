@@ -11,7 +11,7 @@ import {
   Trash,
   Trash2,
 } from "lucide-react";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "react-toastify";
@@ -327,12 +327,9 @@ export default function EmpleadoDetailsPage({
       toast.success(
         `¡${empleado.first_name} ${empleado.last_name} ha sido designado como Administrador!`
       );
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error al designar como administrador:", err);
-      const errorMessage =
-        err.response?.data?.message ||
-        "Hubo un error al intentar designar como administrador.";
-      toast.error(errorMessage);
+      toast.error("Hubo un error al intentar designar como administrador.");
     } finally {
       setLoading(false);
     }
