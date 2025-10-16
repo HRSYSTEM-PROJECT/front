@@ -1,8 +1,6 @@
-import { getDepartments } from "@/services/DepartamentService";
 import { createPosition, PosicionPayload } from "@/services/PositionService";
-import { Departmento } from "@/types/categorias";
 import { useAuth } from "@clerk/nextjs";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Swal from "sweetalert2";
 
 interface NewPositionFormProps {

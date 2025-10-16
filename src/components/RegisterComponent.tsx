@@ -84,22 +84,6 @@ export default function RegisterComponent() {
       return;
     }
     try {
-      const apiUrl = `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/onboarding`;
-
-      const payload = {
-        trade_name: formInput.trade_name,
-        legal_name: formInput.legal_name,
-        email: formInput.email,
-        password: formInput.password,
-        logo_url:
-          formInput.logo_url ||
-          "https://placehold.co/100x100/333/fff?text=Logo",
-        phone_number: formInput.phone_number,
-        address: formInput.address,
-        name: formInput.name,
-      };
-
-      const res = await axios.post(apiUrl, payload);
       toast.success("Usuario y empresa registrados correctamente 🎉");
       router.push("/dashboard");
     } catch (err) {
