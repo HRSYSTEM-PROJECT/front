@@ -249,130 +249,86 @@
 // }
 
 
-"use client";
-import React, { useEffect, useState } from "react";
-import { useAuth } from "@clerk/nextjs";
-import ChatList from "./components/ChatList";
-import ChatWindow from "./components/ChatWindow";
-import MessageInput from "./components/MessageInput";
-import type { Conversation, Message } from "./components/types";
-import {
-  fetchConversations,
-  fetchMessages,
-  sendMessage,
-  createConversation,
-  deleteConversation,
-} from "./services/chatService";
-import Swal from "sweetalert2";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://back-8cv1.onrender.com";
 
-export default function MensajeriaPage() {
-  const { getToken, userId, isLoaded } = useAuth();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [Loading, setLoading] = useState(true);
+export async function fetchConversations(token: string) {
+  const res = await fetch(`${API_URL}/chat?page=1&limit=20`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
-  // cargar conversaciones
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      const tokenRaw = isLoaded ? (await getToken()) ?? undefined : undefined;
-      const token = tokenRaw ?? undefined;
-      const conv = await fetchConversations(token);
-      setConversations(conv);
-      if (conv.length > 0) setSelectedConversation(conv[0]);
-      setLoading(false);
-    };
-    load();
-  }, [isLoaded, getToken]);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Error al obtener los chats: ${res.status} - ${text}`);
+  }
 
-  // cargar mensajes cuando cambia la conversación
-  useEffect(() => {
-    if (!selectedConversation) {
-      setMessages([]);
-      return;
-    }
-    const load = async () => {
-      const token = isLoaded ? (await getToken()) ?? undefined : undefined;
-      if (selectedConversation?.id && selectedConversation.id !== null) {
-        const msgs = await fetchMessages(selectedConversation.id as string, token);
-        setMessages(msgs);
-      }
-    };
-    load();
-  }, [selectedConversation, isLoaded, getToken]);
+  return res.json();
+}
 
-  const handleSelect = (c: Conversation) => {
-    setSelectedConversation(c);
-  };
+export async function fetchMessages(conversationId: string, token: string) {
+  const res = await fetch(`${API_URL}/chat/${conversationId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
-  const handleSend = async (text: string) => {
-    if (!selectedConversation) {
-      Swal.fire("Selecciona una conversación para enviar un mensaje.");
-      return;
-    }
-    const token = isLoaded ? (await getToken()) ?? undefined : undefined;
-    if (!selectedConversation.id) {
-      Swal.fire("La conversación seleccionada no es válida.");
-      return;
-    }
-    const sent = await sendMessage(selectedConversation.id as string, text, token);
-    setMessages((prev) => [...prev, sent]);
-    // actualizar última en la lista
-    setConversations((prev) =>
-      prev.map((p) => (p.id === selectedConversation.id ? { ...p, lastMessage: text, updatedAt: new Date().toISOString() } : p))
-    );
-  };
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Error al obtener mensajes: ${res.status} - ${text}`);
+  }
 
-  const handleCreate = async () => {
-    const { value: title } = await Swal.fire({
-      title: "Nueva conversación",
-      input: "text",
-      inputPlaceholder: "Nombre o asunto",
-      showCancelButton: true,
-    });
-    if (!title) return;
-    const token = isLoaded ? (await getToken()) ?? undefined : undefined;
-    const conv = await createConversation(title, token);
-    setConversations((prev) => [conv, ...prev]);
-    setSelectedConversation(conv);
-  };
+  return res.json();
+}
 
-  const handleDelete = async (id: string) => {
-    const token = isLoaded ? (await getToken()) ?? undefined : undefined;
-    const ok = await deleteConversation(id, token);
-    if (ok) {
-      setConversations((prev) => prev.filter((c) => c.id !== id));
-      if (selectedConversation?.id === id) setSelectedConversation(null);
-      Swal.fire("Eliminado", "Conversación eliminada", "success");
-    } else {
-      Swal.fire("Error", "No se pudo eliminar", "error");
-    }
-  };
+export async function sendMessage(conversationId: string, text: string, token: string) {
+  const res = await fetch(`${API_URL}/chat/${conversationId}/send`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ text }),
+  });
 
-  return (
-    <div className="container mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold mb-4">Mensajería</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-1">
-          <ChatList
-            conversations={conversations}
-            selectedId={selectedConversation?.id}
-            onSelect={handleSelect}
-            onDelete={handleDelete}
-          />
-          <div className="mt-4">
-            <button onClick={handleCreate} className="w-full bg-blue-700 text-white py-2 rounded">
-              + Nueva conversación
-            </button>
-          </div>
-        </div>
+  if (!res.ok) {
+    const textRes = await res.text();
+    throw new Error(`Error al enviar mensaje: ${res.status} - ${textRes}`);
+  }
 
-        <div className="md:col-span-2 flex flex-col">
-          <ChatWindow conversation={selectedConversation} messages={messages} currentUserId={userId || "me"} />
-          <MessageInput onSend={handleSend} />
-        </div>
-      </div>
-    </div>
-  );
+  return res.json();
+}
+
+export async function createConversation(title: string, token: string) {
+  const res = await fetch(`${API_URL}/chat`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ title }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Error al crear conversación: ${res.status} - ${text}`);
+  }
+
+  return res.json();
+}
+
+export async function deleteConversation(id: string, token: string) {
+  const res = await fetch(`${API_URL}/chat/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Error al eliminar conversación: ${res.status} - ${text}`);
+  }
+
+  return true;
 }

@@ -1,29 +1,79 @@
-"use client";
-import type { Conversation, Message } from "../components/types";
 
-const API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL; // Ejemplo: https://back-8cv1.onrender.com
+// "use client"
 
-// 🔹 Obtener todos los chats del usuario
-export async function fetchConversations(token?: string): Promise<Conversation[]> {
-  const res = await fetch(`${API_URL}/chat`, {
-    headers: { Authorization: `Bearer ${token}` },
+
+// export const fetchConversations = async (token: string) => {
+//   try {
+//     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat?page=1&limit=20`, {
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//       },
+//     });
+
+//     if (!res.ok) {
+//       const text = await res.text();
+//       throw new Error(`Error al obtener los chats: ${res.status} - ${text}`);
+//     }
+
+//     const data = await res.json();
+//     return data.chats || [];
+//   } catch (error) {
+//     console.error("❌ Error en fetchConversations:", error);
+//     throw error;
+//   }
+// };
+
+// export async function fetchConversations(token?: string) {
+//   const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/chat`, {
+//     headers: { Authorization: `Bearer ${token}` },
+//   });
+
+//   if (!res.ok) {
+//     const text = await res.text();
+//     throw new Error(`Error al obtener los chats: ${res.status} - ${text}`);
+//   }
+
+//   const data = await res.json();
+//   // Aseguramos que siempre sea array
+//   return Array.isArray(data) ? data : [];
+// }
+
+
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://back-8cv1.onrender.com";
+
+export async function fetchConversations(token: string) {
+  const res = await fetch(`${API_URL}/chat?page=1&limit=20`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
-  if (!res.ok) throw new Error("Error al obtener los chats");
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Error al obtener los chats: ${res.status} - ${text}`);
+  }
+
   return res.json();
 }
 
-// 🔹 Obtener los mensajes de un chat
-export async function fetchMessages(chatId: string, token?: string): Promise<Message[]> {
-  const res = await fetch(`${API_URL}/chat/${chatId}/messages`, {
-    headers: { Authorization: `Bearer ${token}` },
+export async function fetchMessages(conversationId: string, token: string) {
+  const res = await fetch(`${API_URL}/chat/${conversationId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
-  if (!res.ok) throw new Error("Error al obtener los mensajes");
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Error al obtener mensajes: ${res.status} - ${text}`);
+  }
+
   return res.json();
 }
 
-// 🔹 Enviar un mensaje
-export async function sendMessage(chatId: string, text: string, token?: string): Promise<Message> {
-  const res = await fetch(`${API_URL}/chat/${chatId}/messages`, {
+export async function sendMessage(conversationId: string, text: string, token: string) {
+  const res = await fetch(`${API_URL}/chat/${conversationId}/send`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -31,48 +81,45 @@ export async function sendMessage(chatId: string, text: string, token?: string):
     },
     body: JSON.stringify({ text }),
   });
-  if (!res.ok) throw new Error("Error al enviar mensaje");
+
+  if (!res.ok) {
+    const textRes = await res.text();
+    throw new Error(`Error al enviar mensaje: ${res.status} - ${textRes}`);
+  }
+
   return res.json();
 }
 
-// 🔹 Crear nueva conversación (chat directo)
-export async function createConversation(otherUserId: string, token?: string): Promise<Conversation> {
-  const res = await fetch(`${API_URL}/chat/direct/${otherUserId}`, {
+export async function createConversation(title: string, token: string) {
+  const res = await fetch(`${API_URL}/chat`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error("Error al crear conversación");
-  return res.json();
-}
-
-// 🔹 Editar mensaje
-export async function editMessage(messageId: string, newText: string, token?: string): Promise<Message> {
-  const res = await fetch(`${API_URL}/chat/messages/${messageId}`, {
-    method: "PUT",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ text: newText }),
+    body: JSON.stringify({ title }),
   });
-  if (!res.ok) throw new Error("Error al editar mensaje");
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Error al crear conversación: ${res.status} - ${text}`);
+  }
+
   return res.json();
 }
 
-// 🔹 Eliminar mensaje
-export async function deleteMessage(messageId: string, token?: string): Promise<boolean> {
-  const res = await fetch(`${API_URL}/chat/messages/${messageId}`, {
+export async function deleteConversation(id: string, token: string) {
+  const res = await fetch(`${API_URL}/chat/${id}`, {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
-  return res.ok;
-}
 
-// 🔹 Eliminar conversación (si querés mantener esta acción)
-export async function deleteConversation(chatId: string, token?: string): Promise<boolean> {
-  const res = await fetch(`${API_URL}/chat/${chatId}`, {
-    method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.ok;
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Error al eliminar conversación: ${res.status} - ${text}`);
+  }
+
+  return true;
 }
