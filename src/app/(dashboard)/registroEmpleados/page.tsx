@@ -59,7 +59,6 @@ export default function RegistroEmpleadosPage() {
   const { getToken } = useAuth();
   const router = useRouter();
 
-  // 📦 Cargar departamentos y puestos
   useEffect(() => {
     const fetchData = async () => {
       if (!isLoaded || !user) {
@@ -114,7 +113,6 @@ export default function RegistroEmpleadosPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ❌ Cancelar formulario
   const handleCancel = () => {
     setFormData({
       first_name: "",
