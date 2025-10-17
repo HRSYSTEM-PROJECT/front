@@ -25,7 +25,7 @@ export const getNotifications = async (token: string | null) => {
   }
 };
 
-// 🔹 Marcar una notificación como leída
+//  Marcar una notificación como leída
 export const markAsRead = async (token: string, notificationId: string) => {
   try {
     const res = await fetch(`${API_URL}/notifications/mark-read/${notificationId}`, {
@@ -44,7 +44,7 @@ export const markAsRead = async (token: string, notificationId: string) => {
   }
 };
 
-// 🔹 Marcar todas como leídas
+// Marcar todas como leídas
 export const markAllAsRead = async (token: string) => {
   try {
     const res = await fetch(`${API_URL}/notifications/mark-all-read`, {
@@ -64,7 +64,7 @@ export const markAllAsRead = async (token: string) => {
   }
 };
 
-// 🔹 Eliminar una notificación
+//  Eliminar una notificación
 export const deleteNotification = async (token: string, notificationId: string) => {
   try {
     const res = await fetch(`${API_URL}/notifications/${notificationId}`, {
@@ -80,7 +80,7 @@ export const deleteNotification = async (token: string, notificationId: string) 
   }
 };
 
-// 🔹 Agendar un recordatorio
+//  Agendar un recordatorio
 export const scheduleReminder = async (
   token: string,
   title: string,
@@ -106,7 +106,7 @@ export const scheduleReminder = async (
   }
 };
 
-// 🔹 Obtener notificaciones automáticas (cron jobs)
+//  Obtener notificaciones automáticas (cron jobs)
 export const getCronNotifications = async (token: string) => {
   try {
     const res = await fetch(`${API_URL}/notifications`, {
@@ -125,7 +125,7 @@ export const getCronNotifications = async (token: string) => {
   }
 };
 
-// 🔹 Obtener recordatorios programados
+// Obtener recordatorios programados
 export const getScheduledReminders = async (token: string, page = 1, limit = 10) => {
   try {
     const res = await fetch(`${API_URL}/notifications/scheduled?page=${page}&limit=${limit}`, {
@@ -140,7 +140,7 @@ export const getScheduledReminders = async (token: string, page = 1, limit = 10)
   }
 };
 
-// 🔹 Actualizar recordatorio programado
+// Actualizar recordatorio programado
 export const updateScheduledReminder = async (
   token: string,
   id: string,
@@ -164,7 +164,7 @@ export const updateScheduledReminder = async (
   }
 };
 
-// 🔹 Eliminar recordatorio programado
+//  Eliminar recordatorio programado
 export const deleteScheduledReminder = async (token: string, id: string) => {
   try {
     const res = await fetch(`${API_URL}/notifications/scheduled/${id}`, {
