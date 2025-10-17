@@ -6,7 +6,6 @@ import {
   Calendar,
   DollarSign,
   Briefcase,
-  XCircle,
   Edit,
   Trash,
   Trash2,
@@ -18,6 +17,13 @@ import { toast } from "react-toastify";
 import { useParams } from "next/navigation";
 import AsistenciaForm from "@/components/asistencias/FormAsistencias";
 import Swal from "sweetalert2";
+import ActualizarEmpleados from "@/components/actualizarEmpleados";
+
+interface DepartmentInfo {
+  id: string;
+  nombre: string;
+  descripcion: string;
+}
 
 interface EmpleadoDetails {
   id: string;
@@ -30,7 +36,8 @@ interface EmpleadoDetails {
   birthdate?: string;
   imgUrl?: string;
   position_id: string;
-  department_id?: string;
+  department: DepartmentInfo;
+  department_id: string;
   salary?: number;
   createdAt?: string;
   updatedAt?: string;
@@ -72,6 +79,7 @@ export default function EmpleadoDetailsPage({
   const [ausencias, setAusencias] = useState<Ausencia[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
 
   const fetchEmpleadoDetails = async () => {
     if (!isLoaded) {
@@ -90,7 +98,6 @@ export default function EmpleadoDetailsPage({
           },
         }
       );
-      console.log("Datos del empleado:", response.data);
       setEmpleado(response.data);
     } catch (err) {
       console.error("Error al cargar detalles del empleado:", err);
@@ -238,8 +245,7 @@ export default function EmpleadoDetailsPage({
   const currentDepartment = departments.find(
     (dep) => dep.id === empleado.department_id
   );
-  const positionName = currentPosition?.name || "Posición no especificada";
-  const departmentName = currentDepartment?.nombre || "No asignado";
+  const departmentName = empleado.department?.nombre || "No asignado";
 
   const handleDesignarAdmin = async () => {
     if (!isLoaded || !empleado) return;
@@ -319,11 +325,6 @@ export default function EmpleadoDetailsPage({
           },
         }
       );
-
-      console.log(
-        "Usuario creado/actualizado como administrador:",
-        response.data
-      );
       toast.success(
         `¡${empleado.first_name} ${empleado.last_name} ha sido designado como Administrador!`
       );
@@ -342,7 +343,7 @@ export default function EmpleadoDetailsPage({
             {empleado.first_name} {empleado.last_name}
           </h1>
           <p className="text-gray-600 mt-2 sm:mt-4 text-sm sm:text-base">
-            {positionName} - {departmentName}
+            {departmentName}
           </p>
         </div>
         <div>
@@ -390,11 +391,11 @@ export default function EmpleadoDetailsPage({
               </div>
               <div className="flex items-center gap-1">
                 <span className="font-medium">Fecha de Nacimiento:</span>
-                <span>{empleado.birthdate}</span>
+                <span>{empleado.birthdate || "No informado"}</span>
               </div>
               <div className="flex items-center gap-1">
                 <span className="font-medium">Edad:</span>
-                <span>{empleado.age}</span>
+                <span>{empleado.age || "No informado"}</span>
               </div>
             </div>
           </div>
@@ -405,20 +406,15 @@ export default function EmpleadoDetailsPage({
                 Acciones Rápidas
               </h2>
               <div className="flex justify-between mb-4">
-                <button className="bg-transparent hover:bg-green-700 text-black hover:text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-300 flex items-center gap-2">
+                {/* <button
+                  onClick={() => setIsEditing(true)}
+                  className="bg-transparent hover:bg-green-700 text-black hover:text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-300 flex items-center gap-2"
+                >
                   <Edit className="h-4 w-4" /> Editar Empleado
-                </button>
+                </button> */}
+
                 <button className="bg-red-700 hover:bg-red-800 text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-100 flex items-center gap-2 ">
                   <Trash className="h-4 w-4" /> Eliminar Empleado
-                </button>
-              </div>
-              <div className="flex flex-col gap-2 mt-10">
-                <button
-                  className="bg-transparent hover:bg-green-700 text-black hover:text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-300 flex items-center gap-2 w-full justify-center"
-                  onClick={handleMarcarAusente}
-                >
-                  <XCircle className="w-4 h-4" />
-                  Marcar Ausente
                 </button>
               </div>
             </div>
@@ -529,6 +525,17 @@ export default function EmpleadoDetailsPage({
           </div>
         </div>
       </div>
+      {isEditing && empleado && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <ActualizarEmpleados
+            empleado={empleado}
+            departments={departments}
+            positions={positions}
+            onClose={() => setIsEditing(false)}
+            onUpdate={fetchEmpleadoDetails}
+          />
+        </div>
+      )}
     </div>
   );
 }

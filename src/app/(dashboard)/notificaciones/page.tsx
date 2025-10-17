@@ -233,13 +233,6 @@ export default function NotificationsPage() {
               ))
             )}
           </div>
-
-          <button
-            onClick={handleCreateTestNotification}
-            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition font-medium mt-6 shadow-md"
-          >
-            Crear notificación de prueba
-          </button>
         </div>
 
         <form
