@@ -462,7 +462,7 @@ export default function EmpleadoDetailsPage({
 
                 <button
                   className="bg-red-700 hover:bg-red-800 text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-100 flex items-center gap-2 "
-                  onClick={() => handleDeleteEmpleado(empleado?.id!)}
+                  onClick={() => handleDeleteEmpleado(empleado.id!)}
                 >
                   <Trash className="h-4 w-4" /> Eliminar Empleado
                 </button>
