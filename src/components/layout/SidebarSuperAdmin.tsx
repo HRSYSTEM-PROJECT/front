@@ -9,17 +9,12 @@ import {
   LayoutDashboard,
   Users,
   UserPlus,
-  Building2,
-  CreditCard,
-  Bell,
-  MessageCircle,
   LogOut,
   ChevronRight,
   ChevronLeft,
-  Settings,
 } from "lucide-react";
 
-export function Sidebar({
+export function SidebarSuperAdmin({
   onToggle,
 }: {
   onToggle: (expanded: boolean) => void;
@@ -48,22 +43,7 @@ export function Sidebar({
   }, []);
 
   const navLinks = [
-    { name: "Perfil Empresa", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Empleados", href: "/empleados", icon: Users },
-    {
-      name: "Registro de empleados",
-      href: "/registroEmpleados",
-      icon: UserPlus,
-    },
-    {
-      name: "Categorias Laborales",
-      href: "/categorias/departamentos",
-      icon: Building2,
-    },
-    { name: "Plan de suscripción", href: "/plan", icon: CreditCard },
-    { name: "Notificaciones", href: "/notificaciones", icon: Bell },
-    { name: "Mensajería", href: "/mensajeria", icon: MessageCircle },
-    { name: "Seguridad", href: "/configuracion", icon: Settings },
+    { name: "Super Admin", href: "/superadmin", icon: LayoutDashboard },
   ];
 
   const handleCerrarSesion = () => {
@@ -103,7 +83,7 @@ export function Sidebar({
               isExpanded ? "p-4" : "py-3 justify-center"
             }`}
           >
-            <div className="w-10 h-10 bg-[#083E96] rounded-lg flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 bg-[#c21d00] rounded-lg flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-2xl">HR</span>
             </div>
             {isExpanded && (
@@ -115,7 +95,7 @@ export function Sidebar({
 
           <button
             onClick={() => setIsExpanded((prev) => !prev)}
-            className={`absolute top-9 flex items-center justify-center w-8 h-8 rounded-full text-gray-700 hover:text-black hover:bg-gray-200 transition-colors flex-shrink-0  z-50
+            className={`absolute top-9 flex items-center justify-center w-8 h-8 rounded-full text-gray-700 hover:text-black hover:bg-gray-200 transition-colors flex-shrink-0 z-50
               ${isExpanded ? "right-[-1px]" : "right-[-10px]"}`}
           >
             {isExpanded ? (
@@ -133,7 +113,7 @@ export function Sidebar({
                 isActive = pathname.startsWith("/categorias");
               }
               const baseLinkClasses = isActive
-                ? "flex items-center p-3 rounded-lg bg-[#083E96] text-white font-semibold shadow-md"
+                ? "flex items-center p-3 rounded-lg bg-[#c21d00] hover:bg-[#961d08] text-white font-semibold shadow-md"
                 : "flex items-center p-3 rounded-lg hover:bg-gray-300 hover:text-black transition-colors";
 
               return (
