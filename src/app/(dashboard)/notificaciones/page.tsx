@@ -229,6 +229,7 @@ export default function NotificationsPage() {
               ))
             )}
           </div>
+<<<<<<< HEAD
 
           {/* Recordatorios programados */}
           <div className="mt-10">
@@ -258,6 +259,8 @@ export default function NotificationsPage() {
               </ul>
             )}
           </div>
+=======
+>>>>>>> 7759383b69009c29d59fb66596a2cdc00121c649
         </div>
 
         {/* Formulario de recordatorio */}
