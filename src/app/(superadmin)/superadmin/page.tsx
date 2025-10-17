@@ -1,5 +1,5 @@
 "use client";
-import { CreditCard, DollarSign, FileText, User2 } from "lucide-react";
+import { CreditCard, DollarSign, FileText, User2, Users } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 
@@ -65,10 +65,13 @@ export default function DashboardSuperAdmin() {
   const { isLoaded, getToken } = useAuth();
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [users, setUsers] = useState<Usuario[]>([]);
+  const [empleados, setEmpleados] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [errorUsers, setErrorUsers] = useState<string | null>(null);
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [errorEmpleados, setErrorEmpleados] = useState<string | null>(null);
+  const [loadingEmpleados, setLoadingEmpleados] = useState(true);
 
   const [suscripciones, setSuscripciones] = useState<Suscripcion[]>([]);
   const [totalIngresos, setTotalIngresos] = useState(0);
@@ -110,12 +113,27 @@ export default function DashboardSuperAdmin() {
       }
 
       try {
-        const res = await fetch(`${API_BASE_URL}/user`, {
+        const resEmpleado = await fetch(`${API_BASE_URL}/empleado`, {
           headers: { Authorization: `Bearer ${authToken}` },
         });
-        if (!res.ok)
-          throw new Error(`Error HTTP: ${res.status} (Endpoint: /user)`);
-        setUsers(await res.json());
+        if (!resEmpleado.ok)
+          throw new Error(
+            `Error HTTP: ${resEmpleado.status} (Endpoint: /empleado)`
+          );
+        setEmpleados(await resEmpleado.json());
+      } catch (err) {
+        console.error("Error al cargar los empleados:", err);
+      } finally {
+        setLoadingEmpleados(false);
+      }
+
+      try {
+        const resUser = await fetch(`${API_BASE_URL}/user`, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+        if (!resUser.ok)
+          throw new Error(`Error HTTP: ${resUser.status} (Endpoint: /user)`);
+        setUsers(await resUser.json());
       } catch (err) {
         console.error("Error al cargar los usuarios:", err);
       } finally {
@@ -199,21 +217,28 @@ export default function DashboardSuperAdmin() {
   }, [isLoaded, getToken]);
   const cards = [
     {
-      titulo: "Total Empresas",
+      titulo: "Empresas",
       valor: empresas.length,
       icon: FileText,
       iconBgColor: "bg-blue-100",
       iconColor: "text-blue-600",
     },
     {
-      titulo: "Total Usuarios",
+      titulo: "Usuarios",
       valor: users.length,
       icon: User2,
       iconBgColor: "bg-orange-100",
       iconColor: "text-orange-600",
     },
     {
-      titulo: "Total Suscripciones",
+      titulo: "Empleados",
+      valor: empleados.length,
+      icon: Users,
+      iconBgColor: "bg-green-100",
+      iconColor: "text-green-600",
+    },
+    {
+      titulo: "Suscripciones",
       valor: suscripciones.length,
       icon: CreditCard,
       iconBgColor: "bg-indigo-100",
@@ -239,6 +264,23 @@ export default function DashboardSuperAdmin() {
       return (
         <p className="text-center py-4 text-gray-500">
           No hay usuarios registrados.
+        </p>
+      );
+  };
+
+  const renderEmpleadosTableStatus = () => {
+    if (loadingEmpleados)
+      return (
+        <p className="text-center py-4 text-blue-600">Cargando empleados...</p>
+      );
+    if (errorEmpleados)
+      return (
+        <p className="text-center py-4 text-red-600">⚠️ {errorEmpleados}</p>
+      );
+    if (empleados.length === 0)
+      return (
+        <p className="text-center py-4 text-gray-500">
+          No hay empleados registrados.
         </p>
       );
   };
@@ -288,8 +330,7 @@ export default function DashboardSuperAdmin() {
         Gestión completa del sistema HR SYSTEM.
       </p>
 
-      {/* Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 mt-6">
         {cards.map((card, i) => {
           const Icon = card.icon;
           const valor =
@@ -333,103 +374,167 @@ export default function DashboardSuperAdmin() {
         {renderEmpresasTable()}
 
         {empresas.length > 0 && (
-          <table className="min-w-full divide-y divide-gray-200 text-xs sm:text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
-                  Nombre Comercial
-                </th>
-                <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
-                  Teléfono
-                </th>
-                <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
-                  Registro
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {empresas.map((empresa) => (
-                <tr
-                  key={empresa.id || empresa.email}
-                  className="hover:bg-gray-50"
-                >
-                  <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 min-w-[32px] sm:min-w-[40px] bg-blue-50 border border-blue-200 rounded-lg mr-3 sm:mr-4">
-                        <span className="text-xs sm:text-sm font-semibold text-blue-600">
-                          {getInitials(empresa.trade_name)}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="text-xs sm:text-sm font-semibold text-gray-900">
-                          {empresa.trade_name}
-                        </p>
-                        <p className="text-xs sm:text-sm text-gray-500">
-                          {empresa.email}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
-                    {empresa.phone_number}
-                  </td>
-                  <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
-                    {empresa.created_at
-                      ? new Date(empresa.created_at).toLocaleDateString()
-                      : "N/A"}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 text-xs sm:text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
+                    Nombre Comercial
+                  </th>
+                  <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
+                    Teléfono
+                  </th>
+                  <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
+                    Registro
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {empresas.map((empresa) => (
+                  <tr
+                    key={empresa.id || empresa.email}
+                    className="hover:bg-gray-50"
+                  >
+                    <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 min-w-[32px] sm:min-w-[40px] bg-blue-50 border border-blue-200 rounded-lg mr-3 sm:mr-4">
+                          <span className="text-xs sm:text-sm font-semibold text-blue-600">
+                            {getInitials(empresa.trade_name)}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-xs sm:text-sm font-semibold text-gray-900">
+                            {empresa.trade_name}
+                          </p>
+                          <p className="text-xs sm:text-sm text-gray-500">
+                            {empresa.email}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                      {empresa.phone_number}
+                    </td>
+                    <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                      {empresa.created_at
+                        ? new Date(empresa.created_at).toLocaleDateString()
+                        : "N/A"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
-      {/*-------------- Usuarios ------------------*/}
-      <div className="bg-white p-4 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full overflow-x-auto">
+      {/*----------------------- Usuarios y Empleados------------------ */}
+      <div className="bg-white p-4 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full">
         <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-4">
-          Usuarios Registrados en el Sistema
+          Gestión de Usuarios y Empleados
         </h2>
-        <p className="text-xs sm:text-sm text-gray-500 mb-4">
-          Gestión de todos los usuarios registrados
+        <p className="text-xs sm:text-sm text-gray-500 mb-6">
+          Usuarios y empleados registrados en el sistema.
         </p>
-        {renderUsersTableStatus()}
 
-        {users.length > 0 && (
-          <table className="min-w-full divide-y divide-gray-200 text-xs sm:text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
-                  Nombre
-                </th>
-                <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
-                  Email
-                </th>
-                <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
-                  Registro
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
-                    {user.first_name} {user.last_name}
-                  </td>
-                  <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
-                    {user.email}
-                  </td>
-                  <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
-                    {new Date(user.created_at).toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div>
+            <h3 className="text-lg sm:text-xl mb-3 text-[#083E96] text-center">
+              Usuarios Registrados ({users.length})
+            </h3>
+
+            {renderUsersTableStatus && renderUsersTableStatus()}
+
+            {users.length > 0 ? (
+              <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
+                <table className="min-w-full divide-y divide-gray-200 text-xs sm:text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
+                        Nombre
+                      </th>
+                      <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
+                        Registro
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {users.map((user) => (
+                      <tr key={user.id} className="hover:bg-indigo-50/50">
+                        <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
+                          {user.first_name} {user.last_name}
+                        </td>
+                        <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                          {user.email}
+                        </td>
+                        <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                          {new Date(user.created_at).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 p-4 border rounded-lg">
+                No hay usuarios registrados.
+              </p>
+            )}
+          </div>
+
+          <div>
+            <h3 className="text-lg sm:text-xl mb-3 text-[#083E96] text-center">
+              Empleados Registrados ({empleados.length})
+            </h3>
+
+            {renderEmpleadosTableStatus && renderEmpleadosTableStatus()}
+
+            {empleados.length > 0 ? (
+              <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
+                <table className="min-w-full divide-y divide-gray-200 text-xs sm:text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
+                        Nombre
+                      </th>
+                      <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
+                        Registro
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {empleados.map((empleado) => (
+                      <tr key={empleado.id} className="hover:bg-emerald-50/50">
+                        <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
+                          {empleado.first_name} {empleado.last_name}
+                        </td>
+                        <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                          {empleado.email}
+                        </td>
+                        <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                          {new Date(empleado.created_at).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 p-4 border rounded-lg">
+                No hay empleados registrados.
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/*------------ Distribución de Planes -----------------*/}
+      {/*---------------- Distribución de Planes -----------------*/}
       <div className="bg-white p-4 sm:p-8 rounded-xl shadow-lg border border-gray-100 mt-8 w-full overflow-x-auto">
         <h2 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
           Distribución de Planes

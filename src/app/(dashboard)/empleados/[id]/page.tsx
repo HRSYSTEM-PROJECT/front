@@ -14,7 +14,7 @@ import axios, { AxiosError } from "axios";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "react-toastify";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import AsistenciaForm from "@/components/asistencias/FormAsistencias";
 import Swal from "sweetalert2";
 import ActualizarEmpleados from "@/components/actualizarEmpleados";
@@ -80,6 +80,8 @@ export default function EmpleadoDetailsPage({
   const [positions, setPositions] = useState<Position[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [isEditing, setIsEditing] = useState(false);
+
+  const router = useRouter();
 
   const fetchEmpleadoDetails = async () => {
     if (!isLoaded) {
@@ -335,6 +337,51 @@ export default function EmpleadoDetailsPage({
       setLoading(false);
     }
   };
+
+  const handleDeleteEmpleado = async (empleadoId: string) => {
+    const result = await Swal.fire({
+      title: "¿Estás seguro?",
+      text: "Esta acción eliminará al empleado permanentemente.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const authToken = await getToken();
+      await axios.delete(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado/${empleadoId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
+
+      Swal.fire({
+        title: "Eliminado",
+        text: "El empleado fue eliminado correctamente ✅",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      router.push("/empleados");
+      setEmpleado(null);
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        title: "Error",
+        text: "No se pudo eliminar al empleado ❌",
+        icon: "error",
+      });
+    }
+  };
   return (
     <div className="container mx-auto px-4 sm:px-6 py-4 text-start max-w-full overflow-x-hidden">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -413,7 +460,10 @@ export default function EmpleadoDetailsPage({
                   <Edit className="h-4 w-4" /> Editar Empleado
                 </button> */}
 
-                <button className="bg-red-700 hover:bg-red-800 text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-100 flex items-center gap-2 ">
+                <button
+                  className="bg-red-700 hover:bg-red-800 text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-100 flex items-center gap-2 "
+                  onClick={() => handleDeleteEmpleado(empleado?.id!)}
+                >
                   <Trash className="h-4 w-4" /> Eliminar Empleado
                 </button>
               </div>
