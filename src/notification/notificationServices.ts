@@ -28,6 +28,25 @@ export const getNotifications = async (token: string | null) => {
   }
 };
 
+// 🔹 Marcar una notificación como leída
+export const markAsRead = async (token: string, notificationId: string) => {
+  try {
+    const res = await fetch(`${API_URL}/notifications/mark-read/${notificationId}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) {
+      throw new Error(`Error al marcar notificación como leída: ${res.status}`);
+    }
+
+    return res.json();
+  } catch (error) {
+    console.error("Error en markAsRead:", error);
+    throw error;
+  }
+};
+
 // 🔹 Marcar todas como leídas
 export const markAllAsRead = async (token: string) => {
   try {
@@ -118,6 +137,66 @@ export const getCronNotifications = async (token: string) => {
     return cronNotifications;
   } catch (error) {
     console.error("Error en getCronNotifications:", error);
+    throw error;
+  }
+};
+
+// 🔹 Obtener recordatorios programados
+export const getScheduledReminders = async (token: string, page = 1, limit = 10) => {
+  try {
+    const res = await fetch(`${API_URL}/notifications/scheduled?page=${page}&limit=${limit}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) throw new Error("Error al obtener recordatorios programados");
+    return res.json();
+  } catch (error) {
+    console.error("Error en getScheduledReminders:", error);
+    throw error;
+  }
+};
+
+// 🔹 Actualizar recordatorio programado
+export const updateScheduledReminder = async (
+  token: string,
+  id: string,
+  updatedData: {
+    title?: string;
+    message?: string;
+    scheduledDate?: string;
+    recipientType?: string;
+  }
+) => {
+  try {
+    const res = await fetch(`${API_URL}/notifications/scheduled/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(updatedData),
+    });
+
+    if (!res.ok) throw new Error("Error al actualizar recordatorio");
+    return res.json();
+  } catch (error) {
+    console.error("Error en updateScheduledReminder:", error);
+    throw error;
+  }
+};
+
+// 🔹 Eliminar recordatorio programado
+export const deleteScheduledReminder = async (token: string, id: string) => {
+  try {
+    const res = await fetch(`${API_URL}/notifications/scheduled/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) throw new Error("Error al eliminar recordatorio");
+    return res.json();
+  } catch (error) {
+    console.error("Error en deleteScheduledReminder:", error);
     throw error;
   }
 };
