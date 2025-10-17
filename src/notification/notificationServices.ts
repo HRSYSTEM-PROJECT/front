@@ -200,3 +200,5 @@ export const deleteScheduledReminder = async (token: string, id: string) => {
     throw error;
   }
 };
+
+console.log("hola mundo");
