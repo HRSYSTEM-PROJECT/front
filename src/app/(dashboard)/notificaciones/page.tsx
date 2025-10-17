@@ -37,14 +37,9 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(false);
   const [cronEvents, setCronEvents] = useState<Notification[]>([]);
   const [scheduledReminders, setScheduledReminders] = useState<ScheduledReminder[]>([]);
+  const [reminder, setReminder] = useState({ title: "", message: "", scheduledDate: "" });
 
-  const [reminder, setReminder] = useState({
-    title: "",
-    message: "",
-    scheduledDate: "",
-  });
-
-  //  Cargar notificaciones normales
+  // Cargar notificaciones normales
   const loadNotifications = async () => {
     setLoading(true);
     try {
@@ -59,7 +54,7 @@ export default function NotificationsPage() {
     }
   };
 
-  //  Cargar eventos automáticos (cron)
+  // Cargar eventos automáticos (cron)
   const loadCronEvents = async () => {
     try {
       const token = await getToken();
@@ -71,7 +66,7 @@ export default function NotificationsPage() {
     }
   };
 
-  //  Cargar recordatorios programados
+  // Cargar recordatorios programados
   const loadScheduledReminders = async () => {
     try {
       const token = await getToken();
@@ -89,7 +84,7 @@ export default function NotificationsPage() {
     loadScheduledReminders();
   }, []);
 
-  //  Marcar una como leída
+  // Marcar una como leída
   const handleMarkAsRead = async (id: string) => {
     try {
       const token = await getToken();
@@ -100,7 +95,7 @@ export default function NotificationsPage() {
     }
   };
 
-  //  Marcar todas como leídas
+  // Marcar todas como leídas
   const handleMarkAllAsRead = async () => {
     try {
       const token = await getToken();
@@ -111,7 +106,7 @@ export default function NotificationsPage() {
     }
   };
 
-  //  Eliminar notificación normal
+  // Eliminar notificación normal
   const handleDelete = async (id: string) => {
     try {
       const token = await getToken();
@@ -123,7 +118,7 @@ export default function NotificationsPage() {
     }
   };
 
-  //  Programar un recordatorio
+  // Programar un recordatorio
   const handleScheduleReminder = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -138,7 +133,7 @@ export default function NotificationsPage() {
     }
   };
 
-  //  Eliminar recordatorio programado
+  // Eliminar recordatorio programado
   const handleDeleteScheduled = async (id: string) => {
     try {
       const token = await getToken();
@@ -174,7 +169,7 @@ export default function NotificationsPage() {
               <p className="text-gray-500 text-center py-10">Cargando notificaciones...</p>
             ) : notifications.length === 0 ? (
               <div className="text-center py-10 border-2 border-dashed border-gray-200 rounded-xl mt-4">
-                <p className="text-gray-500 italic text-lg"> ¡Todo limpio! No hay notificaciones registradas.</p>
+                <p className="text-gray-500 italic text-lg">¡Todo limpio! No hay notificaciones registradas.</p>
               </div>
             ) : (
               <ul className="space-y-4">
@@ -229,7 +224,6 @@ export default function NotificationsPage() {
               ))
             )}
           </div>
-<<<<<<< HEAD
 
           {/* Recordatorios programados */}
           <div className="mt-10">
@@ -259,8 +253,6 @@ export default function NotificationsPage() {
               </ul>
             )}
           </div>
-=======
->>>>>>> 7759383b69009c29d59fb66596a2cdc00121c649
         </div>
 
         {/* Formulario de recordatorio */}
