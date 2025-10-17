@@ -70,7 +70,7 @@ export default function DashboardSuperAdmin() {
   const [errorUsers, setErrorUsers] = useState<string | null>(null);
   const [loadingUsers, setLoadingUsers] = useState(true);
 
-  const [suscripciones, setSuscripciones] = useState<any[]>([]);
+  const [suscripciones, setSuscripciones] = useState<Suscripcion[]>([]);
   const [totalIngresos, setTotalIngresos] = useState(0);
 
   const [distribucionData, setDistribucionData] = useState<Distribucion[]>([]);
