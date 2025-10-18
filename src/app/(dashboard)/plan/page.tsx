@@ -1,173 +1,142 @@
 "use client";
 
-import {useEffect, useState} from "react";
-import {Check, X} from "lucide-react";
+import { useEffect, useState } from "react";
 import axios from "axios";
+import { useAuth } from "@clerk/nextjs";
+import PlansSelector from "@/components/planes/PlanSelector";
+import { Loader2 } from "lucide-react";
+import Link from "next/link";
 
-export default function PlanesPage() {
-  const [currentPlan, setCurrentPlan] = useState("Premium");
+
+interface Plan {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+  features?: { name: string; included: boolean }[];
+}
+
+export default function PlanPage() {
+  const { getToken, userId } = useAuth();
+  const [companyId, setCompanyId] = useState<string | undefined>();
+  const [premiumPlanId, setPremiumPlanId] = useState<string | null>(null);
+  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [price, setPrice] = useState<number | null>(null);
 
   useEffect(() => {
-    const fetchPlans = async () => {
+    const fetchData = async () => {
+      if (!userId) return;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/plan`);
-        setCurrentPlan(response.data.name);
-        console.log(response.data);
-      } catch (err) {
-        console.error("Error fetching planes:", err);
+        const token = await getToken();
+        const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
+        if (!API_BASE_URL) return;
+
+        const resSub = await axios.get(
+          `${API_BASE_URL}/suscripciones/company/current`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        const suscripcion = resSub.data.suscripcion;
+        setCompanyId(suscripcion?.company?.id);
+        setPrice(Number(suscripcion?.plan?.price) || 0);
+        setCurrentPlan(suscripcion?.plan?.name || "plan_free");
+        const resPlans = await axios.get(`${API_BASE_URL}/plan`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const planes: Plan[] = resPlans.data;
+        const premiumPlan = planes.find((p) => p.name === "plan_premium");
+
+        if (premiumPlan) setPremiumPlanId(premiumPlan.id);
+      } catch (error) {
+        console.error("Error al obtener datos de empresa o planes:", error);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchPlans();
-  }, []);
 
-  const plans = [
-    {
-      id: "free",
-      name: "Free",
-      price: "$0",
-      description: "Perfecto para empezar y probar el sistema",
-      features: [
-        {text: "Hasta 10 empleados", included: true},
-        {text: "Dashboard básico", included: true},
-        {text: "Registro de asistencia", included: true},
-        {text: "Gestión de categorías", included: true},
-        {text: "Reportes avanzados", included: false},
-        {text: "Notificaciones ilimitadas", included: false},
-      ],
-    },
-    {
-      id: "premium",
-      name: "Premium",
-      price: "$49",
-      tag: "Más Popular",
-      description: "Para empresas en crecimiento",
-      features: [
-        {text: "Hasta 100 empleados", included: true},
-        {text: "Dashboard completo", included: true},
-        {text: "Registro de asistencia", included: true},
-        {text: "Gestión de categorías", included: true},
-        {text: "Reportes avanzados", included: true},
-        {text: "Notificaciones ilimitadas", included: true},
-        {text: "Múltiples administradores (hasta 3)", included: true},
-        {text: "API access", included: false},
-      ],
-    },
-    {
-      id: "enterprise",
-      name: "Enterprise",
-      price: "$149",
-      description: "Para grandes organizaciones",
-      features: [
-        {text: "Empleados ilimitados", included: true},
-        {text: "Dashboard personalizado", included: true},
-        {text: "Registro de asistencia avanzado", included: true},
-        {text: "Gestión de categorías", included: true},
-        {text: "Reportes avanzados y personalizados", included: true},
-        {text: "Notificaciones ilimitadas", included: true},
-        {text: "Soporte 24/7 dedicado", included: true},
-        {text: "API access completo", included: true},
-      ],
-    },
-  ];
+    fetchData();
+  }, [getToken, userId]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col justify-center items-center h-[60vh] bg-gray-50">
+        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mb-3" />
+        <p className="text-gray-600 text-lg font-medium">
+          Cargando datos de la empresa...
+        </p>
+        <p className="text-sm text-gray-400 mt-1">Un momento, por favor.</p>
+      </div>
+    );
+  }
+
+  const formatPlanName = (plan: string | null): string => {
+    if (typeof plan !== "string" || !plan) {
+      return "Sin plan";
+    }
+
+    return plan
+      .replace("plan_", "")
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
+  const currentPlanDisplay = formatPlanName(currentPlan);
+  const planColorClass =
+    currentPlan === "plan_premium"
+      ? "bg-yellow-100 text-yellow-800"
+      : currentPlan
+      ? "bg-blue-100 text-blue-800"
+      : "bg-gray-100 text-gray-600";
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10">
-      <div className="text-center mb-10">
-        <h1 className="text-3xl font-bold text-gray-900">Planes de Suscripción</h1>
-        <p className="text-gray-600 mt-2">Elige el plan que mejor se adapte a las necesidades de tu empresa</p>
-      </div>
-
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 flex justify-between items-center mb-8">
-        <div>
-          <span className="text-sm font-semibold text-white bg-blue-700 px-2 py-1 rounded-md mr-2">Plan Actual</span>
-          <span className="font-semibold">{currentPlan}</span>
-          <p className="text-gray-600 text-sm mt-1">Tu suscripción se renueva el 15 de febrero de 2025</p>
-        </div>
-        <div className="text-right">
-          <p className="text-2xl font-bold text-gray-800">$49</p>
-          <p className="text-sm text-gray-500">por mes</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {plans.map((plan) => (
-          <div
-            key={plan.id}
-            className={`border rounded-lg p-6 flex flex-col justify-between shadow-sm ${
-              currentPlan === plan.name ? "border-blue-300 bg-blue-50" : "border-gray-200 bg-white"
-            }`}
-          >
-            <div>
-              {plan.tag && (
-                <div className="bg-orange-500 text-white text-xs px-2 py-1 rounded-md inline-block mb-3">
-                  {plan.tag}
-                </div>
-              )}
-              <h2 className="text-xl font-semibold mb-1">{plan.name}</h2>
-              <p className="text-gray-600 text-sm mb-4">{plan.description}</p>
-
-              <div className="text-3xl font-bold mb-4">
-                {plan.price}
-                <span className="text-sm text-gray-600 font-normal ml-1">por mes</span>
-              </div>
-
-              <ul className="space-y-2 mb-6">
-                {plan.features.map((feature, i) => (
-                  <li key={i} className="flex items-center text-sm">
-                    {feature.included ? (
-                      <Check className="w-4 h-4 text-green-600 mr-2" />
-                    ) : (
-                      <X className="w-4 h-4 text-gray-400 mr-2" />
-                    )}
-                    <span className={feature.included ? "text-gray-800" : "text-gray-400 line-through"}>
-                      {feature.text}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <button
-              onClick={() => setCurrentPlan(plan.name)}
-              disabled={currentPlan === plan.name}
-              className={`w-full py-2 rounded-md text-white font-semibold ${
-                currentPlan === plan.name
-                  ? "bg-gray-200 text-gray-600 cursor-not-allowed"
-                  : "bg-blue-700 hover:bg-blue-800"
-              }`}
+    <div className="container mx-auto px-4 sm:px-6 py-4 text-start max-w-full overflow-x-hidden">
+        <header className="mb-10 text-start">
+          <h1 className="text-3xl font-bold">
+            Gestión de Suscripciones
+          </h1>
+          <p className="text-xl text-gray-500">
+            Revisa y selecciona el plan que mejor se adapte a tu negocio.
+          </p>
+        </header>
+        <div className="mb-10 bg-white border border-gray-200 shadow-lg rounded-xl p-6 transition duration-300 hover:shadow-xl">
+          <h2 className="text-2xl font-semibold text-gray-700 mb-3 flex items-center">
+            Tu Plan Actual
+          </h2>
+          <div className="flex justify-between items-center">
+            <p className="text-lg text-gray-500">Plan activo:</p>
+            <span
+              className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider ${planColorClass}`}
             >
-              {currentPlan === plan.name ? "Plan Actual" : `Cambiar a ${plan.name}`}
-            </button>
+              {currentPlanDisplay}
+            </span>
           </div>
-        ))}
-      </div>
-
-      <div className="mt-10 bg-gray-50 p-6 rounded-lg border border-gray-200">
-        <h3 className="font-semibold text-gray-900 mb-4">Información Adicional</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-sm text-gray-700">
-          <div>
-            <p className="font-semibold mb-1">Métodos de Pago</p>
-            <p>
-              Aceptamos tarjetas de crédito, débito y transferencias bancarias. Todos los pagos son procesados de forma
-              segura.
-            </p>
-          </div>
-          <div>
-            <p className="font-semibold mb-1">Facturación</p>
-            <p>Recibirás una factura detallada cada mes. Puedes descargar todas tus facturas desde tu perfil.</p>
-          </div>
-          <div>
-            <p className="font-semibold mb-1">Cancelación</p>
-            <p>Puedes cancelar tu suscripción en cualquier momento. No hay penalizaciones ni cargos ocultos.</p>
-          </div>
-          <div>
-            <p className="font-semibold mb-1">Soporte</p>
-            <p>
-              Todos los planes incluyen soporte por email. Los planes Premium y Enterprise tienen soporte prioritario.
-            </p>
-          </div>
+          {price !== null && (
+            <div className="mt-2 flex justify-between items-center">
+              <p className="text-lg text-gray-500">Precio mensual:</p>
+              <span className="text-lg font-semibold text-gray-800">
+                ${price.toFixed(2)}
+              </span>
+            </div>
+          )}
         </div>
-      </div>
+
+        <section className="bg-white shadow-2xl rounded-2xl p-8 border border-indigo-100">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">
+            Explora nuestros planes
+          </h2>
+          <PlansSelector
+            companyId={companyId!}
+            setPremiumPlanId={setPremiumPlanId}
+          />
+          <div className="mt-8 pt-4 border-t border-gray-100 text-center text-sm text-gray-500">
+            ¿Necesitas ayuda para elegir? <Link href="/contact">Contáctanos.</Link>
+          </div>
+        </section>
     </div>
   );
 }

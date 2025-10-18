@@ -42,7 +42,18 @@ export default function Home() {
         </div>
       </section>
       <FeaturesSection />
-      <PricingSection />
+      <div className="max-w-6xl mx-auto">
+        <h2 className="text-5xl font-bold mb-4 text-center text-gray-900">
+          Planes diseñados para cada necesidad
+        </h2>
+        <p className="text-xl text-gray-600 text-center mb-16 max-w-3xl mx-auto">
+          Elige el plan que mejor se adapte al tamaño y necesidades de tu
+          organización.
+        </p>
+      </div>
+      <div className="py-20 px-4 bg-gray-50">
+        <PricingSection />
+      </div>
 
       <div className="bg-[#083E96] text-white text-center py-6 mt-20 h-100">
         <h3 className="text-2xl md:text-5xl font-bold text-white leading-tight mt-10">
