@@ -73,30 +73,19 @@ export const deleteNotification = async (token: string, notificationId: string) 
   }
 };
 
-//  Agendar un recordatorio
-export const scheduleReminder = async (
-  token: string,
-  title: string,
-  message: string,
-  scheduledDate: string,
-  type = "custom_notification"
-) => {
-  try {
-    const res = await fetch(`${API_URL}/notifications/schedule-reminder`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ title, message, scheduledDate, type }),
-    });
-
-    if (!res.ok) throw new Error("Error al agendar recordatorio");
-    return res.json();
-  } catch (error) {
-    console.error("❌ Error en scheduleReminder:", error);
-    throw error;
-  }
+export const scheduleReminder = async (token: string, title: string, message: string, scheduledDate: string) => {
+  const formattedDate = new Date(scheduledDate).toISOString();
+  return axios.post(
+    `${API_URL}/notifications/schedule-reminder`,
+    {
+      title,
+      message,
+      scheduled_date: formattedDate, // ✅ nombre correcto y formato ISO
+    },
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
 };
 
 //  Obtener notificaciones automáticas (cron jobs)
