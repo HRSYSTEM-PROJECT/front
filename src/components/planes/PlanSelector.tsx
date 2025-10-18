@@ -111,7 +111,7 @@ export const PlansSelector = ({
         );
         if (currentPlanRes.ok) {
           const currentData = await currentPlanRes.json();
-          setCurrentPlan(currentData.suscripcion?.plan?.name || "plan_free");
+          setCurrentPlan(currentData.plan?.name || "plan_free");
         }
       } catch (error) {
         console.error("Error al cargar planes:", error);
