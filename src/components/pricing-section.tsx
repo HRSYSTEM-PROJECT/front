@@ -17,9 +17,7 @@ const CustomLink = ({
   if (disabled || !href) {
     return (
       <button
-        className={
-          className + " cursor-not-allowed pointer-events-none"
-        }
+        className={className + " cursor-not-allowed pointer-events-none"}
         disabled
       >
         {children}
@@ -192,16 +190,7 @@ const PricingCard = ({ plan }: { plan: (typeof planes)[number] }) => {
 
 export default function PricingSection() {
   return (
-    <section className="py-20 px-4 bg-gray-50">
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-5xl font-bold mb-4 text-center text-gray-900">
-          Planes diseñados para cada necesidad
-        </h2>
-        <p className="text-xl text-gray-600 text-center mb-16 max-w-3xl mx-auto">
-          Elige el plan que mejor se adapte al tamaño y necesidades de tu
-          organización.
-        </p>
-      </div>
+    <section>
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 items-start">
         {planes.map((plan) => (
           <PricingCard key={plan.name} plan={plan} />

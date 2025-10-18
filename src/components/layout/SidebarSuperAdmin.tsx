@@ -44,6 +44,8 @@ export function SidebarSuperAdmin({
 
   const navLinks = [
     { name: "Super Admin", href: "/superadmin", icon: LayoutDashboard },
+    { name: "Empresa", href: "/empresas", icon: Users },
+    { name: "Usuarios", href: "/usuarios", icon: UserPlus },
   ];
 
   const handleCerrarSesion = () => {
