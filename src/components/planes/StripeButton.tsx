@@ -7,7 +7,7 @@ interface StripeButtonProps {
   planId: string;
   text: string;
   className?: string;
-  onPaymentSuccess?: () => void; // 👈 nueva prop
+  onPaymentSuccess?: () => void;
 }
 
 export const StripeButton = ({

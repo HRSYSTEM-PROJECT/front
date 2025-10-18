@@ -233,9 +233,19 @@ export const PlansSelector = ({
                 <StripeButton
                   companyId={companyId}
                   planId={plan.id}
-                  text={buttonText}
-                  className={`${buttonClass} w-full text-white py-3 rounded-lg font-semibold`}
-                  onPaymentSuccess={() => setCurrentPlan(plan.name)} // 👈 aquí se actualiza correctamente
+                  text={
+                    currentPlan === plan.name
+                      ? "Plan Activo"
+                      : plan.name === "plan_premium"
+                      ? "Pasar a Premium"
+                      : "Pasar a Free"
+                  }
+                  className={`${buttonClass} w-full text-white py-3 rounded-lg font-semibold ${
+                    currentPlan === plan.name
+                      ? "opacity-70 cursor-not-allowed bg-gray-400"
+                      : "hover:opacity-90"
+                  }`}
+                  onPaymentSuccess={() => setCurrentPlan(plan.name)}
                 />
               )}
             </div>
@@ -247,3 +257,11 @@ export const PlansSelector = ({
 };
 
 export default PlansSelector;
+
+// <StripeButton
+//   companyId={companyId}
+//   planId={plan.id}
+//   text={buttonText}
+//   className={`${buttonClass} w-full text-white py-3 rounded-lg font-semibold`}
+//   onPaymentSuccess={() => setCurrentPlan(plan.name)} // 👈 aquí se actualiza correctamente
+// />

@@ -38,6 +38,15 @@ export default function PlanPage() {
         const token = await getToken();
         const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
         if (!API_BASE_URL) return;
+        const resPlans = await axios.get(`${API_BASE_URL}/plan`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const planes: Plan[] = resPlans.data;
+        setPlans(planes);
+
+        const premiumPlan = planes.find((p) => p.name === "plan_premium");
+        if (premiumPlan) setPremiumPlanId(premiumPlan.id);
 
         const resSub = await axios.get(
           `${API_BASE_URL}/suscripciones/company/current`,
@@ -46,16 +55,18 @@ export default function PlanPage() {
 
         const suscripcion = resSub.data.suscripcion;
         setCompanyId(suscripcion?.company?.id);
-        setPrice(Number(suscripcion?.plan?.price) || 0);
         setCurrentPlan(suscripcion?.plan?.name || "plan_free");
-        const resPlans = await axios.get(`${API_BASE_URL}/plan`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
 
-        const planes: Plan[] = resPlans.data;
-        const premiumPlan = planes.find((p) => p.name === "plan_premium");
+        let planPrice = Number(suscripcion?.plan?.price);
 
-        if (premiumPlan) setPremiumPlanId(premiumPlan.id);
+        if (!planPrice || isNaN(planPrice)) {
+          const matchedPlan = planes.find(
+            (p) => p.name === suscripcion?.plan?.name
+          );
+          planPrice = matchedPlan ? Number(matchedPlan.price) : 0;
+        }
+
+        setPrice(planPrice);
       } catch (error) {
         console.error("Error al obtener datos de empresa o planes:", error);
       } finally {
@@ -126,6 +137,16 @@ export default function PlanPage() {
             </span>
           </div>
         )}
+        <p className="mt-4 text-sm text-gray-500">
+          ¿Querés dejar de ser parte de{" "}
+          <span className="font-semibold text-[#083E96]">HR SYSTEM</span>?{" "}
+          <button
+            onClick={() => console.log("Desuscribirse clickeado")} //---------------------IMPLEMENTAR DESUSCRIPCION
+            className="text-red-500 hover:text-red-700 font-semibold underline ml-1 cursor-pointer"
+          >
+            Cancelar suscripción
+          </button>
+        </p>
       </div>
 
       <section className="bg-white shadow-2xl rounded-2xl p-8 border border-indigo-100">
