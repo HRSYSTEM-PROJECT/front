@@ -20,6 +20,8 @@ interface PlansProps {
 
 export const PlansSelector = ({ companyId, setPremiumPlanId }: PlansProps) => {
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+
   const { getToken } = useAuth();
 
   const formatPlanName = (planName: string) =>
@@ -98,14 +100,23 @@ export const PlansSelector = ({ companyId, setPremiumPlanId }: PlansProps) => {
           (p: Plan) => p.name === "plan_premium"
         );
         setPremiumPlanId(premium ? premium.id : null);
+        const currentPlanRes = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/suscripciones/company/current`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (currentPlanRes.ok) {
+          const currentData = await currentPlanRes.json();
+          setCurrentPlanId(currentData.planId);
+        }
       } catch (error) {
         console.error("Error al cargar planes:", error);
         setPremiumPlanId(null);
+        setCurrentPlanId(null);
       }
     };
 
     fetchPlans();
-  }, [getToken, setPremiumPlanId]);
+  }, [getToken, setPremiumPlanId, companyId]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 py-4">
@@ -114,9 +125,14 @@ export const PlansSelector = ({ companyId, setPremiumPlanId }: PlansProps) => {
           const isPremium = plan.name === "plan_premium";
           const isEnterprise = plan.name === "plan_enterprise";
           let buttonText = "";
-          if (plan.name === "plan_free") buttonText = "Desuscribirse";
-          else if (isPremium) buttonText = "Pasar a Premium";
-          else if (isEnterprise) buttonText = "Contactar ventas";
+          if (plan.id === currentPlanId) {
+            buttonText =
+              plan.name === "plan_free" ? "Desuscribirse" : "Plan Actual";
+          } else {
+            if (plan.name === "plan_free") buttonText = "Pasar a Free";
+            else if (isPremium) buttonText = "Pasar a Premium";
+            else if (isEnterprise) buttonText = "Contactar ventas";
+          }
 
           const cardClass = isPremium
             ? "border-4 border-[#0E6922] shadow-2xl scale-[1.03] shadow-indigo-200"
@@ -134,9 +150,7 @@ export const PlansSelector = ({ companyId, setPremiumPlanId }: PlansProps) => {
               className={`flex-1 w-full max-w-xs lg:max-w-sm flex flex-col p-8 rounded-2xl bg-white transition-all duration-300 relative ${cardClass}`}
             >
               {isEnterprise && (
-                <div
-                  className="absolute -top-4 left-1/2 -translate-x-1/2 z-20"
-                >
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20">
                   <span className="inline-block bg-red-500 text-white text-xs font-bold uppercase px-3 py-1 rounded-full shadow-md tracking-wide">
                     PRÓXIMAMENTE
                   </span>
