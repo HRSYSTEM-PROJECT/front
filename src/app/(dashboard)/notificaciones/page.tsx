@@ -37,15 +37,19 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(false);
   const [cronEvents, setCronEvents] = useState<Notification[]>([]);
   const [scheduledReminders, setScheduledReminders] = useState<ScheduledReminder[]>([]);
-  const [reminder, setReminder] = useState({ title: "", message: "", scheduledDate: "" });
+  const [reminder, setReminder] = useState({
+    title: "",
+    message: "",
+    scheduledDate: "",
+  });
 
-  // Cargar notificaciones normales
+  //  Cargar notificaciones normales
   const loadNotifications = async () => {
     setLoading(true);
     try {
       const token = await getToken();
       const data = await getNotifications(token!);
-      setNotifications(data.notifications || []);
+      setNotifications(data.notifications || data || []);
     } catch (err) {
       console.error("Error cargando notificaciones:", err);
       toast.error("No se pudieron cargar las notificaciones");
@@ -54,24 +58,24 @@ export default function NotificationsPage() {
     }
   };
 
-  // Cargar eventos automáticos (cron)
+  //  Cargar eventos automáticos (cron)
   const loadCronEvents = async () => {
     try {
       const token = await getToken();
       const events = await getCronNotifications(token!);
-      setCronEvents(events);
+      setCronEvents(events || []);
     } catch (err) {
       console.error("Error cargando eventos automáticos:", err);
       toast.error("No se pudieron cargar los eventos automáticos");
     }
   };
 
-  // Cargar recordatorios programados
+  //  Cargar recordatorios programados
   const loadScheduledReminders = async () => {
     try {
       const token = await getToken();
       const data = await getScheduledReminders(token!);
-      setScheduledReminders(data.scheduledReminders || []);
+      setScheduledReminders(data.scheduledReminders || data || []);
     } catch (err) {
       console.error("Error cargando recordatorios programados:", err);
       toast.error("No se pudieron cargar los recordatorios");
@@ -84,7 +88,7 @@ export default function NotificationsPage() {
     loadScheduledReminders();
   }, []);
 
-  // Marcar una como leída
+  //  Marcar una como leída
   const handleMarkAsRead = async (id: string) => {
     try {
       const token = await getToken();
@@ -95,7 +99,7 @@ export default function NotificationsPage() {
     }
   };
 
-  // Marcar todas como leídas
+  //  Marcar todas como leídas
   const handleMarkAllAsRead = async () => {
     try {
       const token = await getToken();
@@ -106,7 +110,7 @@ export default function NotificationsPage() {
     }
   };
 
-  // Eliminar notificación normal
+  //  Eliminar notificación
   const handleDelete = async (id: string) => {
     try {
       const token = await getToken();
@@ -118,7 +122,7 @@ export default function NotificationsPage() {
     }
   };
 
-  // Programar un recordatorio
+  //  Programar un recordatorio
   const handleScheduleReminder = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -133,7 +137,7 @@ export default function NotificationsPage() {
     }
   };
 
-  // Eliminar recordatorio programado
+  //  Eliminar recordatorio
   const handleDeleteScheduled = async (id: string) => {
     try {
       const token = await getToken();
@@ -159,7 +163,7 @@ export default function NotificationsPage() {
               onClick={handleMarkAllAsRead}
               className="bg-[#083E96] hover:bg-[#0a4ebb] text-white px-4 py-2 rounded-lg text-sm font-medium transition duration-200 shadow-md hover:shadow-lg"
             >
-              Marcar como leídas
+              Marcar todas
             </button>
           </div>
 
@@ -169,7 +173,7 @@ export default function NotificationsPage() {
               <p className="text-gray-500 text-center py-10">Cargando notificaciones...</p>
             ) : notifications.length === 0 ? (
               <div className="text-center py-10 border-2 border-dashed border-gray-200 rounded-xl mt-4">
-                <p className="text-gray-500 italic text-lg">¡Todo limpio! No hay notificaciones registradas.</p>
+                <p className="text-gray-500 italic text-lg">No hay notificaciones.</p>
               </div>
             ) : (
               <ul className="space-y-4">
@@ -211,7 +215,7 @@ export default function NotificationsPage() {
 
           {/* Eventos automáticos */}
           <div className="mt-10 mb-10">
-            <h3 className="text-xl font-bold text-gray-800 mb-2">🔄 Eventos Automáticos</h3>
+            <h3 className="text-xl font-bold text-gray-800 mb-2"> Eventos Automáticos</h3>
             {cronEvents.length === 0 ? (
               <p className="text-gray-500 italic mt-2">No hay eventos automáticos</p>
             ) : (
@@ -227,7 +231,7 @@ export default function NotificationsPage() {
 
           {/* Recordatorios programados */}
           <div className="mt-10">
-            <h3 className="text-xl font-bold text-gray-800 mb-2">🕒 Recordatorios Programados</h3>
+            <h3 className="text-xl font-bold text-gray-800 mb-2"> Recordatorios Programados</h3>
             {scheduledReminders.length === 0 ? (
               <p className="text-gray-500 italic mt-2">No hay recordatorios programados</p>
             ) : (
@@ -284,12 +288,7 @@ export default function NotificationsPage() {
             <input
               type="datetime-local"
               value={reminder.scheduledDate}
-              onChange={(e) =>
-                setReminder((prev) => ({
-                  ...prev,
-                  scheduledDate: e.target.value,
-                }))
-              }
+              onChange={(e) => setReminder((prev) => ({ ...prev, scheduledDate: e.target.value }))}
               className="border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 outline-none"
               required
             />
