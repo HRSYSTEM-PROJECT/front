@@ -16,12 +16,17 @@ interface Plan {
 interface PlansProps {
   companyId: string;
   setPremiumPlanId: (id: string | null) => void;
+  currentPlan: string | null;
+  setCurrentPlan: (planName: string) => void;
 }
 
-export const PlansSelector = ({ companyId, setPremiumPlanId }: PlansProps) => {
+export const PlansSelector = ({
+  companyId,
+  setPremiumPlanId,
+  currentPlan,
+  setCurrentPlan,
+}: PlansProps) => {
   const [plans, setPlans] = useState<Plan[]>([]);
-  const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
-
   const { getToken } = useAuth();
 
   const formatPlanName = (planName: string) =>
@@ -106,12 +111,11 @@ export const PlansSelector = ({ companyId, setPremiumPlanId }: PlansProps) => {
         );
         if (currentPlanRes.ok) {
           const currentData = await currentPlanRes.json();
-          setCurrentPlanId(currentData.planId);
+          setCurrentPlan(currentData.suscripcion?.plan?.name || "plan_free");
         }
       } catch (error) {
         console.error("Error al cargar planes:", error);
         setPremiumPlanId(null);
-        setCurrentPlanId(null);
       }
     };
 
@@ -125,13 +129,15 @@ export const PlansSelector = ({ companyId, setPremiumPlanId }: PlansProps) => {
           const isPremium = plan.name === "plan_premium";
           const isEnterprise = plan.name === "plan_enterprise";
           let buttonText = "";
-          if (plan.id === currentPlanId) {
+          if (plan.name === "plan_free" && currentPlan === "plan_free") {
+            buttonText = "Desuscribirse";
+          } else if (plan.name === "plan_premium") {
             buttonText =
-              plan.name === "plan_free" ? "Desuscribirse" : "Plan Actual";
-          } else {
-            if (plan.name === "plan_free") buttonText = "Pasar a Free";
-            else if (isPremium) buttonText = "Pasar a Premium";
-            else if (isEnterprise) buttonText = "Contactar ventas";
+              currentPlan === "plan_premium"
+                ? "Plan Activo"
+                : "Pasar a Premium";
+          } else if (isEnterprise) {
+            buttonText = "Contactar ventas";
           }
 
           const cardClass = isPremium
@@ -228,7 +234,8 @@ export const PlansSelector = ({ companyId, setPremiumPlanId }: PlansProps) => {
                   companyId={companyId}
                   planId={plan.id}
                   text={buttonText}
-                  className={`w-full text-white py-3 rounded-lg font-semibold transition-colors duration-200 ${buttonClass}`}
+                  className={`${buttonClass} w-full text-white py-3 rounded-lg font-semibold`}
+                  onPaymentSuccess={() => setCurrentPlan(plan.name)} // 👈 aquí se actualiza correctamente
                 />
               )}
             </div>
