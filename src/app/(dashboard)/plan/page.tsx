@@ -24,26 +24,32 @@ export default function PlanPage() {
   const [price, setPrice] = useState<number | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
 
-    const fetchCurrentPlan = async () => {
+  const [hasFetchedAfterPayment, setHasFetchedAfterPayment] = useState(false);
+
+  const fetchCurrentPlan = async (fromPayment: boolean = false) => {
     try {
       const token = await getToken();
       const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
-      const res = await axios.get(`${API_BASE_URL}/suscripciones/company/current`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(
+        `${API_BASE_URL}/suscripciones/company/current`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       const newPlan = res.data.suscripcion?.plan?.name;
       console.log("Plan actualizado desde backend:", newPlan);
       setCurrentPlan(newPlan);
+
+      if (fromPayment) setHasFetchedAfterPayment(true);
     } catch (error) {
       console.error("Error al actualizar plan:", error);
     }
   };
 
-    useEffect(() => {
+  useEffect(() => {
     const fetchData = async () => {
       if (!userId) return;
       await new Promise((resolve) => setTimeout(resolve, 500));
-
       try {
         const token = await getToken();
         const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
@@ -57,7 +63,10 @@ export default function PlanPage() {
         const suscripcion = resSub.data.suscripcion;
         setCompanyId(suscripcion?.company?.id);
         setPrice(Number(suscripcion?.plan?.price) || 0);
-        setCurrentPlan(suscripcion?.plan?.name || "plan_free");
+
+        if (!hasFetchedAfterPayment) {
+          setCurrentPlan(suscripcion?.plan?.name || "plan_free");
+        }
 
         const resPlans = await axios.get(`${API_BASE_URL}/plan`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -75,8 +84,7 @@ export default function PlanPage() {
     };
 
     fetchData();
-  }, [getToken, userId]);
-
+  }, [getToken, userId, hasFetchedAfterPayment]);
 
   if (loading) {
     return (
