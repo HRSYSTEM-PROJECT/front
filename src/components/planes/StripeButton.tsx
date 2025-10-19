@@ -8,6 +8,7 @@ interface StripeButtonProps {
   text: string;
   className?: string;
   onPaymentSuccess?: () => void;
+  disabled?: boolean;
 }
 
 export const StripeButton = ({
