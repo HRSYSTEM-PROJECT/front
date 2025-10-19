@@ -23,38 +23,50 @@ export const StripeButton = ({
     try {
       const token = await getToken();
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/stripe/checkout`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ companyId, planId }),
-        }
-      );
+      if (!companyId || !planId) {
+        toast.error("Faltan datos para procesar el pago.");
+        return;
+      }
 
-      const text = await res.text();
-      console.log("Respuesta del backend:", text);
+      const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
+      if (!API_BASE_URL) {
+        toast.error("No se encontró la URL del backend.");
+        return;
+      }
 
-      if (!res.ok) throw new Error("Error al crear sesión de pago");
+      const res = await fetch(`${API_BASE_URL}/stripe/checkout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ companyId, planId }),
+      });
 
-      const data = JSON.parse(text);
+      const textResponse = await res.text();
+      console.log("Respuesta del backend:", textResponse);
+
+      if (!res.ok) throw new Error("Error al crear la sesión de pago");
+
+      const data = JSON.parse(textResponse);
+
       if (data.url) {
         if (onPaymentSuccess) onPaymentSuccess();
         window.location.href = data.url;
       } else {
-        toast.error("No se recibió una URL de pago válida");
+        toast.error("No se recibió una URL de pago válida.");
       }
     } catch (error) {
-      console.error(error);
-      toast.error("Hubo un error al iniciar el pago");
+      console.error("Error al iniciar el pago:", error);
+      toast.error("Hubo un error al iniciar el pago.");
     }
   };
 
   return (
-    <button onClick={handlePayment} className={`${className} cursor-pointer`}>
+    <button
+      onClick={handlePayment}
+      className={`${className || ""} cursor-pointer`}
+    >
       {text}
     </button>
   );

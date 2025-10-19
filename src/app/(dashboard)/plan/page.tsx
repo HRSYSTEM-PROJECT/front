@@ -24,12 +24,22 @@ export default function PlanPage() {
   const [price, setPrice] = useState<number | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
 
-  useEffect(() => {
-    const plan = plans.find((p) => p.name === currentPlan);
-    if (plan) setPrice(Number(plan.price));
-  }, [currentPlan, plans]);
+    const fetchCurrentPlan = async () => {
+    try {
+      const token = await getToken();
+      const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
+      const res = await axios.get(`${API_BASE_URL}/suscripciones/company/current`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const newPlan = res.data.suscripcion?.plan?.name;
+      console.log("Plan actualizado desde backend:", newPlan);
+      setCurrentPlan(newPlan);
+    } catch (error) {
+      console.error("Error al actualizar plan:", error);
+    }
+  };
 
-  useEffect(() => {
+    useEffect(() => {
     const fetchData = async () => {
       if (!userId) return;
       await new Promise((resolve) => setTimeout(resolve, 500));
@@ -48,6 +58,7 @@ export default function PlanPage() {
         setCompanyId(suscripcion?.company?.id);
         setPrice(Number(suscripcion?.plan?.price) || 0);
         setCurrentPlan(suscripcion?.plan?.name || "plan_free");
+
         const resPlans = await axios.get(`${API_BASE_URL}/plan`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -65,6 +76,7 @@ export default function PlanPage() {
 
     fetchData();
   }, [getToken, userId]);
+
 
   if (loading) {
     return (
@@ -137,6 +149,7 @@ export default function PlanPage() {
           setPremiumPlanId={setPremiumPlanId}
           currentPlan={currentPlan}
           setCurrentPlan={setCurrentPlan}
+          fetchCurrentPlan={fetchCurrentPlan}
         />
         <div className="mt-8 pt-4 border-t border-gray-100 text-center text-sm text-gray-500">
           ¿Necesitas ayuda para elegir?{" "}
