@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Users, Building2, Mail, Phone, MapPin } from "lucide-react";
+import { Users, Building2, Mail, Phone, MapPin, Flag } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
 import MetricsCards from "@/components/metricas/MetricsCards";
 import EmpresaForm from "@/components/actualizacionEmpresa";
@@ -14,6 +14,7 @@ export interface Empresa {
   address: string;
   phone_number: string;
   email: string;
+  country?: string;
   logo?: string;
   created_at?: string;
   token?: string;
@@ -109,7 +110,7 @@ export default function DashboardPage() {
           console.error(`Fallo de solicitud de empresa: ${res.status}`);
           throw new Error("Error al cargar datos de la empresa.");
         }
-
+        
         const data = await res.json();
         if (data && data.user && data.user.company) {
           setEmpresa(data.user.company);
@@ -263,6 +264,16 @@ export default function DashboardPage() {
               <h4 className="text-gray-500 text-sm">Teléfono</h4>
               <p className="text-gray-800 text-sm sm:text-base">
                 {empresa.phone_number || "[Teléfono de la empresa]"}
+              </p>
+            </div>
+          </div>
+
+              <div className="flex items-start gap-3">
+            <Flag className="w-6 h-6 text-gray-900 mt-1 flex-shrink-0" />
+            <div>
+              <h4 className="text-gray-500 text-sm">País</h4>
+              <p className="text-gray-800 text-sm sm:text-base">
+                {empresa.country || "[País de la empresa]"}
               </p>
             </div>
           </div>
