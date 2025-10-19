@@ -568,18 +568,20 @@ useEffect(() => {
         </div>
 
         <div className="overflow-y-auto flex-1">
-          {contacts.map((contact) => (
-            <div
+          {Array.isArray(contacts) &&
+          contacts.map((contact) => (
+            <div   
               key={contact.id}
               onClick={() => setSelectedChatId(contact.id)}
               className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-gray-100 ${
                 selectedChatId === contact.id ? "bg-gray-100" : ""
               }`}
+            
             >
               <div className="w-10 h-10 rounded-full bg-blue-200 flex items-center justify-center font-bold">
                 {contact.name
                   .split(" ")
-                  .map((n) => n[0])
+                  .map((n: string) => n[0])
                   .join("")
                   .slice(0, 2)
                   .toUpperCase()}
