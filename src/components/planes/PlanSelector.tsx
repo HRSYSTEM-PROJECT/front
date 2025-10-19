@@ -19,7 +19,6 @@ interface PlansProps {
   currentPlan: string | null;
   setCurrentPlan: (planName: string) => void;
   fetchCurrentPlan: (fromPayment?: boolean) => Promise<void>;
-  setHasFetchedAfterPayment: (value: boolean) => void;
 }
 
 export const PlansSelector = ({
@@ -28,7 +27,6 @@ export const PlansSelector = ({
   currentPlan,
   setCurrentPlan,
   fetchCurrentPlan,
-  setHasFetchedAfterPayment,
 }: PlansProps) => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const { getToken } = useAuth();
@@ -109,14 +107,6 @@ export const PlansSelector = ({
           (p: Plan) => p.name === "plan_premium"
         );
         setPremiumPlanId(premium ? premium.id : null);
-        const currentPlanRes = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/suscripciones/company/current`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        if (currentPlanRes.ok) {
-          const currentData = await currentPlanRes.json();
-          setCurrentPlan(currentData.plan?.name || "plan_free");
-        }
       } catch (error) {
         console.error("Error al cargar planes:", error);
         setPremiumPlanId(null);
@@ -250,8 +240,7 @@ export const PlansSelector = ({
                       : "hover:opacity-90"
                   }`}
                   onPaymentSuccess={async () => {
-                    await fetchCurrentPlan(true);
-                    setHasFetchedAfterPayment(true);
+                    await fetchCurrentPlan();
                   }}
                 />
               )}
