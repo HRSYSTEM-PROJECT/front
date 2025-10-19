@@ -21,6 +21,7 @@ interface FormState {
   repeatPassword: string;
   acceptedTerms: boolean;
   logo_url: string;
+  country: string;
 }
 
 export default function RegisterComponent() {
@@ -36,6 +37,7 @@ export default function RegisterComponent() {
     repeatPassword: "",
     acceptedTerms: false,
     logo_url: "",
+    country: "",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -97,6 +99,7 @@ export default function RegisterComponent() {
         logo_url:
           formInput.logo_url ||
           "https://placehold.co/100x100/333/fff?text=Logo",
+        country: formInput.country,
       };
 
       const res = await axios.post(apiUrl, payload);
@@ -231,6 +234,14 @@ export default function RegisterComponent() {
                   onChange={handleInputChange}
                   className="w-full border rounded px-3 py-2"
                   required
+                />
+                <input
+                  type="text"
+                  name="country"
+                  placeholder="País"
+                  value={formInput.country}
+                  onChange={handleInputChange}
+                  className="w-full border rounded px-3 py-2"
                 />
                 <input
                   type="text"
