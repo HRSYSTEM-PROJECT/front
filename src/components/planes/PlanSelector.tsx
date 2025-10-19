@@ -18,7 +18,6 @@ interface PlansProps {
   setPremiumPlanId: (id: string | null) => void;
   currentPlan: string | null;
   setCurrentPlan: (planName: string) => void;
-  fetchCurrentPlan: () => Promise<void>;
 }
 
 export const PlansSelector = ({
@@ -26,7 +25,6 @@ export const PlansSelector = ({
   setPremiumPlanId,
   currentPlan,
   setCurrentPlan,
-  fetchCurrentPlan
 }: PlansProps) => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const { getToken } = useAuth();
@@ -247,7 +245,7 @@ export const PlansSelector = ({
                       ? "opacity-70 cursor-not-allowed bg-gray-400"
                       : "hover:opacity-90"
                   }`}
-                  onPaymentSuccess={fetchCurrentPlan}
+                  onPaymentSuccess={setCurrentPlan.bind(null, plan.name)}
                 />
               )}
             </div>
