@@ -117,10 +117,10 @@ export default function PlanPage() {
           </div>
         )}
         {currentPlan === "plan_premium" && (
-          <div className="mt-4 p-4 bg-[#c1d7fc] border-l-4 border-[#083E96] text-black rounded-lg flex items-center justify-between">
+          <div className="mt-4 p-2 bg-[#e8eef8] border-l-4 border-[#083E96] text-black rounded-lg flex items-center gap-10">
             <p className="font-medium">¿Querés dejar de ser Premium?</p>
             <button
-              className="font-medium text-black hover:bg-[#0E6922] hover:text-white px-4 py-2 rounded-md transition-colors duration-300 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+              className="font-medium cursor-pointer text-black hover:bg-[#0E6922] hover:text-white px-4 py-2 rounded-md transition-colors duration-300 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={!companyId}
               onClick={async () => {
                 if (!companyId) return;

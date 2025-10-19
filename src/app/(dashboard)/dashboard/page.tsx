@@ -5,6 +5,8 @@ import { useAuth } from "@clerk/nextjs";
 import MetricsCards from "@/components/metricas/MetricsCards";
 import EmpresaForm from "@/components/actualizacionEmpresa";
 import Link from "next/link";
+import { toast } from "react-toastify";
+import { useSearchParams } from "next/navigation";
 
 export interface Empresa {
   id: string;
@@ -71,6 +73,17 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [ausencias, setAusencias] = useState<Ausencia[]>([]);
   const [otrosAdmins, setOtrosAdmins] = useState<User[]>([]);
+
+  const searchParams = useSearchParams();
+
+useEffect(() => {
+  if (searchParams.get("paymentSuccess") === "true") {
+    toast.success("¡Pago realizado con éxito!");
+    const url = new URL(window.location.href);
+    url.searchParams.delete("paymentSuccess");
+    window.history.replaceState({}, "", url.toString());
+  }
+}, [searchParams]);
 
   const fetchAdmins = async (authToken: string) => {
     try {
