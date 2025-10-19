@@ -17,15 +17,13 @@ interface Plan {
 
 export default function PlanPage() {
   const { getToken, userId } = useAuth();
-  const [companyId, setCompanyId] = useState<string | undefined>();
+  const [companyId, setCompanyId] = useState<string>();
   const [premiumPlanId, setPremiumPlanId] = useState<string | null>(null);
   const [currentPlan, setCurrentPlan] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [price, setPrice] = useState<number | null>(null);
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [hasFetchedAfterPayment, setHasFetchedAfterPayment] = useState(false);
 
-  const fetchCurrentPlan = async (fromPayment: boolean = false) => {
+  const fetchCurrentPlan = async () => {
     try {
       const token = await getToken();
       const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
@@ -38,44 +36,19 @@ export default function PlanPage() {
       const newPlan = res.data.suscripcion?.plan?.name;
       console.log("Plan actualizado desde backend:", newPlan);
       setCurrentPlan(newPlan);
-
-      if (fromPayment) setHasFetchedAfterPayment(true);
+      setPrice(Number(res.data.suscripcion?.plan?.price) || 0);
+      setCompanyId(res.data.suscripcion?.company?.id);
     } catch (error) {
-      console.error("Error al actualizar plan:", error);
+      console.error("Error al obtener plan:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!userId) return;
-
-      try {
-        const token = await getToken();
-        const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
-
-        const resSub = await axios.get(
-          `${API_BASE_URL}/suscripciones/company/current`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        const suscripcion = resSub.data.suscripcion;
-        setCompanyId(suscripcion?.company?.id);
-        setPrice(Number(suscripcion?.plan?.price) || 0);
-
-        if (!hasFetchedAfterPayment) {
-          setCurrentPlan(suscripcion?.plan?.name || "plan_free");
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [userId, getToken, hasFetchedAfterPayment]);
+    if (!userId) return;
+    fetchCurrentPlan();
+  }, [userId]);
 
   if (loading) {
     return (
@@ -89,17 +62,23 @@ export default function PlanPage() {
     );
   }
 
-  const formatPlanName = (plan: string | null): string => {
-    if (typeof plan !== "string" || !plan) {
-      return "Sin plan";
-    }
+  const formatPlanName = (plan: string | null) =>
+    plan
+      ?.replace("plan_", "")
+      .replace("_", " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase()) || "Sin plan";
 
-    return plan
-      .replace("plan_", "")
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
+  if (loading) {
+    return (
+      <div className="flex flex-col justify-center items-center h-[60vh] bg-gray-50">
+        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin mb-3" />
+        <p className="text-gray-600 text-lg font-medium">
+          Cargando datos de la empresa...
+        </p>
+        <p className="text-sm text-gray-400 mt-1">Un momento, por favor.</p>
+      </div>
+    );
+  }
 
   const currentPlanDisplay = formatPlanName(currentPlan);
   const planColorClass =
@@ -149,7 +128,6 @@ export default function PlanPage() {
           currentPlan={currentPlan}
           setCurrentPlan={setCurrentPlan}
           fetchCurrentPlan={fetchCurrentPlan}
-          setHasFetchedAfterPayment={setHasFetchedAfterPayment}
         />
         <div className="mt-8 pt-4 border-t border-gray-100 text-center text-sm text-gray-500">
           ¿Necesitas ayuda para elegir?{" "}
