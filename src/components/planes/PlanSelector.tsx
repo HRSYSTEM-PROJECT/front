@@ -19,6 +19,7 @@ interface PlansProps {
   currentPlan: string | null;
   setCurrentPlan: (planName: string) => void;
   fetchCurrentPlan: (fromPayment?: boolean) => Promise<void>;
+  setHasFetchedAfterPayment: (value: boolean) => void;
 }
 
 export const PlansSelector = ({
@@ -27,6 +28,7 @@ export const PlansSelector = ({
   currentPlan,
   setCurrentPlan,
   fetchCurrentPlan,
+  setHasFetchedAfterPayment,
 }: PlansProps) => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const { getToken } = useAuth();
@@ -249,6 +251,7 @@ export const PlansSelector = ({
                   }`}
                   onPaymentSuccess={async () => {
                     await fetchCurrentPlan(true);
+                    setHasFetchedAfterPayment(true);
                   }}
                 />
               )}
