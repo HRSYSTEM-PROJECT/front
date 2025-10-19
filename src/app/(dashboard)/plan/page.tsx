@@ -23,7 +23,6 @@ export default function PlanPage() {
   const [loading, setLoading] = useState(true);
   const [price, setPrice] = useState<number | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
-
   const [hasFetchedAfterPayment, setHasFetchedAfterPayment] = useState(false);
 
   const fetchCurrentPlan = async (fromPayment: boolean = false) => {
@@ -49,15 +48,16 @@ export default function PlanPage() {
   useEffect(() => {
     const fetchData = async () => {
       if (!userId) return;
-      await new Promise((resolve) => setTimeout(resolve, 500));
+
       try {
         const token = await getToken();
         const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
-        if (!API_BASE_URL) return;
 
         const resSub = await axios.get(
           `${API_BASE_URL}/suscripciones/company/current`,
-          { headers: { Authorization: `Bearer ${token}` } }
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
         );
 
         const suscripcion = resSub.data.suscripcion;
@@ -67,24 +67,15 @@ export default function PlanPage() {
         if (!hasFetchedAfterPayment) {
           setCurrentPlan(suscripcion?.plan?.name || "plan_free");
         }
-
-        const resPlans = await axios.get(`${API_BASE_URL}/plan`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const planes: Plan[] = resPlans.data;
-        const premiumPlan = planes.find((p) => p.name === "plan_premium");
-
-        if (premiumPlan) setPremiumPlanId(premiumPlan.id);
       } catch (error) {
-        console.error("Error al obtener datos de empresa o planes:", error);
+        console.error(error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [getToken, userId, hasFetchedAfterPayment]);
+  }, [userId, getToken, hasFetchedAfterPayment]);
 
   if (loading) {
     return (
@@ -158,6 +149,7 @@ export default function PlanPage() {
           currentPlan={currentPlan}
           setCurrentPlan={setCurrentPlan}
           fetchCurrentPlan={fetchCurrentPlan}
+          setHasFetchedAfterPayment={setHasFetchedAfterPayment}
         />
         <div className="mt-8 pt-4 border-t border-gray-100 text-center text-sm text-gray-500">
           ¿Necesitas ayuda para elegir?{" "}
