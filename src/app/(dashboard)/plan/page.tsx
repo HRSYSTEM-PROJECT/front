@@ -116,15 +116,17 @@ export default function PlanPage() {
             </span>
           </div>
         )}
-
         {currentPlan === "plan_premium" && (
-          <div className="mt-4 p-4 bg-[#6ca4fd] border-l-4 border-[#083E96] text-black rounded-lg text-center">
-            <p className="mb-2 font-medium">¿Querés dejar de ser Premium?</p>
+          <div className="mt-4 p-4 bg-[#c1d7fc] border-l-4 border-[#083E96] text-black rounded-lg flex items-center justify-between">
+            <p className="font-medium">¿Querés dejar de ser Premium?</p>
             <button
-              className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition"
+              className="font-medium text-black hover:bg-[#0E6922] hover:text-white px-4 py-2 rounded-md transition-colors duration-300 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!companyId}
               onClick={async () => {
+                if (!companyId) return;
                 try {
                   const token = await getToken();
+                  console.log("Cancelando plan para companyId:", companyId);
                   await fetch(
                     `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/stripe/cancel`,
                     {
