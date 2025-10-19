@@ -175,40 +175,6 @@ export const PlansSelector = ({
                       : "Ideal para comenzar")}
                 </p>
               </header>
-
-              {plan.name === "plan_premium" &&
-                currentPlan === "plan_premium" && (
-                  <div className="mb-4 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 rounded-lg text-center">
-                    <p className="mb-2 font-medium">
-                      ¿Querés dejar de ser Premium?
-                    </p>
-                    <button
-                      className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition"
-                      onClick={async () => {
-                        try {
-                          const token = await getToken();
-                          await fetch(
-                            `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/stripe/cancel`,
-                            {
-                              method: "POST",
-                              headers: {
-                                Authorization: `Bearer ${token}`,
-                                "Content-Type": "application/json",
-                              },
-                              body: JSON.stringify({ companyId }),
-                            }
-                          );
-                          await fetchCurrentPlan();
-                        } catch (error) {
-                          console.error("Error al cancelar plan:", error);
-                        }
-                      }}
-                    >
-                      Dar de baja plan
-                    </button>
-                  </div>
-                )}
-
               <div className="text-center mb-8 border-b border-gray-100 pb-6">
                 <p className="text-5xl font-extrabold text-gray-900">
                   {plan.price === "Contáctanos" ? (
