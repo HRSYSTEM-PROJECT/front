@@ -18,7 +18,7 @@ interface PlansProps {
   setPremiumPlanId: (id: string | null) => void;
   currentPlan: string | null;
   setCurrentPlan: (planName: string) => void;
-  fetchCurrentPlan: () => Promise<void>;
+  fetchCurrentPlan: (fromPayment?: boolean) => Promise<void>;
 }
 
 export const PlansSelector = ({
@@ -248,7 +248,7 @@ export const PlansSelector = ({
                       : "hover:opacity-90"
                   }`}
                   onPaymentSuccess={async () => {
-                    await fetchCurrentPlan();
+                    await fetchCurrentPlan(true);
                   }}
                 />
               )}
