@@ -234,6 +234,7 @@ export const PlansSelector = ({
                       ? "Pasar a Premium"
                       : "Pasar a Free"
                   }
+                  disabled={currentPlan === plan.name}
                   className={`${buttonClass} w-full text-white py-3 rounded-lg font-semibold ${
                     currentPlan === plan.name
                       ? "opacity-70 cursor-not-allowed bg-gray-400"
