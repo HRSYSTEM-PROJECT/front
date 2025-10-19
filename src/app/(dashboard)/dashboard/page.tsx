@@ -5,6 +5,7 @@ import { useAuth } from "@clerk/nextjs";
 import MetricsCards from "@/components/metricas/MetricsCards";
 import EmpresaForm from "@/components/actualizacionEmpresa";
 import Link from "next/link";
+import PagoAceptadoToast from "@/hooks/PagoAceptadoToast";
 
 export interface Empresa {
   id: string;
@@ -227,6 +228,7 @@ export default function DashboardPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-4 text-start max-w-full overflow-x-hidden">
+      <PagoAceptadoToast />
       <h1 className="text-3xl font-bold">Dashboard</h1>
       <p className="text-gray-600 mb-6">
         Gestiona la información de{" "}

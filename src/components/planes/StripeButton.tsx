@@ -1,4 +1,3 @@
-"use client";
 import { useAuth } from "@clerk/nextjs";
 import { toast } from "react-toastify";
 
@@ -17,10 +16,12 @@ export const StripeButton = ({
   text,
   className,
   onPaymentSuccess,
+  disabled = false,
 }: StripeButtonProps) => {
   const { getToken } = useAuth();
 
   const handlePayment = async () => {
+    if (disabled) return;
     try {
       const token = await getToken();
 
@@ -66,7 +67,10 @@ export const StripeButton = ({
   return (
     <button
       onClick={handlePayment}
-      className={`${className || ""} cursor-pointer`}
+      disabled={disabled}
+      className={`${className || ""} ${
+        disabled ? "cursor-not-allowed opacity-70" : "cursor-pointer"
+      }`}
     >
       {text}
     </button>
