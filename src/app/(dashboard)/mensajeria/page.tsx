@@ -49,7 +49,7 @@ export default function MensajeriaPage() {
         console.log("🔌 Conectando al socket:", SOCKET_URL + "/chat");
 
         const socketInstance = io(`${SOCKET_URL}/chat`, {
-          auth: { token },
+          auth: { token: token },
           transports: ["websocket"],
         });
 
@@ -147,6 +147,7 @@ export default function MensajeriaPage() {
 
       const res = await axios.get(`${BACKEND}/chat/${chatId}/messages`, {
         headers: { Authorization: `Bearer ${token}` },
+
       });
 
       console.log(" Mensajes cargados:", res.data);
