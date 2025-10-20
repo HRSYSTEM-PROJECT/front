@@ -4,7 +4,7 @@ import axios from "axios";
 import { Save } from "lucide-react";
 import { Empresa } from "@/app/(dashboard)/dashboard/page";
 import Swal from "sweetalert2";
-
+import { useAuth } from "@clerk/nextjs";
 const API_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
 
 export default function EmpresaForm({ empresa }: { empresa: Empresa }) {
@@ -16,7 +16,7 @@ export default function EmpresaForm({ empresa }: { empresa: Empresa }) {
     email: empresa.email || "",
     logo: empresa.logo || "",
   });
-
+  const { getToken } = useAuth();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
@@ -45,9 +45,16 @@ export default function EmpresaForm({ empresa }: { empresa: Empresa }) {
     if (!confirm) return;
 
     try {
+      const token = await getToken();
+
       const res = await axios.patch(
         `${API_URL}/empresa/${empresa.id}`,
-        formData
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       console.log("Respuesta:", res.data);
 

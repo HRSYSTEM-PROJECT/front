@@ -295,7 +295,7 @@ export default function EmpleadoDetailsPage({
 
       inputValidator: (value) => {
         if (!value) {
-          return "Debes ingresar tu contraseña.";
+          return "Debes ingresar una contraseña. Esta clave va a ser la de administrador nuevo.";
         }
         if (!PASSWORD_REGEX.test(value)) {
           return validationMessage;
@@ -385,7 +385,20 @@ export default function EmpleadoDetailsPage({
   return (
     <div className="container mx-auto px-4 sm:px-6 py-4 text-start max-w-full overflow-x-hidden">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
+        <div className="flex items-center gap-6">
+          <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden bg-gray-200 border-4 border-white shadow-lg flex-shrink-0">
+            {empleado.imgUrl ? (
+              <img
+                src={empleado.imgUrl}
+                alt={`Foto de ${empleado.first_name} ${empleado.last_name}`}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gray-300 text-gray-600">
+                <Mail className="w-1/2 h-1/2" />
+              </div>
+            )}
+          </div>
           <h1 className="text-2xl sm:text-3xl font-bold mt-4 sm:mt-8 text-black">
             {empleado.first_name} {empleado.last_name}
           </h1>

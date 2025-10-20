@@ -77,7 +77,7 @@ export default function DashboardPage() {
   const fetchAdmins = async (authToken: string) => {
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/user`,
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/user/byCompany`,
         { headers: { Authorization: `Bearer ${authToken}` } }
       );
       const data: User[] = await res.json();
