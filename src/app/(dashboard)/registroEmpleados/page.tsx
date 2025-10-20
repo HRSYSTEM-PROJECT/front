@@ -193,7 +193,7 @@ export default function RegistroEmpleadosPage() {
     if (!confirmationResult.isConfirmed) return;
 
     try {
-      const formSubmissionData = new (window as any).FormData();
+      const formSubmissionData = new (window).FormData();
 
       Object.entries(formattedData).forEach(([key, value]) => {
         if (value !== undefined) {
