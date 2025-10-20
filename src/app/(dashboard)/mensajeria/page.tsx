@@ -37,7 +37,7 @@ export default function MensajeriaPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
 
-  /* ---------- SOCKET.IO CONNECTION ---------- */
+  /*  SOCKET.IO CONNECTION  */
   useEffect(() => {
     if (!isLoaded || !user) return;
 
@@ -61,7 +61,7 @@ export default function MensajeriaPage() {
           console.warn("⚠️ Socket desconectado:", reason);
         });
 
-        /* ---------- EVENTOS QUE ENVÍA EL BACK ---------- */
+        /* EVENTOS QUE ENVÍA EL BACK  */
         socketInstance.on("new_message", (msg: Message) => {
           console.log("💬 Nuevo mensaje recibido:", msg);
           if (msg.chatId === selectedChat?.id)
@@ -76,14 +76,14 @@ export default function MensajeriaPage() {
         });
 
         socketInstance.on("message_deleted", (payload) => {
-          console.log("🗑️ Mensaje eliminado:", payload);
+          console.log(" Mensaje eliminado:", payload);
           setMessages((prev) =>
             prev.filter((m) => m.id !== payload.messageId)
           );
         });
 
         socketInstance.on("messages_read", (payload) => {
-          console.log("👁️ Mensajes marcados como leídos:", payload);
+          console.log(" Mensajes marcados como leídos:", payload);
           setMessages((prev) =>
             prev.map((m) =>
               m.chatId === payload.chatId ? { ...m, is_read: true } : m
@@ -104,7 +104,7 @@ export default function MensajeriaPage() {
     connectSocket();
   }, [isLoaded, user, selectedChat?.id]);
 
-  /* ---------- CARGAR CHATS (REST) ---------- */
+  /*  CARGAR CHATS (REST) */
   useEffect(() => {
     if (!isLoaded) return;
 
@@ -117,13 +117,15 @@ export default function MensajeriaPage() {
 
         const res = await axios.get(`${BACKEND}/chat?page=1&limit=20`, {
           headers: { Authorization: `Bearer ${token}` },
+
+
         });
 
         console.log("✅ Chats obtenidos:", res.data);
         setChats(res.data.chats || []);
       } catch (err) {
         const error = err as AxiosError;
-        console.error("🚨 Error al cargar chats:", error.message);
+        console.error(" Error al cargar chats:", error.message);
         Swal.fire({
           icon: "error",
           title: "Error al cargar chats",
@@ -137,7 +139,7 @@ export default function MensajeriaPage() {
     fetchChats();
   }, [isLoaded]);
 
-  /* ---------- CARGAR MENSAJES DEL CHAT SELECCIONADO ---------- */
+  /* CARGAR MENSAJES DEL CHAT SELECCIONADO  */
   const loadMessages = async (chatId: string) => {
     try {
       const token = await getToken();
@@ -147,7 +149,7 @@ export default function MensajeriaPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log("📩 Mensajes cargados:", res.data);
+      console.log(" Mensajes cargados:", res.data);
       setMessages(res.data || []);
     } catch (err) {
       console.error("Error cargando mensajes:", err);
@@ -178,14 +180,14 @@ export default function MensajeriaPage() {
       messageId: msgId,
       content: newContent,
     });
-    console.log("✏️ Mensaje editado:", msgId);
+    console.log(" Mensaje editado:", msgId);
   };
 
   /* ---------- ELIMINAR MENSAJE ---------- */
   const handleDeleteMessage = (msgId: string) => {
     if (!socket) return;
     socket.emit("delete_message", { messageId: msgId });
-    console.log("🗑️ Eliminando mensaje:", msgId);
+    console.log(" Eliminando mensaje:", msgId);
   };
 
   /* ---------- MARCAR COMO LEÍDO ---------- */
@@ -199,14 +201,14 @@ export default function MensajeriaPage() {
   const handleJoinChat = (chatId: string) => {
     if (!socket) return;
     socket.emit("join_chat", { chatId });
-    console.log("📥 Unido al chat:", chatId);
+    console.log(" Unido al chat:", chatId);
   };
 
   /* ---------- SALIR DE UN CHAT ---------- */
   const handleLeaveChat = (chatId: string) => {
     if (!socket) return;
     socket.emit("leave_chat", { chatId });
-    console.log("📤 Saliste del chat:", chatId);
+    console.log(" Saliste del chat:", chatId);
   };
 
   /* ---------- UI ---------- */
