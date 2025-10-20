@@ -15,7 +15,6 @@ interface FormData {
   phone_number?: string;
   address?: string;
   birthdate?: string;
-  imgUrl?: string;
   salary?: string;
   email: string;
   department_id: string;
@@ -47,11 +46,12 @@ export default function RegistroEmpleadosPage() {
     cuil: "",
     phone_number: "",
     email: "",
-    imgUrl: "",
     salary: "",
     department_id: "",
     position_id: "",
   });
+
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const [departments, setDepartments] = useState<Department[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
@@ -65,7 +65,9 @@ export default function RegistroEmpleadosPage() {
 
       const token = await getToken();
       if (!token) {
-        console.error("No se pudo obtener el token para cargar departamentos/puestos.");
+        console.error(
+          "No se pudo obtener el token para cargar departamentos/puestos."
+        );
         return;
       }
 
@@ -73,8 +75,14 @@ export default function RegistroEmpleadosPage() {
 
       try {
         const [depRes, posRes] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/departamento`, authConfig),
-          fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/position`, authConfig),
+          fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/departamento`,
+            authConfig
+          ),
+          fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/position`,
+            authConfig
+          ),
         ]);
 
         if (!depRes.ok || !posRes.ok) throw new Error("Error cargando datos");
@@ -98,6 +106,11 @@ export default function RegistroEmpleadosPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const file = e.target.files ? e.target.files[0] : null;
+    setImageFile(file);
+  };
+
   const handleCancel = () => {
     setFormData({
       first_name: "",
@@ -107,12 +120,12 @@ export default function RegistroEmpleadosPage() {
       phone_number: "",
       address: "",
       birthdate: "",
-      imgUrl: "",
       salary: "",
       email: "",
       department_id: "",
       position_id: "",
     });
+    setImageFile(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -132,13 +145,19 @@ export default function RegistroEmpleadosPage() {
     const formattedData: FormattedData = {
       ...formData,
       dni: Number(formData.dni),
-      salary: formData.salary ? Number(parseFloat(formData.salary).toFixed(2)) : undefined,
+      salary: formData.salary
+        ? Number(parseFloat(formData.salary).toFixed(2))
+        : undefined,
     };
-
     Object.keys(formattedData).forEach((key) => {
+      const value = formattedData[key as keyof FormattedData];
       if (
-        formattedData[key as keyof FormattedData] === "" ||
-        formattedData[key as keyof FormattedData] === undefined
+        value === "" ||
+        value === undefined ||
+        (key === "dni" && isNaN(value as number)) ||
+        (key === "salary" && isNaN(value as number)) ||
+        key === "imgUrl" ||
+        key === "logo_url"
       ) {
         delete formattedData[key as keyof FormattedData];
       }
@@ -149,12 +168,16 @@ export default function RegistroEmpleadosPage() {
       html: `
         <p class="text-gray-700 mb-2 font-medium">Se registrará el siguiente empleado:</p>
         <div class="text-left p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <p><strong>Nombre:</strong> ${formData.first_name} ${formData.last_name}</p>
+            <p><strong>Nombre:</strong> ${formData.first_name} ${
+        formData.last_name
+      }</p>
             <p><strong>Email:</strong> ${formData.email}</p>
             <p><strong>DNI:</strong> ${formData.dni}</p>
             ${
               formData.salary
-                ? `<p><strong>Salario:</strong> ${formData.salary || "No asignado"}</p>`
+                ? `<p><strong>Salario:</strong> ${
+                    formData.salary || "No asignado"
+                  }</p>`
                 : ""
             }
         </div>
@@ -170,17 +193,32 @@ export default function RegistroEmpleadosPage() {
     if (!confirmationResult.isConfirmed) return;
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formattedData),
+      const formSubmissionData = new (window as any).FormData();
+
+      Object.entries(formattedData).forEach(([key, value]) => {
+        if (value !== undefined) {
+          formSubmissionData.append(key, value);
+        }
       });
 
+      if (imageFile) {
+        formSubmissionData.append("imgUrl", imageFile);
+      }
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formSubmissionData,
+        }
+      );
+
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Error al registrar empleado.");
+      if (!res.ok)
+        throw new Error(data.message || "Error al registrar empleado.");
 
       await Swal.fire({
         icon: "success",
@@ -206,11 +244,11 @@ export default function RegistroEmpleadosPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6 text-start max-w-4xl">
-      <h1 className="text-2xl sm:text-3xl font-bold text-black text-center sm:text-left">
+    <div className="container mx-auto px-4 sm:px-6 py-6 text-start ">
+      <h1 className="text-2xl sm:text-3xl font-bold text-black text-start sm:text-left">
         Registro de Empleados
       </h1>
-      <p className="text-gray-600 mt-2 sm:mt-3 text-center sm:text-left text-sm sm:text-base">
+      <p className="text-gray-600 mt-2 sm:mt-3 text-start sm:text-left text-sm sm:text-base">
         Complete el siguiente formulario para registrar un nuevo empleado.
       </p>
 
@@ -220,19 +258,72 @@ export default function RegistroEmpleadosPage() {
           onSubmit={handleSubmit}
         >
           {[
-            { label: "Nombre *", name: "first_name", type: "text", placeholder: "Nombre del empleado", required: true },
-            { label: "Apellido *", name: "last_name", type: "text", placeholder: "Apellido del empleado", required: true },
-            { label: "DNI *", name: "dni", type: "number", placeholder: "DNI del empleado", required: true },
-            { label: "CUIL *", name: "cuil", type: "text", placeholder: "CUIL del empleado", required: true },
-            { label: "Número de Teléfono", name: "phone_number", type: "text", placeholder: "Número de teléfono" },
-            { label: "Dirección", name: "address", type: "text", placeholder: "Dirección del empleado" },
-            { label: "Fecha de Nacimiento", name: "birthdate", type: "date", placeholder: "Fecha de nacimiento" },
-            { label: "Foto del empleado", name: "imgUrl", type: "text", placeholder: "URL de la foto" },
-            { label: "Salario", name: "salary", type: "number", placeholder: "Salario del empleado", min: "0" },
-            { label: "Email *", name: "email", type: "email", placeholder: "Email del empleado", required: true },
+            {
+              label: "Nombre *",
+              name: "first_name",
+              type: "text",
+              placeholder: "Nombre del empleado",
+              required: true,
+            },
+            {
+              label: "Apellido *",
+              name: "last_name",
+              type: "text",
+              placeholder: "Apellido del empleado",
+              required: true,
+            },
+            {
+              label: "DNI *",
+              name: "dni",
+              type: "number",
+              placeholder: "DNI del empleado",
+              required: true,
+            },
+            {
+              label: "CUIL *",
+              name: "cuil",
+              type: "text",
+              placeholder: "CUIL del empleado",
+              required: true,
+            },
+            {
+              label: "Número de Teléfono",
+              name: "phone_number",
+              type: "text",
+              placeholder: "Número de teléfono",
+            },
+            {
+              label: "Dirección",
+              name: "address",
+              type: "text",
+              placeholder: "Dirección del empleado",
+            },
+            {
+              label: "Fecha de Nacimiento",
+              name: "birthdate",
+              type: "date",
+              placeholder: "Fecha de nacimiento",
+            },
+            {
+              label: "Salario",
+              name: "salary",
+              type: "number",
+              placeholder: "Salario del empleado",
+              min: "0",
+            },
+            {
+              label: "Email *",
+              name: "email",
+              type: "email",
+              placeholder: "Email del empleado",
+              required: true,
+            },
           ].map((input) => (
             <div key={input.name} className="flex flex-col w-full">
-              <label htmlFor={input.name} className="mb-1 text-sm font-medium text-gray-700">
+              <label
+                htmlFor={input.name}
+                className="mb-1 text-sm font-medium text-gray-700"
+              >
                 {input.label}
               </label>
               <input
@@ -249,9 +340,33 @@ export default function RegistroEmpleadosPage() {
             </div>
           ))}
 
-          {/* Departamentos */}
+          <div className="flex flex-col w-full">
+            <label
+              htmlFor="imageFile"
+              className="mb-1 text-sm font-medium text-gray-700"
+            >
+              Foto del Empleado (JPG, PNG, WebP)
+            </label>
+            <input
+              id="imageFile"
+              type="file"
+              name="imageFile"
+              accept=".jpg,.jpeg,.png,.webp"
+              onChange={handleFileChange}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-[#083E96] focus:border-[#083E96] text-sm file:mr-4 file:py-1 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white file:hover:text-white hover:file:bg-[#0E6922]"
+            />
+            {imageFile && (
+              <p className="mt-1 text-xs text-gray-500">
+                Archivo seleccionado: {imageFile.name}
+              </p>
+            )}
+          </div>
+
           <div className="flex flex-col">
-            <label htmlFor="department_id" className="mb-1 text-sm font-medium text-gray-700">
+            <label
+              htmlFor="department_id"
+              className="mb-1 text-sm font-medium text-gray-700"
+            >
               Departamento *
             </label>
             <select
@@ -271,9 +386,11 @@ export default function RegistroEmpleadosPage() {
             </select>
           </div>
 
-          {/* Puestos */}
           <div className="flex flex-col">
-            <label htmlFor="position_id" className="mb-1 text-sm font-medium text-gray-700">
+            <label
+              htmlFor="position_id"
+              className="mb-1 text-sm font-medium text-gray-700"
+            >
               Puesto *
             </label>
             <select
@@ -293,7 +410,6 @@ export default function RegistroEmpleadosPage() {
             </select>
           </div>
 
-          {/* Botones */}
           <div className="col-span-1 sm:col-span-2 flex flex-col sm:flex-row gap-3 mt-6">
             <button
               type="submit"

@@ -6,6 +6,7 @@ import { useAuth } from "@clerk/nextjs";
 import PlansSelector from "@/components/planes/PlanSelector";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import Swal from "sweetalert2";
 
 interface Plan {
   id: string;
@@ -124,23 +125,54 @@ export default function PlanPage() {
               disabled={!companyId}
               onClick={async () => {
                 if (!companyId) return;
-                try {
-                  const token = await getToken();
-                  console.log("Cancelando plan para companyId:", companyId);
-                  await fetch(
-                    `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/stripe/cancel`,
-                    {
-                      method: "POST",
-                      headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({ companyId }),
+                const result = await Swal.fire({
+                  title: "¿Confirmar cancelación?",
+                  text: "¿Estás seguro de que deseas cancelar tu plan premium? Seguirás teniendo acceso a las funciones premium hasta el final de tu período de facturación.",
+                  icon: "warning",
+                  showCancelButton: true,
+                  confirmButtonColor: "#3085d6",
+                  cancelButtonColor: "#d33",
+                  confirmButtonText: "Sí, cancelar plan",
+                  cancelButtonText: "No, mantener plan",
+                });
+
+                if (result.isConfirmed) {
+                  try {
+                    const token = await getToken();
+                    const response = await fetch(
+                      `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/stripe/cancel`,
+                      {
+                        method: "POST",
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                          "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ companyId }),
+                      }
+                    );
+
+                    if (response.ok) {
+                      setCurrentPlan("plan_cancelado");
+                      Swal.fire({
+                        icon: "success",
+                        title: "Plan Premium cancelado",
+                        text: "Seguirás teniendo acceso a las funciones premium hasta el final de tu período de facturación.",
+                        confirmButtonText: "Aceptar",
+                      });
+                    } else {
+                      throw new Error(
+                        "Error en la respuesta del servidor al cancelar."
+                      );
                     }
-                  );
-                  await fetchCurrentPlan();
-                } catch (error) {
-                  console.error("Error al cancelar plan:", error);
+                  } catch (error) {
+                    console.error("Error al cancelar plan:", error);
+                    Swal.fire({
+                      icon: "error",
+                      title: "Error",
+                      text: "Hubo un problema al intentar cancelar tu plan. Por favor, inténtalo de nuevo.",
+                      confirmButtonText: "Aceptar",
+                    });
+                  }
                 }
               }}
             >
