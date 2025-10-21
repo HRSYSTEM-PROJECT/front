@@ -73,34 +73,50 @@ export default function DashboardSuperAdmin() {
         if (!API_BASE_URL)
           throw new Error("NEXT_PUBLIC_BACKEND_API_URL no está definida.");
         if (!authToken) throw new Error("Token no obtenido.");
-        const headers = { Authorization: `Bearer ${authToken}` };
 
-        const [empresasRes, empleadosRes, subsRes, plansRes] =
-          await Promise.all([
-            fetch(`${API_BASE_URL}/empresa`, { headers }),
-            fetch(`${API_BASE_URL}/empleado`, { headers }),
-            fetch(`${API_BASE_URL}/suscripciones`, { headers }),
-            fetch(`${API_BASE_URL}/plan`, { headers }),
-          ]);
+        const empresasRes = await fetch(`${API_BASE_URL}/empresa`, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
 
         if (!empresasRes.ok)
           throw new Error(`Error HTTP ${empresasRes.status} en /empresa`);
-        if (!empleadosRes.ok)
-          throw new Error(`Error HTTP ${empleadosRes.status} en /empleado`);
+        // const empleadosRes = await fetch(`${API_BASE_URL}/empleado`, {
+        //   headers: { Authorization: `Bearer ${authToken}` },
+        // });
+        const empresasData = await empresasRes.json();
+        console.log(empresasData);
+
+        const usersRes = await fetch(`${API_BASE_URL}/user`, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+        const usersData = await usersRes.json();
+        setUsers(usersData || []);
+
+        // if (!empleadosRes.ok)
+        //   throw new Error(`Error HTTP ${empleadosRes.status} en /empleado`);
+
+        const subsRes = await fetch(`${API_BASE_URL}/suscripciones`, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+
+        // const empleadosData = await empleadosRes.json();
+        // console.log(empleadosData);
+
         if (!subsRes.ok)
           throw new Error(`Error HTTP ${subsRes.status} en /suscripciones`);
+        const plansRes = await fetch(`${API_BASE_URL}/plan`, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
+        const suscripcionesData = await subsRes.json();
+        console.log(suscripcionesData);
+
         if (!plansRes.ok)
           throw new Error(`Error HTTP ${plansRes.status} en /plan`);
+        const planes = await plansRes.json();
+        console.log(planes);
 
-        const [empresasData, empleadosData, suscripcionesData, planes] =
-          await Promise.all([
-            empresasRes.json(),
-            empleadosRes.json(),
-            subsRes.json(),
-            plansRes.json(),
-          ]);
         setEmpresas(empresasData || []);
-        setEmpleados(empleadosData || []);
+        // setEmpleados(empleadosData || []);
         setSuscripciones(suscripcionesData || []);
         const planDetails = planes.reduce(
           (acc: Record<string, Plan>, p: Plan) => ({ ...acc, [p.id]: p }),

@@ -150,7 +150,7 @@ export default function DashboardPage() {
 
       const fetchEmpleados = async () => {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado`,
+          `${process.env.NEXT_PUBLIC_BACKEND_API_URL}/empleado/byCompany`,
           { headers: { Authorization: `Bearer ${authToken}` } }
         );
         if (!res.ok) {
