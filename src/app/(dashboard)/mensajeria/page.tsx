@@ -7,11 +7,9 @@ import io, { Socket } from "socket.io-client";
 import Swal from "sweetalert2";
 import { Send } from "lucide-react";
 
-// 🌐 Variables de entorno
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_API_URL;
 const SOCKET_BASE = process.env.NEXT_PUBLIC_SOCKET_URL;
 
-// 👥 Usuario básico
 interface UserSummary {
   id: string;
   first_name?: string;
@@ -20,7 +18,6 @@ interface UserSummary {
   imgUrl?: string;
 }
 
-// 💬 Mensaje dentro de un chat
 interface Message {
   id: string;
   chatId: string;
@@ -37,7 +34,6 @@ interface Message {
   is_read?: boolean;
 }
 
-// 💭 Chat entre usuarios
 interface Chat {
   id: string;
   participants: UserSummary[];
@@ -62,7 +58,6 @@ export default function MensajeriaPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // 🧩 Conexión al WebSocket
   useEffect(() => {
     if (!isLoaded || !SOCKET_BASE) return;
 
@@ -104,7 +99,6 @@ export default function MensajeriaPage() {
     };
   }, [isLoaded]);
 
-  // 📦 Obtener los chats del backend
   useEffect(() => {
     if (!isLoaded) return;
 
