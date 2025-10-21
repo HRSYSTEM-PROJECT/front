@@ -49,7 +49,8 @@ export default function MensajeriaPage() {
   const [chats, setChats] = useState<Chat[]>([]);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [newMessage, setNewMessage] = useState("");
-  const [newChatUserId, setNewChatUserId] = useState("");
+  const [users, setUsers] = useState<UserSummary[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState("");
 
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -133,6 +134,30 @@ export default function MensajeriaPage() {
     fetchChats();
   }, [isLoaded]);
 
+  // Cargar usuarios de la empresa
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const fetchUsers = async () => {
+      try {
+        const token = await getToken();
+        if (!token) throw new Error("No se pudo obtener token de Clerk");
+        if (!BACKEND) throw new Error("BACKEND_URL no configurada");
+
+        const res = await axios.get(`${BACKEND}/chat/users/search?q=&page=1&limit=50`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        console.log("✅ Usuarios obtenidos:", res.data);
+        setUsers(res.data.users || []);
+      } catch (err) {
+        console.error("🚨 Error al cargar usuarios:", err);
+      }
+    };
+
+    fetchUsers();
+  }, [isLoaded]);
+
   //  Enviar mensaje
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedChat || !socketRef.current) return;
@@ -152,7 +177,7 @@ export default function MensajeriaPage() {
 
   //  Crear nuevo chat
   const handleCreateChat = async () => {
-    if (!newChatUserId.trim()) return;
+    if (!selectedUserId.trim()) return;
 
     try {
       const token = await getToken();
@@ -160,13 +185,13 @@ export default function MensajeriaPage() {
       if (!BACKEND) throw new Error("BACKEND_URL no configurada");
 
       const res = await axios.post(
-        `${BACKEND}/chat/direct/${newChatUserId}`,
+        `${BACKEND}/chat/direct/${selectedUserId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setChats((prev) => [...prev, res.data]);
-      setNewChatUserId("");
+      setSelectedUserId("");
 
       // Unirse automáticamente al chat creado
       if (socketRef.current) {
@@ -180,6 +205,7 @@ export default function MensajeriaPage() {
       Swal.fire("Error", "No se pudo crear el chat", "error");
     }
   };
+
   // Función para manejar selección de chat
   const handleSelectChat = (chat: Chat) => {
     // Salir del chat anterior si existe
@@ -199,7 +225,6 @@ export default function MensajeriaPage() {
 
   useEffect(scrollToBottom, [selectedChat]);
 
-  //  Interfaz principal
   return (
     <div className="flex h-[85vh] rounded-xl shadow-lg bg-white overflow-hidden border border-gray-200">
       {/* Sidebar de chats */}
@@ -207,16 +232,22 @@ export default function MensajeriaPage() {
         <h2 className="text-lg font-bold mb-3">💬 Chats</h2>
 
         <div className="flex gap-2 mb-3">
-          <input
-            type="text"
-            placeholder="Ingresá el ID del usuario"
-            value={newChatUserId}
-            onChange={(e) => setNewChatUserId(e.target.value)}
+          <select
+            value={selectedUserId}
+            onChange={(e) => setSelectedUserId(e.target.value)}
             className="flex-1 border rounded-lg px-2 py-1 text-sm"
-          />
+          >
+            <option value="">Seleccioná un usuario...</option>
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.first_name} {user.last_name} ({user.email})
+              </option>
+            ))}
+          </select>
           <button
             onClick={handleCreateChat}
-            className="bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 text-sm"
+            disabled={!selectedUserId}
+            className="bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 text-sm"
           >
             +
           </button>
@@ -229,7 +260,8 @@ export default function MensajeriaPage() {
             </p>
           ) : (
             chats.map((chat) => {
-              const otherUser = chat.participants.find(
+              const participants = chat.participants || [];
+              const otherUser = participants.find(
                 (p) => p.id !== user?.id
               );
               return (
@@ -260,7 +292,7 @@ export default function MensajeriaPage() {
           <>
             <div className="border-b p-3 font-semibold bg-gray-50">
               Chat con{" "}
-              {selectedChat.participants
+              {(selectedChat.participants || [])
                 .filter((p) => p.id !== user?.id)
                 .map((p) => p.first_name || p.id)
                 .join(", ") || "Desconocido"}
