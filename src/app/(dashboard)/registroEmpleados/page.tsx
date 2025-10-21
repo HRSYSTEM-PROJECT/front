@@ -202,7 +202,7 @@ export default function RegistroEmpleadosPage() {
       });
 
       if (imageFile) {
-        formSubmissionData.append("imgUrl", imageFile);
+        formSubmissionData.append("file", imageFile);
       }
 
       const res = await fetch(
