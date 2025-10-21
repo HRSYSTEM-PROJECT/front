@@ -70,8 +70,12 @@ export default function MensajeriaPage() {
         transports: ["websocket"],
       });
 
-      socket.on("connect", () => console.log("🟢 Conectado al WebSocket /chat"));
-      socket.on("disconnect", () => console.warn("🔴 Desconectado del WebSocket"));
+      socket.on("connect", () =>
+        console.log("🟢 Conectado al WebSocket /chat")
+      );
+      socket.on("disconnect", () =>
+        console.warn("🔴 Desconectado del WebSocket")
+      );
       socket.on("connect_error", (err) =>
         console.error("⚠️ Error de conexión:", err.message)
       );
@@ -114,14 +118,14 @@ export default function MensajeriaPage() {
         console.log("✅ Chats obtenidos:", res.data);
         setChats(res.data.chats || []);
       } catch (err) {
-        const error = err as AxiosError;
+        const error = err as AxiosError<{ message?: string }>;
         console.error("🚨 Error al cargar chats:", error.message);
+
         Swal.fire({
           icon: "error",
           title: "Error al cargar chats",
           text:
-            (error.response?.data as any)?.message ||
-            "No se pudieron cargar los chats",
+            error.response?.data?.message || "No se pudieron cargar los chats",
         });
       }
     };
