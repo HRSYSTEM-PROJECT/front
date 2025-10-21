@@ -1,7 +1,301 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { useAuth, useUser } from "@clerk/nextjs";
+import axios, { AxiosError } from "axios";
+import io, { Socket } from "socket.io-client";
+import Swal from "sweetalert2";
+import { Send } from "lucide-react";
+
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_API_URL;
+const SOCKET_BASE = process.env.NEXT_PUBLIC_SOCKET_URL;
+
+interface UserSummary {
+  id: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  imgUrl?: string;
+}
+
+interface Message {
+  id: string;
+  chatId: string;
+  senderId: string;
+  content: string;
+  type: "text" | "image" | "file" | "system";
+  reply_to_id?: string | null;
+  file_url?: string | null;
+  file_name?: string | null;
+  file_type?: string | null;
+  file_size?: number | null;
+  created_at: string;
+  updated_at: string;
+  is_read?: boolean;
+}
+
+interface Chat {
+  id: string;
+  participants: UserSummary[];
+  messages: Message[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export default function MensajeriaPage() {
+  const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
+
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+  const [newMessage, setNewMessage] = useState("");
+  const [newChatUserId, setNewChatUserId] = useState("");
+
+  const socketRef = useRef<Socket | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (!isLoaded || !SOCKET_BASE) return;
+
+    const connectSocket = async () => {
+      const token = await getToken();
+      if (!token) return console.error("❌ No se pudo obtener token de Clerk");
+
+      const socket = io(`${SOCKET_BASE}/chat`, {
+        auth: { token }, 
+        transports: ["websocket"],
+      });
+
+      socket.on("connect", () => console.log("🟢 Conectado al WebSocket /chat"));
+      socket.on("disconnect", () => console.warn("🔴 Desconectado del WebSocket"));
+      socket.on("connect_error", (err) =>
+        console.error("⚠️ Error de conexión:", err.message)
+      );
+
+      socket.on("new_message", (msg: Message) => {
+        console.log("📩 Nuevo mensaje recibido:", msg);
+        setChats((prev) =>
+          prev.map((chat) =>
+            chat.id === msg.chatId
+              ? { ...chat, messages: [...chat.messages, msg] }
+              : chat
+          )
+        );
+        scrollToBottom();
+      });
+
+      socketRef.current = socket;
+    };
+
+    connectSocket();
+
+    return () => {
+      socketRef.current?.disconnect();
+    };
+  }, [isLoaded]);
+
+  // Obtener los chats del backend
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const fetchChats = async () => {
+      try {
+        const token = await getToken();
+        if (!token) throw new Error("No se pudo obtener token de Clerk");
+        if (!BACKEND) throw new Error("BACKEND_URL no configurada");
+
+        const res = await axios.get(`${BACKEND}/chat?page=1&limit=20`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        console.log("✅ Chats obtenidos:", res.data);
+        setChats(res.data.chats || []);
+      } catch (err) {
+        const error = err as AxiosError;
+        console.error("🚨 Error al cargar chats:", error.message);
+        Swal.fire({
+          icon: "error",
+          title: "Error al cargar chats",
+          text:
+            (error.response?.data as any)?.message ||
+            "No se pudieron cargar los chats",
+        });
+      }
+    };
+
+    fetchChats();
+  }, [isLoaded]);
+
+  // ✉️ Enviar mensaje
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !selectedChat || !socketRef.current) return;
+
+    const payload = {
+      chatId: selectedChat.id,
+      message: {
+        content: newMessage.trim(),
+        type: "text",
+      },
+    };
+
+    console.log("📤 Enviando mensaje:", payload);
+    socketRef.current.emit("send_message", payload);
+    setNewMessage("");
+  };
+
+  // ➕ Crear nuevo chat
+  const handleCreateChat = async () => {
+    if (!newChatUserId.trim()) return;
+
+    try {
+      const token = await getToken();
+      const res = await axios.post(
+        `${BACKEND}/chat`,
+        { userId: newChatUserId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setChats((prev) => [...prev, res.data]);
+      setNewChatUserId("");
+      Swal.fire("Chat creado", "Ya podés empezar a chatear", "success");
+    } catch (err) {
+      console.error("Error al crear chat:", err);
+      Swal.fire("Error", "No se pudo crear el chat", "error");
+    }
+  };
+
+  useEffect(scrollToBottom, [selectedChat]);
+
+  // 💬 Interfaz principal
   return (
-    <div>
-      <h1>Mensajería</h1>
+    <div className="flex h-[85vh] rounded-xl shadow-lg bg-white overflow-hidden border border-gray-200">
+      {/* Sidebar de chats */}
+      <aside className="w-1/3 border-r bg-gray-50 p-4 flex flex-col">
+        <h2 className="text-lg font-bold mb-3">💬 Chats</h2>
+
+        <div className="flex gap-2 mb-3">
+          <input
+            type="text"
+            placeholder="Ingresá el ID del usuario"
+            value={newChatUserId}
+            onChange={(e) => setNewChatUserId(e.target.value)}
+            className="flex-1 border rounded-lg px-2 py-1 text-sm"
+          />
+          <button
+            onClick={handleCreateChat}
+            className="bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 text-sm"
+          >
+            +
+          </button>
+        </div>
+
+        <ul className="flex-1 overflow-y-auto">
+          {chats.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center mt-5">
+              No hay chats aún.
+            </p>
+          ) : (
+            chats.map((chat) => {
+              const otherUser = chat.participants.find(
+                (p) => p.id !== user?.id
+              );
+              return (
+                <li
+                  key={chat.id}
+                  onClick={() => setSelectedChat(chat)}
+                  className={`p-2 mb-1 rounded-lg cursor-pointer ${
+                    selectedChat?.id === chat.id
+                      ? "bg-blue-100 font-semibold"
+                      : "hover:bg-gray-100"
+                  }`}
+                >
+                  {otherUser
+                    ? `${otherUser.first_name || "Usuario"} ${
+                        otherUser.last_name || ""
+                      }`
+                    : "Chat desconocido"}
+                </li>
+              );
+            })
+          )}
+        </ul>
+      </aside>
+
+      {/* Ventana del chat */}
+      <main className="flex-1 flex flex-col">
+        {selectedChat ? (
+          <>
+            <div className="border-b p-3 font-semibold bg-gray-50">
+              Chat con{" "}
+              {selectedChat.participants
+                .filter((p) => p.id !== user?.id)
+                .map((p) => p.first_name || p.id)
+                .join(", ") || "Desconocido"}
+            </div>
+
+            <div className="flex-1 p-4 overflow-y-auto">
+              {selectedChat.messages.length === 0 ? (
+                <p className="text-center text-gray-400 mt-10 text-sm">
+                  No hay mensajes todavía. ¡Escribí el primero!
+                </p>
+              ) : (
+                selectedChat.messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`mb-2 flex ${
+                      msg.senderId === user?.id
+                        ? "justify-end"
+                        : "justify-start"
+                    }`}
+                  >
+                    <div
+                      className={`px-3 py-2 rounded-xl text-sm max-w-[75%] ${
+                        msg.senderId === user?.id
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-200 text-gray-800"
+                      }`}
+                    >
+                      <p>{msg.content}</p>
+                      <span className="block text-[10px] mt-1 opacity-70 text-right">
+                        {new Date(msg.created_at).toLocaleTimeString("es-AR", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className="border-t p-3 flex gap-2">
+              <input
+                type="text"
+                placeholder="Escribí un mensaje..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                className="flex-1 border rounded-lg px-3 py-2 text-sm"
+              />
+              <button
+                onClick={handleSendMessage}
+                className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700"
+              >
+                <Send size={18} />
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-gray-500">
+            Seleccioná un chat o creá uno nuevo
+          </div>
+        )}
+      </main>
     </div>
   );
 }
