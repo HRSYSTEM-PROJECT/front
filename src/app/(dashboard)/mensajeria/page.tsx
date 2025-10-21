@@ -76,7 +76,6 @@ export default function MensajeriaPage() {
         console.error("⚠️ Error de conexión:", err.message)
       );
 
-      // 📩 Evento real del backend: mensaje recibido
       socket.on("new_message", (msg: Message) => {
         console.log("📩 Nuevo mensaje recibido:", msg);
         setChats((prev) =>
@@ -130,7 +129,7 @@ export default function MensajeriaPage() {
     fetchChats();
   }, [isLoaded]);
 
-  // ✉️ Enviar mensaje
+  //  Enviar mensaje
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedChat || !socketRef.current) return;
 
@@ -147,7 +146,7 @@ export default function MensajeriaPage() {
     setNewMessage("");
   };
 
-  // ➕ Crear nuevo chat
+  //  Crear nuevo chat
   const handleCreateChat = async () => {
     if (!newChatUserId.trim()) return;
 
@@ -170,7 +169,7 @@ export default function MensajeriaPage() {
 
   useEffect(scrollToBottom, [selectedChat]);
 
-  // 💬 Interfaz principal
+  //  Interfaz principal
   return (
     <div className="flex h-[85vh] rounded-xl shadow-lg bg-white overflow-hidden border border-gray-200">
       {/* Sidebar de chats */}
