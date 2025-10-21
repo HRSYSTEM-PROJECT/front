@@ -1,11 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Users, Building2, Mail, Phone, MapPin, Flag } from "lucide-react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useUser } from "@clerk/nextjs";
 import MetricsCards from "@/components/metricas/MetricsCards";
 import EmpresaForm from "@/components/actualizacionEmpresa";
 import Link from "next/link";
 import PagoAceptadoToast from "@/hooks/PagoAceptadoToast";
+import { useRouter } from "next/navigation";
 
 export interface Empresa {
   id: string;
@@ -67,12 +68,26 @@ const Avatar = ({ name }: { name: string }) => {
 
 export default function DashboardPage() {
   const { isLoaded, getToken } = useAuth();
+  const { user, isLoaded: isUserLoaded } = useUser();
+  const router = useRouter();
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
   const [empleados, setEmpleados] = useState<Employee[]>([]);
   const [adminPrincipal, setAdminPrincipal] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [ausencias, setAusencias] = useState<Ausencia[]>([]);
   const [otrosAdmins, setOtrosAdmins] = useState<User[]>([]);
+
+  const SUPER_ADMIN_EMAIL = ["superadmin@mail.com"];
+
+  useEffect(() => {
+    if (isUserLoaded) {
+      const primaryEmail = user?.primaryEmailAddress?.emailAddress;
+      if (primaryEmail && SUPER_ADMIN_EMAIL.includes(primaryEmail)) {
+        router.replace("/superadmin");
+        return;
+      }
+    }
+  }, [isUserLoaded, user, router]);
 
   const fetchAdmins = async (authToken: string) => {
     try {
@@ -88,11 +103,15 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (!isLoaded) {
+    if (isLoaded && user && isUserLoaded) {
+      const primaryEmail = user.primaryEmailAddress?.emailAddress;
+      if (primaryEmail && SUPER_ADMIN_EMAIL.includes(primaryEmail)) {
         return;
       }
 
+      return;
+    }
+    const fetchData = async () => {
       setLoading(true);
       const authToken = await getToken();
 
@@ -110,7 +129,7 @@ export default function DashboardPage() {
           console.error(`Fallo de solicitud de empresa: ${res.status}`);
           throw new Error("Error al cargar datos de la empresa.");
         }
-        
+
         const data = await res.json();
         if (data && data.user && data.user.company) {
           setEmpresa(data.user.company);
@@ -156,7 +175,6 @@ export default function DashboardPage() {
 
       try {
         await fetchEmpresa();
-
         await Promise.all([
           fetchEmpleados(),
           fetchAusencias(),
@@ -169,11 +187,24 @@ export default function DashboardPage() {
       }
     };
 
-    if (isLoaded) {
-      fetchData();
-    }
-  }, [isLoaded, getToken]);
+    fetchData();
+  }, [isLoaded, user, isUserLoaded, getToken]);
 
+  if (!isUserLoaded) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Verificando autenticación...</p>
+      </div>
+    );
+  }
+  const primaryEmail = user?.primaryEmailAddress?.emailAddress;
+  if (primaryEmail && SUPER_ADMIN_EMAIL.includes(primaryEmail)) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Redirigiendo a la vista de Super Administrador...</p>
+      </div>
+    );
+  }
   const displayedAdmins: {
     id: string;
     name: string;
@@ -268,7 +299,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-              <div className="flex items-start gap-3">
+          <div className="flex items-start gap-3">
             <Flag className="w-6 h-6 text-gray-900 mt-1 flex-shrink-0" />
             <div>
               <h4 className="text-gray-500 text-sm">País</h4>
