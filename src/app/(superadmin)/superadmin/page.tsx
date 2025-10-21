@@ -141,9 +141,9 @@ export default function DashboardSuperAdmin() {
           .sort((a, b) => b.cantidad - a.cantidad);
 
         setDistribucionData(distribucion);
-      } catch (error: any) {
-        console.error("❌ Error al cargar datos:", error.message || error);
-        setError(error.message);
+      } catch (error) {
+        console.error("❌ Error al cargar datos:", error);
+        setError("Error al cargar datos del panel de superadministrador.");
         setSuscripciones([]);
       } finally {
         setLoadingSubscriptions(false);
