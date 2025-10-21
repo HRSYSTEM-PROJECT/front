@@ -63,77 +63,74 @@ export default function DashboardSuperAdmin() {
   const [loadingSubscriptions, setLoadingSubscriptions] = useState(true);
 
   useEffect(() => {
-    if (!isLoaded) {
-      return;
-    }
+    if (!isLoaded) return;
 
-    async function fetchMasterData() {
-      const authToken = await getToken();
-      const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
-
-      if (!API_BASE_URL) {
-        const configError =
-          "Error: La variable NEXT_PUBLIC_BACKEND_API_URL no está definida.";
-        setError(configError);
-        setLoadingSubscriptions(false);
-        return;
-      }
-
+    const fetchMasterData = async () => {
       try {
-        const [subsRes, plansRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/suscripciones`, {
-            headers: { Authorization: `Bearer ${authToken}` },
-          }),
-          fetch(`${API_BASE_URL}/plan`, {
-            headers: { Authorization: `Bearer ${authToken}` },
-          }),
-        ]);
+        const authToken = await getToken();
+        const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL;
 
-        if (!subsRes.ok || !plansRes.ok) {
-          const status = !subsRes.ok ? subsRes.status : plansRes.status;
-          throw new Error(
-            `Error al cargar suscripciones o planes. HTTP Status: ${status}`
-          );
-        }
+        if (!API_BASE_URL)
+          throw new Error("NEXT_PUBLIC_BACKEND_API_URL no está definida.");
+        if (!authToken) throw new Error("Token no obtenido.");
+        const headers = { Authorization: `Bearer ${authToken}` };
 
-        const suscripcionesData: Suscripcion[] = await subsRes.json();
-        const planes: Plan[] = await plansRes.json();
+        const [empresasRes, empleadosRes, subsRes, plansRes] =
+          await Promise.all([
+            fetch(`${API_BASE_URL}/empresa`, { headers }),
+            fetch(`${API_BASE_URL}/empleado`, { headers }),
+            fetch(`${API_BASE_URL}/suscripciones`, { headers }),
+            fetch(`${API_BASE_URL}/plan`, { headers }),
+          ]);
 
-        setSuscripciones(suscripcionesData);
+        if (!empresasRes.ok)
+          throw new Error(`Error HTTP ${empresasRes.status} en /empresa`);
+        if (!empleadosRes.ok)
+          throw new Error(`Error HTTP ${empleadosRes.status} en /empleado`);
+        if (!subsRes.ok)
+          throw new Error(`Error HTTP ${subsRes.status} en /suscripciones`);
+        if (!plansRes.ok)
+          throw new Error(`Error HTTP ${plansRes.status} en /plan`);
+
+        const [empresasData, empleadosData, suscripcionesData, planes] =
+          await Promise.all([
+            empresasRes.json(),
+            empleadosRes.json(),
+            subsRes.json(),
+            plansRes.json(),
+          ]);
+        setEmpresas(empresasData || []);
+        setEmpleados(empleadosData || []);
+        setSuscripciones(suscripcionesData || []);
+        const planDetails = planes.reduce(
+          (acc: Record<string, Plan>, p: Plan) => ({ ...acc, [p.id]: p }),
+          {}
+        );
 
         let totalIngresosCalculado = 0;
         const conteo: Record<string, number> = {};
 
-        const planDetails: Record<string, Plan> = planes.reduce(
-          (acc, p) => ({ ...acc, [p.id]: p }),
-          {}
-        );
-
-        suscripcionesData.forEach((s) => {
-          const planInfo = s.plan || planDetails[s.plan_id];
-
+        suscripcionesData.forEach((s: Suscripcion) => {
+          const planInfo: Plan | undefined = s.plan || planDetails[s.plan_id];
           if (planInfo) {
             conteo[planInfo.id] = (conteo[planInfo.id] || 0) + 1;
             const price = parseFloat(planInfo.price);
-            if (!isNaN(price)) {
-              totalIngresosCalculado += price;
-            }
+            if (!isNaN(price)) totalIngresosCalculado += price;
           }
         });
 
         setTotalIngresos(totalIngresosCalculado);
 
         const totalSuscripciones = suscripcionesData.length;
-
-        const distribucion: Distribucion[] = planes
+        const distribucion: Distribucion[] = Object.values(
+          planDetails as Record<string, Plan>
+        )
           .map((plan) => {
             const cantidad = conteo[plan.id] || 0;
             const porcentaje = totalSuscripciones
               ? (cantidad / totalSuscripciones) * 100
               : 0;
-
             const totalIngresosPlan = cantidad * parseFloat(plan.price || "0");
-
             return {
               nombre: plan.name,
               cantidad,
@@ -144,16 +141,18 @@ export default function DashboardSuperAdmin() {
           .sort((a, b) => b.cantidad - a.cantidad);
 
         setDistribucionData(distribucion);
-      } catch (error) {
-        console.error("Error al cargar datos de suscripciones:", error);
+      } catch (error: any) {
+        console.error("❌ Error al cargar datos:", error.message || error);
+        setError(error.message);
         setSuscripciones([]);
       } finally {
         setLoadingSubscriptions(false);
       }
-    }
+    };
 
     fetchMasterData();
   }, [isLoaded, getToken]);
+
   const cards = [
     {
       titulo: "Empresas",
@@ -248,8 +247,6 @@ export default function DashboardSuperAdmin() {
           );
         })}
       </div>
-
-      {/*---------------- Distribución de Planes -----------------*/}
       <div className="bg-white p-4 sm:p-8 rounded-xl shadow-lg border border-gray-100 mt-8 w-full overflow-x-auto">
         <h2 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
           Distribución de Planes

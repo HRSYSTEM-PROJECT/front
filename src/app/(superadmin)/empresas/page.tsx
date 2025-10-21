@@ -71,7 +71,7 @@ export default function EmpresasSuperAdmin() {
   return (
     <div className="bg-white p-4 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full overflow-x-auto">
       <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-4">
-        Empresas Registradas
+        Empresas Registradas ({empresas.length})
       </h2>
       <p className="text-xs sm:text-sm text-gray-500 mb-4">
         Gestión de todas las empresas registradas en el sistema

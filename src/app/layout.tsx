@@ -26,7 +26,7 @@ export default async function RootLayout({
         <head>
           <link rel="icon" href="/favicon.svg" />
         </head>
-        <body className={`${poppins.variable} antialiased`}>
+        <body className={`${poppins.variable} antialiased select-none`}>
           <ToastProvider>{children}</ToastProvider>
         </body>
       </html>
