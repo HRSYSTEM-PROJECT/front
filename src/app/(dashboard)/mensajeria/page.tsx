@@ -70,8 +70,12 @@ export default function MensajeriaPage() {
         transports: ["websocket"],
       });
 
-      socket.on("connect", () => console.log("🟢 Conectado al WebSocket /chat"));
-      socket.on("disconnect", () => console.warn("🔴 Desconectado del WebSocket"));
+      socket.on("connect", () =>
+        console.log("🟢 Conectado al WebSocket /chat")
+      );
+      socket.on("disconnect", () =>
+        console.warn("🔴 Desconectado del WebSocket")
+      );
       socket.on("connect_error", (err) =>
         console.error("⚠️ Error de conexión:", err.message)
       );
@@ -152,18 +156,44 @@ export default function MensajeriaPage() {
 
     try {
       const token = await getToken();
+      if (!token) throw new Error("No se pudo obtener token de Clerk");
+      if (!BACKEND) throw new Error("BACKEND_URL no configurada");
+
       const res = await axios.post(
-        `${BACKEND}/chat`,
-        { userId: newChatUserId },
+        `${BACKEND}/chat/direct/${newChatUserId}`,
+        {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setChats((prev) => [...prev, res.data]);
       setNewChatUserId("");
+
+      // Unirse automáticamente al chat creado
+      if (socketRef.current) {
+        socketRef.current.emit("join_chat", { chatId: res.data.id });
+        console.log(`🔗 Uniéndose al chat recién creado ${res.data.id}`);
+      }
+
       Swal.fire("Chat creado", "Ya podés empezar a chatear", "success");
     } catch (err) {
       console.error("Error al crear chat:", err);
       Swal.fire("Error", "No se pudo crear el chat", "error");
+    }
+  };
+  // Función para manejar selección de chat
+  const handleSelectChat = (chat: Chat) => {
+    // Salir del chat anterior si existe
+    if (selectedChat && socketRef.current) {
+      socketRef.current.emit("leave_chat", { chatId: selectedChat.id });
+      console.log(`🚪 Saliendo del chat ${selectedChat.id}`);
+    }
+
+    setSelectedChat(chat);
+
+    // Unirse al nuevo chat
+    if (socketRef.current) {
+      socketRef.current.emit("join_chat", { chatId: chat.id });
+      console.log(`🔗 Uniéndose al chat ${chat.id}`);
     }
   };
 
@@ -205,7 +235,7 @@ export default function MensajeriaPage() {
               return (
                 <li
                   key={chat.id}
-                  onClick={() => setSelectedChat(chat)}
+                  onClick={() => handleSelectChat(chat)}
                   className={`p-2 mb-1 rounded-lg cursor-pointer ${
                     selectedChat?.id === chat.id
                       ? "bg-blue-100 font-semibold"
