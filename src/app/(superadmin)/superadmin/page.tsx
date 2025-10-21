@@ -3,7 +3,7 @@ import { CreditCard, DollarSign, FileText, User2, Users } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 
-interface Empresa {
+export interface Empresa {
   id?: string;
   trade_name: string;
   legal_name: string;
@@ -15,7 +15,7 @@ interface Empresa {
   update_at: string;
 }
 
-interface Usuario {
+export interface Usuario {
   id: string;
   role_id: string;
   employee_id: string;
@@ -28,20 +28,20 @@ interface Usuario {
   updated_at: string;
 }
 
-interface Distribucion {
+export interface Distribucion {
   nombre: string;
   cantidad: number;
   porcentaje: string;
   totalIngresos: string;
 }
 
-interface Plan {
+export interface Plan {
   id: string;
   name: string;
   price: string;
 }
 
-interface Suscripcion {
+export interface Suscripcion {
   company_id: string;
   plan_id: string;
   start_date: string;
@@ -49,29 +49,12 @@ interface Suscripcion {
   plan?: Plan;
   id: string;
 }
-
-const getInitials = (name: string): string => {
-  if (!name) return "";
-
-  const parts = name.split(" ").filter((p) => p.length > 0);
-
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return name.substring(0, 2).toUpperCase();
-};
-
 export default function DashboardSuperAdmin() {
   const { isLoaded, getToken } = useAuth();
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [users, setUsers] = useState<Usuario[]>([]);
   const [empleados, setEmpleados] = useState<Usuario[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [errorUsers, setErrorUsers] = useState<string | null>(null);
-  const [loadingUsers, setLoadingUsers] = useState(true);
-  const [errorEmpleados, setErrorEmpleados] = useState<string | null>(null);
-  const [loadingEmpleados, setLoadingEmpleados] = useState(true);
 
   const [suscripciones, setSuscripciones] = useState<Suscripcion[]>([]);
   const [totalIngresos, setTotalIngresos] = useState(0);
@@ -92,52 +75,8 @@ export default function DashboardSuperAdmin() {
         const configError =
           "Error: La variable NEXT_PUBLIC_BACKEND_API_URL no está definida.";
         setError(configError);
-        setErrorUsers(configError);
-        setLoading(false);
-        setLoadingUsers(false);
         setLoadingSubscriptions(false);
         return;
-      }
-
-      try {
-        const res = await fetch(`${API_BASE_URL}/empresa`, {
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
-        if (!res.ok)
-          throw new Error(`Error HTTP: ${res.status} (Endpoint: /empresa)`);
-        setEmpresas(await res.json());
-      } catch (err) {
-        console.error("Error al cargar las empresas:", err);
-      } finally {
-        setLoading(false);
-      }
-
-      try {
-        const resEmpleado = await fetch(`${API_BASE_URL}/empleado`, {
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
-        if (!resEmpleado.ok)
-          throw new Error(
-            `Error HTTP: ${resEmpleado.status} (Endpoint: /empleado)`
-          );
-        setEmpleados(await resEmpleado.json());
-      } catch (err) {
-        console.error("Error al cargar los empleados:", err);
-      } finally {
-        setLoadingEmpleados(false);
-      }
-
-      try {
-        const resUser = await fetch(`${API_BASE_URL}/user`, {
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
-        if (!resUser.ok)
-          throw new Error(`Error HTTP: ${resUser.status} (Endpoint: /user)`);
-        setUsers(await resUser.json());
-      } catch (err) {
-        console.error("Error al cargar los usuarios:", err);
-      } finally {
-        setLoadingUsers(false);
       }
 
       try {
@@ -253,58 +192,6 @@ export default function DashboardSuperAdmin() {
     },
   ];
 
-  const renderUsersTableStatus = () => {
-    if (loadingUsers)
-      return (
-        <p className="text-center py-4 text-blue-600">Cargando usuarios...</p>
-      );
-    if (errorUsers)
-      return <p className="text-center py-4 text-red-600">⚠️ {errorUsers}</p>;
-    if (users.length === 0)
-      return (
-        <p className="text-center py-4 text-gray-500">
-          No hay usuarios registrados.
-        </p>
-      );
-  };
-
-  const renderEmpleadosTableStatus = () => {
-    if (loadingEmpleados)
-      return (
-        <p className="text-center py-4 text-blue-600">Cargando empleados...</p>
-      );
-    if (errorEmpleados)
-      return (
-        <p className="text-center py-4 text-red-600">⚠️ {errorEmpleados}</p>
-      );
-    if (empleados.length === 0)
-      return (
-        <p className="text-center py-4 text-gray-500">
-          No hay empleados registrados.
-        </p>
-      );
-  };
-
-  const renderEmpresasTable = () => {
-    if (loading) {
-      return (
-        <p className="text-center py-4 text-blue-600">Cargando empresas...</p>
-      );
-    }
-
-    if (error) {
-      return <p className="text-center py-4 text-red-600">⚠️ {error}</p>;
-    }
-
-    if (empresas.length === 0) {
-      return (
-        <p className="text-center py-4 text-gray-500">
-          No hay empresas registradas.
-        </p>
-      );
-    }
-  };
-
   const renderDistribucionStatus = () => {
     if (loadingSubscriptions)
       return (
@@ -360,178 +247,6 @@ export default function DashboardSuperAdmin() {
             </div>
           );
         })}
-      </div>
-
-      {/*----------------------- Empresas---------------------- */}
-      <div className="bg-white p-4 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full overflow-x-auto">
-        <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-4">
-          Empresas Registradas
-        </h2>
-        <p className="text-xs sm:text-sm text-gray-500 mb-4">
-          Gestión de todas las empresas registradas en el sistema
-        </p>
-
-        {renderEmpresasTable()}
-
-        {empresas.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 text-xs sm:text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
-                    Nombre Comercial
-                  </th>
-                  <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
-                    Teléfono
-                  </th>
-                  <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
-                    Registro
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {empresas.map((empresa) => (
-                  <tr
-                    key={empresa.id || empresa.email}
-                    className="hover:bg-gray-50"
-                  >
-                    <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex items-center justify-center h-8 w-8 sm:h-10 sm:w-10 min-w-[32px] sm:min-w-[40px] bg-blue-50 border border-blue-200 rounded-lg mr-3 sm:mr-4">
-                          <span className="text-xs sm:text-sm font-semibold text-blue-600">
-                            {getInitials(empresa.trade_name)}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="text-xs sm:text-sm font-semibold text-gray-900">
-                            {empresa.trade_name}
-                          </p>
-                          <p className="text-xs sm:text-sm text-gray-500">
-                            {empresa.email}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
-                      {empresa.phone_number}
-                    </td>
-                    <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
-                      {empresa.created_at
-                        ? new Date(empresa.created_at).toLocaleDateString()
-                        : "N/A"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/*----------------------- Usuarios y Empleados------------------ */}
-      <div className="bg-white p-4 sm:p-8 rounded-xl shadow-md border border-gray-100 mt-8 w-full">
-        <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-4">
-          Gestión de Usuarios y Empleados
-        </h2>
-        <p className="text-xs sm:text-sm text-gray-500 mb-6">
-          Usuarios y empleados registrados en el sistema.
-        </p>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div>
-            <h3 className="text-lg sm:text-xl mb-3 text-[#083E96] text-center">
-              Usuarios Registrados ({users.length})
-            </h3>
-
-            {renderUsersTableStatus && renderUsersTableStatus()}
-
-            {users.length > 0 ? (
-              <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
-                <table className="min-w-full divide-y divide-gray-200 text-xs sm:text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
-                        Nombre
-                      </th>
-                      <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
-                        Email
-                      </th>
-                      <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
-                        Registro
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {users.map((user) => (
-                      <tr key={user.id} className="hover:bg-indigo-50/50">
-                        <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
-                          {user.first_name} {user.last_name}
-                        </td>
-                        <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
-                          {user.email}
-                        </td>
-                        <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
-                          {new Date(user.created_at).toLocaleDateString()}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-400 p-4 border rounded-lg">
-                No hay usuarios registrados.
-              </p>
-            )}
-          </div>
-
-          <div>
-            <h3 className="text-lg sm:text-xl mb-3 text-[#083E96] text-center">
-              Empleados Registrados ({empleados.length})
-            </h3>
-
-            {renderEmpleadosTableStatus && renderEmpleadosTableStatus()}
-
-            {empleados.length > 0 ? (
-              <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
-                <table className="min-w-full divide-y divide-gray-200 text-xs sm:text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
-                        Nombre
-                      </th>
-                      <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
-                        Email
-                      </th>
-                      <th className="px-4 sm:px-6 py-2 sm:py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
-                        Registro
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {empleados.map((empleado) => (
-                      <tr key={empleado.id} className="hover:bg-emerald-50/50">
-                        <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
-                          {empleado.first_name} {empleado.last_name}
-                        </td>
-                        <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
-                          {empleado.email}
-                        </td>
-                        <td className="px-4 sm:px-6 py-2 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
-                          {new Date(empleado.created_at).toLocaleDateString()}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="text-sm text-gray-400 p-4 border rounded-lg">
-                No hay empleados registrados.
-              </p>
-            )}
-          </div>
-        </div>
       </div>
 
       {/*---------------- Distribución de Planes -----------------*/}
