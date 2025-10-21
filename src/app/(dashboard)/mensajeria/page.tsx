@@ -1,227 +1,307 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { io, Socket } from "socket.io-client";
+import axios, { AxiosError } from "axios";
+import io, { Socket } from "socket.io-client";
 import Swal from "sweetalert2";
-import { Send, Edit2, Trash2 } from "lucide-react";
+import { Send } from "lucide-react";
 
+// 🌐 Variables de entorno
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_API_URL;
+const SOCKET_BASE = process.env.NEXT_PUBLIC_SOCKET_URL;
+
+// 👥 Usuario básico
+interface UserSummary {
+  id: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  imgUrl?: string;
+}
+
+// 💬 Mensaje dentro de un chat
 interface Message {
   id: string;
   chatId: string;
   senderId: string;
   content: string;
   type: "text" | "image" | "file" | "system";
+  reply_to_id?: string | null;
+  file_url?: string | null;
+  file_name?: string | null;
+  file_type?: string | null;
+  file_size?: number | null;
   created_at: string;
   updated_at: string;
-  is_read: boolean;
+  is_read?: boolean;
+}
+
+// 💭 Chat entre usuarios
+interface Chat {
+  id: string;
+  participants: UserSummary[];
+  messages: Message[];
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export default function MensajeriaPage() {
+  const { user, isLoaded } = useUser();
   const { getToken } = useAuth();
-  const { user } = useUser();
 
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [connected, setConnected] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [newMessage, setNewMessage] = useState("");
-  const [chatId, setChatId] = useState<string>("");
+  const [newChatUserId, setNewChatUserId] = useState("");
 
-  // 📦 Conexión al socket
+  const socketRef = useRef<Socket | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // 🧩 Conexión al WebSocket
   useEffect(() => {
+    if (!isLoaded || !SOCKET_BASE) return;
+
     const connectSocket = async () => {
-      try {
-        const token = await getToken();
-        if (!token) {
-          Swal.fire("Error", "No se pudo obtener el token de Clerk", "error");
-          return;
-        }
+      const token = await getToken();
+      if (!token) return console.error("❌ No se pudo obtener token de Clerk");
 
-        const SOCKET_URL =
-          process.env.NEXT_PUBLIC_SOCKET_URL || "ws://localhost:4000";
+      const socket = io(`${SOCKET_BASE}/chat`, {
+        auth: { token }, // ✅ el back lo espera en handshake.auth.token
+        transports: ["websocket"],
+      });
 
-        const newSocket = io(SOCKET_URL + "/chat", {
-          auth: { token },
-          transports: ["websocket"],
-        });
+      socket.on("connect", () => console.log("🟢 Conectado al WebSocket /chat"));
+      socket.on("disconnect", () => console.warn("🔴 Desconectado del WebSocket"));
+      socket.on("connect_error", (err) =>
+        console.error("⚠️ Error de conexión:", err.message)
+      );
 
-        newSocket.on("connect", () => {
-          console.log("✅ Conectado al WebSocket");
-          setConnected(true);
-        });
+      // 📩 Evento real del backend: mensaje recibido
+      socket.on("new_message", (msg: Message) => {
+        console.log("📩 Nuevo mensaje recibido:", msg);
+        setChats((prev) =>
+          prev.map((chat) =>
+            chat.id === msg.chatId
+              ? { ...chat, messages: [...chat.messages, msg] }
+              : chat
+          )
+        );
+        scrollToBottom();
+      });
 
-        // 🔹 Mensaje nuevo
-        newSocket.on("new_message", (msg: Message) => {
-          setMessages((prev) => [...prev, msg]);
-        });
-
-        // 🔹 Mensaje editado
-        newSocket.on("message_edited", (msg: Message) => {
-          setMessages((prev) =>
-            prev.map((m) => (m.id === msg.id ? { ...m, ...msg } : m))
-          );
-        });
-
-        // 🔹 Mensaje eliminado
-        newSocket.on("message_deleted", (data: { messageId: string }) => {
-          setMessages((prev) => prev.filter((m) => m.id !== data.messageId));
-        });
-
-        newSocket.on("disconnect", () => {
-          setConnected(false);
-          console.warn("🔴 Desconectado del WebSocket");
-        });
-
-        setSocket(newSocket);
-        return () => newSocket.disconnect();
-      } catch (err) {
-        console.error("Error al conectar socket:", err);
-      }
+      socketRef.current = socket;
     };
 
     connectSocket();
-  }, [getToken]);
 
-  // 📩 Enviar mensaje
-  const handleSend = () => {
-    if (!socket || !newMessage.trim() || !chatId) {
-      Swal.fire("Atención", "Seleccioná un chat y escribí un mensaje", "info");
-      return;
-    }
+    return () => {
+      socketRef.current?.disconnect();
+    };
+  }, [isLoaded]);
+
+  // 📦 Obtener los chats del backend
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    const fetchChats = async () => {
+      try {
+        const token = await getToken();
+        if (!token) throw new Error("No se pudo obtener token de Clerk");
+        if (!BACKEND) throw new Error("BACKEND_URL no configurada");
+
+        const res = await axios.get(`${BACKEND}/chat?page=1&limit=20`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        console.log("✅ Chats obtenidos:", res.data);
+        setChats(res.data.chats || []);
+      } catch (err) {
+        const error = err as AxiosError;
+        console.error("🚨 Error al cargar chats:", error.message);
+        Swal.fire({
+          icon: "error",
+          title: "Error al cargar chats",
+          text:
+            (error.response?.data as any)?.message ||
+            "No se pudieron cargar los chats",
+        });
+      }
+    };
+
+    fetchChats();
+  }, [isLoaded]);
+
+  // ✉️ Enviar mensaje
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !selectedChat || !socketRef.current) return;
 
     const payload = {
-      chatId,
+      chatId: selectedChat.id,
       message: {
         content: newMessage.trim(),
         type: "text",
       },
     };
 
-    socket.emit("send_message", payload);
+    console.log("📤 Enviando mensaje:", payload);
+    socketRef.current.emit("send_message", payload);
     setNewMessage("");
   };
 
-  // ✏️ Editar mensaje
-  const handleEdit = async (message: Message) => {
-    const { value: newContent } = await Swal.fire({
-      title: "Editar mensaje",
-      input: "text",
-      inputValue: message.content,
-      showCancelButton: true,
-      confirmButtonText: "Guardar",
-    });
+  // ➕ Crear nuevo chat
+  const handleCreateChat = async () => {
+    if (!newChatUserId.trim()) return;
 
-    if (newContent && socket) {
-      socket.emit("edit_message", {
-        messageId: message.id,
-        content: newContent,
-      });
+    try {
+      const token = await getToken();
+      const res = await axios.post(
+        `${BACKEND}/chat`,
+        { userId: newChatUserId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setChats((prev) => [...prev, res.data]);
+      setNewChatUserId("");
+      Swal.fire("Chat creado", "Ya podés empezar a chatear", "success");
+    } catch (err) {
+      console.error("Error al crear chat:", err);
+      Swal.fire("Error", "No se pudo crear el chat", "error");
     }
   };
 
-  // 🗑️ Eliminar mensaje
-  const handleDelete = (id: string) => {
-    if (socket) socket.emit("delete_message", { messageId: id });
-  };
+  useEffect(scrollToBottom, [selectedChat]);
 
-  // 🔹 Entrar al chat (una sola vez)
-  const joinChat = (chat: string) => {
-    if (!socket) return;
-    setChatId(chat);
-    socket.emit("join_chat", { chatId: chat });
-    setMessages([]);
-  };
-
+  // 💬 Interfaz principal
   return (
-    <div className="flex flex-col h-[90vh] items-center justify-start p-6 bg-gray-50">
-      <h1 className="text-2xl font-bold mb-2">💬 Mensajería</h1>
-      <p
-        className={`text-sm mb-4 ${
-          connected ? "text-green-600" : "text-red-500"
-        }`}
-      >
-        {connected ? "Conectado ✅" : "Desconectado ❌"}
-      </p>
+    <div className="flex h-[85vh] rounded-xl shadow-lg bg-white overflow-hidden border border-gray-200">
+      {/* Sidebar de chats */}
+      <aside className="w-1/3 border-r bg-gray-50 p-4 flex flex-col">
+        <h2 className="text-lg font-bold mb-3">💬 Chats</h2>
 
-      {/* 🔹 Selector de chat (simulado) */}
-      <div className="flex gap-2 mb-4">
-        <button
-          onClick={() => joinChat("chat-uuid-1")}
-          className={`px-4 py-2 rounded-lg border ${
-            chatId === "chat-uuid-1" ? "bg-blue-500 text-white" : ""
-          }`}
-        >
-          Chat 1
-        </button>
-        <button
-          onClick={() => joinChat("chat-uuid-2")}
-          className={`px-4 py-2 rounded-lg border ${
-            chatId === "chat-uuid-2" ? "bg-blue-500 text-white" : ""
-          }`}
-        >
-          Chat 2
-        </button>
-      </div>
+        <div className="flex gap-2 mb-3">
+          <input
+            type="text"
+            placeholder="Ingresá el ID del usuario"
+            value={newChatUserId}
+            onChange={(e) => setNewChatUserId(e.target.value)}
+            className="flex-1 border rounded-lg px-2 py-1 text-sm"
+          />
+          <button
+            onClick={handleCreateChat}
+            className="bg-blue-600 text-white px-3 py-1 rounded-lg hover:bg-blue-700 text-sm"
+          >
+            +
+          </button>
+        </div>
 
-      {/* 🔹 Mensajes */}
-      <div className="flex flex-col w-full max-w-2xl border rounded-lg bg-white shadow h-[60vh] overflow-y-auto p-3">
-        {messages.length > 0 ? (
-          messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex justify-between items-center mb-2 ${
-                msg.senderId === user?.id ? "text-right" : "text-left"
-              }`}
-            >
-              <div
-                className={`${
-                  msg.senderId === user?.id
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200"
-                } px-3 py-2 rounded-lg flex-1`}
-              >
-                <p>{msg.content}</p>
-                <p className="text-[10px] opacity-70">
-                  {new Date(msg.created_at).toLocaleTimeString()}
-                </p>
-              </div>
+        <ul className="flex-1 overflow-y-auto">
+          {chats.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center mt-5">
+              No hay chats aún.
+            </p>
+          ) : (
+            chats.map((chat) => {
+              const otherUser = chat.participants.find(
+                (p) => p.id !== user?.id
+              );
+              return (
+                <li
+                  key={chat.id}
+                  onClick={() => setSelectedChat(chat)}
+                  className={`p-2 mb-1 rounded-lg cursor-pointer ${
+                    selectedChat?.id === chat.id
+                      ? "bg-blue-100 font-semibold"
+                      : "hover:bg-gray-100"
+                  }`}
+                >
+                  {otherUser
+                    ? `${otherUser.first_name || "Usuario"} ${
+                        otherUser.last_name || ""
+                      }`
+                    : "Chat desconocido"}
+                </li>
+              );
+            })
+          )}
+        </ul>
+      </aside>
 
-              {msg.senderId === user?.id && (
-                <div className="flex gap-2 ml-2">
-                  <button onClick={() => handleEdit(msg)}>
-                    <Edit2 size={16} className="text-gray-500" />
-                  </button>
-                  <button onClick={() => handleDelete(msg.id)}>
-                    <Trash2 size={16} className="text-red-500" />
-                  </button>
-                </div>
-              )}
+      {/* Ventana del chat */}
+      <main className="flex-1 flex flex-col">
+        {selectedChat ? (
+          <>
+            <div className="border-b p-3 font-semibold bg-gray-50">
+              Chat con{" "}
+              {selectedChat.participants
+                .filter((p) => p.id !== user?.id)
+                .map((p) => p.first_name || p.id)
+                .join(", ") || "Desconocido"}
             </div>
-          ))
-        ) : (
-          <p className="text-gray-500 text-center mt-10">
-            No hay mensajes aún.
-          </p>
-        )}
-      </div>
 
-      {/* 🔹 Input */}
-      <div className="flex w-full max-w-2xl mt-4">
-        <input
-          type="text"
-          value={newMessage}
-          placeholder="Escribe tu mensaje..."
-          onChange={(e) => setNewMessage(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSend()}
-          className="flex-1 border rounded-l-lg p-2 outline-none"
-        />
-        <button
-          onClick={handleSend}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 rounded-r-lg flex items-center justify-center"
-        >
-          <Send size={18} />
-        </button>
-      </div>
+            <div className="flex-1 p-4 overflow-y-auto">
+              {selectedChat.messages.length === 0 ? (
+                <p className="text-center text-gray-400 mt-10 text-sm">
+                  No hay mensajes todavía. ¡Escribí el primero!
+                </p>
+              ) : (
+                selectedChat.messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`mb-2 flex ${
+                      msg.senderId === user?.id
+                        ? "justify-end"
+                        : "justify-start"
+                    }`}
+                  >
+                    <div
+                      className={`px-3 py-2 rounded-xl text-sm max-w-[75%] ${
+                        msg.senderId === user?.id
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-200 text-gray-800"
+                      }`}
+                    >
+                      <p>{msg.content}</p>
+                      <span className="block text-[10px] mt-1 opacity-70 text-right">
+                        {new Date(msg.created_at).toLocaleTimeString("es-AR", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className="border-t p-3 flex gap-2">
+              <input
+                type="text"
+                placeholder="Escribí un mensaje..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                className="flex-1 border rounded-lg px-3 py-2 text-sm"
+              />
+              <button
+                onClick={handleSendMessage}
+                className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700"
+              >
+                <Send size={18} />
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-gray-500">
+            Seleccioná un chat o creá uno nuevo
+          </div>
+        )}
+      </main>
     </div>
   );
 }
