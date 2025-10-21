@@ -20,8 +20,6 @@ export default function UsuariosSuperAdmin() {
 
     const fetchData = async () => {
       const authToken = await getToken();
-      console.log("🔑 TOKEN ENVIADO:", authToken);
-
       try {
         const resEmpleado = await fetch(`${API_BASE_URL}/empleado`, {
           headers: { Authorization: `Bearer ${authToken}` },
@@ -30,7 +28,8 @@ export default function UsuariosSuperAdmin() {
           throw new Error(
             `Error HTTP: ${resEmpleado.status} (Endpoint: /empleado)`
           );
-        setEmpleados(await resEmpleado.json());
+          const data = await resEmpleado.json();
+          setEmpleados(data.data);
       } catch (err) {
         console.error("Error al cargar los empleados:", err);
       } finally {
@@ -49,8 +48,8 @@ export default function UsuariosSuperAdmin() {
       } finally {
         setLoadingUsers(false);
       }
-      fetchData();
     };
+    fetchData();
   }, [isLoaded, getToken]);
 
   const renderUsersTableStatus = () => {
