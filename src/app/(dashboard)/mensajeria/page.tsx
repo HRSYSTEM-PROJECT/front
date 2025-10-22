@@ -169,6 +169,7 @@ export default function MensajeriaPage() {
   }, [isLoaded]);
 
   //  Enviar mensaje
+  //  Enviar mensaje
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedChat || !socketRef.current) return;
 
