@@ -146,19 +146,41 @@ export default function MensajeriaPage() {
         const token = await getToken();
         if (!token) throw new Error("No se pudo obtener token de Clerk");
         if (!BACKEND) throw new Error("BACKEND_URL no configurada");
-        const res = await axios.get(
-          `${BACKEND}/chat/users/search?q=&page=1&limit=50`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
 
-        console.log("✅ Usuarios obtenidos:", res.data);
+        const res = await axios.get(`${BACKEND}/chat?page=1&limit=20`, {
+  headers: { Authorization: `Bearer ${token}` },
+});
 
-        const usuarios =
-          res.data.users || res.data.data || res.data.results || [];
+console.log("✅ Chats obtenidos:", res.data);
 
-        setUsers(usuarios);
+let chats: Chat[] = [];
+
+if (Array.isArray(res.data)) {
+  chats = res.data;
+} else if (Array.isArray(res.data.chats)) {
+  chats = res.data.chats;
+} else if (Array.isArray(res.data.results)) {
+  chats = res.data.results;
+} else if (Array.isArray(res.data.data)) {
+  chats = res.data.data;
+} else if (Array.isArray(res.data.data?.chats)) {
+  chats = res.data.data.chats;
+}
+
+setChats(chats);
+        // const res = await axios.get(
+        //   `${BACKEND}/chat/users/search?q=&page=1&limit=50`,
+        //   {
+        //     headers: { Authorization: `Bearer ${token}` },
+        //   }
+        // );
+
+        // console.log("✅ Usuarios obtenidos:", res.data);
+
+        // const usuarios =
+        //   res.data.users || res.data.data || res.data.results || [];
+
+        // setUsers(usuarios);
       } catch (err) {
         console.error("🚨 Error al cargar usuarios:", err);
       }
