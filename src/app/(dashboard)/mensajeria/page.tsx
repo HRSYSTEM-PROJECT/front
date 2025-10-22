@@ -147,40 +147,19 @@ export default function MensajeriaPage() {
         if (!token) throw new Error("No se pudo obtener token de Clerk");
         if (!BACKEND) throw new Error("BACKEND_URL no configurada");
 
-        const res = await axios.get(`${BACKEND}/chat?page=1&limit=20`, {
-  headers: { Authorization: `Bearer ${token}` },
-});
+        const res = await axios.get(
+          `${BACKEND}/chat/users/search?q=&page=1&limit=50`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
-console.log("✅ Chats obtenidos:", res.data);
+        console.log("✅ Usuarios obtenidos:", res.data);
 
-let chats: Chat[] = [];
+        const usuarios =
+          res.data.users || res.data.data || res.data.results || [];
 
-if (Array.isArray(res.data)) {
-  chats = res.data;
-} else if (Array.isArray(res.data.chats)) {
-  chats = res.data.chats;
-} else if (Array.isArray(res.data.results)) {
-  chats = res.data.results;
-} else if (Array.isArray(res.data.data)) {
-  chats = res.data.data;
-} else if (Array.isArray(res.data.data?.chats)) {
-  chats = res.data.data.chats;
-}
-
-setChats(chats);
-        // const res = await axios.get(
-        //   `${BACKEND}/chat/users/search?q=&page=1&limit=50`,
-        //   {
-        //     headers: { Authorization: `Bearer ${token}` },
-        //   }
-        // );
-
-        // console.log("✅ Usuarios obtenidos:", res.data);
-
-        // const usuarios =
-        //   res.data.users || res.data.data || res.data.results || [];
-
-        // setUsers(usuarios);
+        setUsers(usuarios);
       } catch (err) {
         console.error("🚨 Error al cargar usuarios:", err);
       }
@@ -189,6 +168,7 @@ setChats(chats);
     fetchUsers();
   }, [isLoaded]);
 
+  //  Enviar mensaje
   //  Enviar mensaje
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedChat || !socketRef.current) return;
@@ -328,7 +308,7 @@ setChats(chats);
             </div>
 
             <div className="flex-1 p-4 overflow-y-auto">
-           {!selectedChat?.messages?.length ? (
+              {selectedChat.messages.length === 0 ? (
                 <p className="text-center text-gray-400 mt-10 text-sm">
                   No hay mensajes todavía. ¡Escribí el primero!
                 </p>
