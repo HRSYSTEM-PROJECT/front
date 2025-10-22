@@ -26,14 +26,30 @@ export const getNotifications = async (token: string | null) => {
 };
 
 //  Marcar una notificación como leída
-export const markAsRead = async (token: string, notificationId: string) => {
+export const markAsRead = async (
+  token: string,
+  notificationId: string,
+  userId: string
+) => {
   try {
-    const res = await fetch(`${API_URL}/notifications/mark-read/${notificationId}`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
+    console.log("📩 Enviando a backend:", {
+      url: `${API_URL}/notifications/mark-read/${notificationId}`,
+      body: { userId },
     });
+    const res = await fetch(
+      `${API_URL}/notifications/mark-read/${notificationId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ userId }),
+      }
+    );
 
-    if (!res.ok) throw new Error(`Error al marcar notificación como leída: ${res.status}`);
+    if (!res.ok)
+      throw new Error(`Error al marcar notificación como leída: ${res.status}`);
     return res.json();
   } catch (error) {
     console.error("❌ Error en markAsRead:", error);
@@ -41,7 +57,6 @@ export const markAsRead = async (token: string, notificationId: string) => {
   }
 };
 
-//  Marcar todas como leídas
 export const markAllAsRead = async (token: string) => {
   try {
     const res = await fetch(`${API_URL}/notifications/mark-all-read`, {
@@ -49,7 +64,8 @@ export const markAllAsRead = async (token: string) => {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    if (!res.ok) throw new Error(`Error al marcar todas como leídas: ${res.status}`);
+    if (!res.ok)
+      throw new Error(`Error al marcar todas como leídas: ${res.status}`);
     return res.text();
   } catch (error) {
     console.error("❌ Error en markAllAsRead:", error);
@@ -58,14 +74,18 @@ export const markAllAsRead = async (token: string) => {
 };
 
 //  Eliminar una notificación
-export const deleteNotification = async (token: string, notificationId: string) => {
+export const deleteNotification = async (
+  token: string,
+  notificationId: string
+) => {
   try {
     const res = await fetch(`${API_URL}/notifications/${notificationId}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    if (!res.ok) throw new Error(`Error al eliminar notificación: ${res.status}`);
+    if (!res.ok)
+      throw new Error(`Error al eliminar notificación: ${res.status}`);
     return res.json();
   } catch (error) {
     console.error("❌ Error en deleteNotification:", error);
@@ -79,6 +99,8 @@ export const scheduleReminder = async (
   title: string,
   message: string,
   scheduledDate: string,
+  recipients: { recipientEmails: string[]; recipientEmployeeIds: string[] },
+  recipientType: "all" | "employees" | "specific" = "specific",
   type = "custom_notification"
 ) => {
   try {
@@ -88,10 +110,23 @@ export const scheduleReminder = async (
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ title, message, scheduledDate, type }),
+      body: JSON.stringify({
+        title,
+        message,
+        scheduledDate,
+        recipientType,
+        recipientEmails: recipients.recipientEmails,
+        recipientEmployeeIds: recipients.recipientEmployeeIds,
+        type,
+      }),
     });
 
-    if (!res.ok) throw new Error("Error al agendar recordatorio");
+    const resText = await res.text();
+    if (!res.ok) {
+      console.error("Status:", res.status, "Response:", resText);
+      throw new Error("Error al agendar recordatorio");
+    }
+    return JSON.parse(resText);
     return res.json();
   } catch (error) {
     console.error("❌ Error en scheduleReminder:", error);
@@ -117,11 +152,18 @@ export const getCronNotifications = async (token: string) => {
 };
 
 //  Obtener recordatorios programados
-export const getScheduledReminders = async (token: string, page = 1, limit = 10) => {
+export const getScheduledReminders = async (
+  token: string,
+  page = 1,
+  limit = 10
+) => {
   try {
-    const res = await fetch(`${API_URL}/notifications/scheduled?page=${page}&limit=${limit}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetch(
+      `${API_URL}/notifications/scheduled?page=${page}&limit=${limit}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
 
     if (!res.ok) throw new Error("Error al obtener recordatorios programados");
 
@@ -137,7 +179,12 @@ export const getScheduledReminders = async (token: string, page = 1, limit = 10)
 export const updateScheduledReminder = async (
   token: string,
   id: string,
-  updatedData: { title?: string; message?: string; scheduledDate?: string; recipientType?: string }
+  updatedData: {
+    title?: string;
+    message?: string;
+    scheduledDate?: string;
+    recipientType?: string;
+  }
 ) => {
   try {
     const res = await fetch(`${API_URL}/notifications/scheduled/${id}`, {
