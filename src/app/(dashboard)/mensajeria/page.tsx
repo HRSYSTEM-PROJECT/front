@@ -117,7 +117,13 @@ export default function MensajeriaPage() {
         });
 
         console.log("✅ Chats obtenidos:", res.data);
-        setChats(res.data.chats || []);
+       const usuarios = res.data.users || res.data.data || res.data.results || [];
+
+     setUsers(usuarios);
+
+
+
+
       } catch (err) {
         const error = err as AxiosError<{ message?: string }>;
         console.error("🚨 Error al cargar chats:", error.message);
