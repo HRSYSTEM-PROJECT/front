@@ -117,13 +117,10 @@ export default function MensajeriaPage() {
         });
 
         console.log("✅ Chats obtenidos:", res.data);
-       const usuarios = res.data.users || res.data.data || res.data.results || [];
+        const usuarios =
+          res.data.users || res.data.data || res.data.results || [];
 
-     setUsers(usuarios);
-
-
-
-
+        setUsers(usuarios);
       } catch (err) {
         const error = err as AxiosError<{ message?: string }>;
         console.error("🚨 Error al cargar chats:", error.message);
@@ -149,13 +146,19 @@ export default function MensajeriaPage() {
         const token = await getToken();
         if (!token) throw new Error("No se pudo obtener token de Clerk");
         if (!BACKEND) throw new Error("BACKEND_URL no configurada");
-
-        const res = await axios.get(`${BACKEND}/chat/users/search?q=&page=1&limit=50`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await axios.get(
+          `${BACKEND}/chat/users/search?q=&page=1&limit=50`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         console.log("✅ Usuarios obtenidos:", res.data);
-        setUsers(res.data.users || []);
+
+        const usuarios =
+          res.data.users || res.data.data || res.data.results || [];
+
+        setUsers(usuarios);
       } catch (err) {
         console.error("🚨 Error al cargar usuarios:", err);
       }
@@ -267,9 +270,7 @@ export default function MensajeriaPage() {
           ) : (
             chats.map((chat) => {
               const participants = chat.participants || [];
-              const otherUser = participants.find(
-                (p) => p.id !== user?.id
-              );
+              const otherUser = participants.find((p) => p.id !== user?.id);
               return (
                 <li
                   key={chat.id}
