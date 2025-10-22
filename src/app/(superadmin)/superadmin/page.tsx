@@ -80,9 +80,9 @@ export default function DashboardSuperAdmin() {
 
         if (!empresasRes.ok)
           throw new Error(`Error HTTP ${empresasRes.status} en /empresa`);
-        // const empleadosRes = await fetch(`${API_BASE_URL}/empleado`, {
-        //   headers: { Authorization: `Bearer ${authToken}` },
-        // });
+        const empleadosRes = await fetch(`${API_BASE_URL}/empleado`, {
+          headers: { Authorization: `Bearer ${authToken}` },
+        });
         const empresasData = await empresasRes.json();
         console.log(empresasData);
 
@@ -92,15 +92,15 @@ export default function DashboardSuperAdmin() {
         const usersData = await usersRes.json();
         setUsers(usersData || []);
 
-        // if (!empleadosRes.ok)
-        //   throw new Error(`Error HTTP ${empleadosRes.status} en /empleado`);
+        if (!empleadosRes.ok)
+          throw new Error(`Error HTTP ${empleadosRes.status} en /empleado`);
 
         const subsRes = await fetch(`${API_BASE_URL}/suscripciones`, {
           headers: { Authorization: `Bearer ${authToken}` },
         });
 
-        // const empleadosData = await empleadosRes.json();
-        // console.log(empleadosData);
+        const empleadosData = await empleadosRes.json();
+        console.log(empleadosData);
 
         if (!subsRes.ok)
           throw new Error(`Error HTTP ${subsRes.status} en /suscripciones`);
@@ -116,7 +116,7 @@ export default function DashboardSuperAdmin() {
         console.log(planes);
 
         setEmpresas(empresasData || []);
-        // setEmpleados(empleadosData || []);
+        setEmpleados(empleadosData || []);
         setSuscripciones(suscripcionesData || []);
         const planDetails = planes.reduce(
           (acc: Record<string, Plan>, p: Plan) => ({ ...acc, [p.id]: p }),
