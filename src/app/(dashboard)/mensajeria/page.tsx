@@ -117,10 +117,11 @@ export default function MensajeriaPage() {
         });
 
         console.log("✅ Chats obtenidos:", res.data);
-        const usuarios =
-          res.data.users || res.data.data || res.data.results || [];
+        // const usuarios =
+        //   res.data.users || res.data.data || res.data.results || [];
+        setChats(res.data.chats || [])
 
-        setUsers(usuarios);
+        // setUsers(usuarios);
       } catch (err) {
         const error = err as AxiosError<{ message?: string }>;
         console.error("🚨 Error al cargar chats:", error.message);
@@ -156,10 +157,12 @@ export default function MensajeriaPage() {
 
         console.log("✅ Usuarios obtenidos:", res.data);
 
-        const usuarios =
-          res.data.users || res.data.data || res.data.results || [];
+        setUsers(res.data.users || [])
 
-        setUsers(usuarios);
+        // const usuarios =
+        //   res.data.users || res.data.data || res.data.results || [];
+
+        // setUsers(usuarios);
       } catch (err) {
         console.error("🚨 Error al cargar usuarios:", err);
       }
