@@ -328,7 +328,7 @@ setChats(chats);
             </div>
 
             <div className="flex-1 p-4 overflow-y-auto">
-              {selectedChat.messages.length === 0 ? (
+           {!selectedChat?.messages?.length ? (
                 <p className="text-center text-gray-400 mt-10 text-sm">
                   No hay mensajes todavía. ¡Escribí el primero!
                 </p>
