@@ -24,14 +24,22 @@ export default function UsuariosSuperAdmin() {
         const resEmpleado = await fetch(`${API_BASE_URL}/empleado`, {
           headers: { Authorization: `Bearer ${authToken}` },
         });
+
         if (!resEmpleado.ok)
           throw new Error(
             `Error HTTP: ${resEmpleado.status} (Endpoint: /empleado)`
           );
-          const data = await resEmpleado.json();
-          setEmpleados(data.data);
+
+        const data = await resEmpleado.json();
+        console.log("Empleados:", data);
+        setEmpleados(Array.isArray(data) ? data : data.data || []);
       } catch (err) {
         console.error("Error al cargar los empleados:", err);
+        setErrorEmpleados(
+          err instanceof Error
+            ? err.message
+            : "Error desconocido al cargar empleados"
+        );
       } finally {
         setLoadingEmpleados(false);
       }
@@ -40,11 +48,20 @@ export default function UsuariosSuperAdmin() {
         const resUser = await fetch(`${API_BASE_URL}/user`, {
           headers: { Authorization: `Bearer ${authToken}` },
         });
+
         if (!resUser.ok)
           throw new Error(`Error HTTP: ${resUser.status} (Endpoint: /user)`);
-        setUsers(await resUser.json());
+
+        const userData = await resUser.json();
+        console.log("Usuarios:", userData);
+        setUsers(Array.isArray(userData) ? userData : userData.data || []);
       } catch (err) {
         console.error("Error al cargar los usuarios:", err);
+        setErrorUsers(
+          err instanceof Error
+            ? err.message
+            : "Error desconocido al cargar usuarios"
+        );
       } finally {
         setLoadingUsers(false);
       }
@@ -59,12 +76,13 @@ export default function UsuariosSuperAdmin() {
       );
     if (errorUsers)
       return <p className="text-center py-4 text-red-600">⚠️ {errorUsers}</p>;
-    if (users.length === 0)
+    if (users?.length === 0)
       return (
         <p className="text-center py-4 text-gray-500">
           No hay usuarios registrados.
         </p>
       );
+    return null;
   };
 
   const renderEmpleadosTableStatus = () => {
@@ -76,12 +94,13 @@ export default function UsuariosSuperAdmin() {
       return (
         <p className="text-center py-4 text-red-600">⚠️ {errorEmpleados}</p>
       );
-    if (empleados.length === 0)
+    if (empleados?.length === 0)
       return (
         <p className="text-center py-4 text-gray-500">
           No hay empleados registrados.
         </p>
       );
+    return null;
   };
 
   return (
@@ -96,12 +115,12 @@ export default function UsuariosSuperAdmin() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
           <h3 className="text-lg sm:text-xl mb-3 text-[#083E96] text-center">
-            Usuarios Registrados ({users.length})
+            Usuarios Registrados ({users?.length || 0})
           </h3>
 
-          {renderUsersTableStatus && renderUsersTableStatus()}
+          {renderUsersTableStatus()}
 
-          {users.length > 0 ? (
+          {users && users.length > 0 ? (
             <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
               <table className="min-w-full divide-y divide-gray-200 text-xs sm:text-sm">
                 <thead className="bg-gray-50">
@@ -134,21 +153,17 @@ export default function UsuariosSuperAdmin() {
                 </tbody>
               </table>
             </div>
-          ) : (
-            <p className="text-sm text-gray-400 p-4 border rounded-lg">
-              No hay usuarios registrados.
-            </p>
-          )}
+          ) : null}
         </div>
 
         <div>
           <h3 className="text-lg sm:text-xl mb-3 text-[#083E96] text-center">
-            Empleados Registrados ({empleados.length})
+            Empleados Registrados ({empleados?.length || 0})
           </h3>
 
-          {renderEmpleadosTableStatus && renderEmpleadosTableStatus()}
+          {renderEmpleadosTableStatus()}
 
-          {empleados.length > 0 ? (
+          {empleados && empleados.length > 0 ? (
             <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm">
               <table className="min-w-full divide-y divide-gray-200 text-xs sm:text-sm">
                 <thead className="bg-gray-50">
@@ -181,11 +196,7 @@ export default function UsuariosSuperAdmin() {
                 </tbody>
               </table>
             </div>
-          ) : (
-            <p className="text-sm text-gray-400 p-4 border rounded-lg">
-              No hay empleados registrados.
-            </p>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

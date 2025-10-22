@@ -121,23 +121,6 @@ export default function EmpresaForm({ empresa }: { empresa: Empresa }) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* <div className="flex flex-col gap-2">
-            <label
-              htmlFor="email"
-              className="text-sm font-medium text-gray-700"
-            >
-              Email *
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="[Email de la empresa]"
-              className="border border-gray-300 rounded-md px-3 py-2 w-full"
-            />
-          </div> */}
-
           <div className="flex flex-col gap-2">
             <label
               htmlFor="phone_number"
@@ -170,19 +153,6 @@ export default function EmpresaForm({ empresa }: { empresa: Empresa }) {
               className="border border-gray-300 text-gray-500 rounded-md px-3 py-2 w-full"
             />
           </div>
-
-          {/* <div className="flex flex-col gap-2">
-            <label htmlFor="logo" className="text-sm font-medium text-gray-700">
-              Logo (URL)
-            </label>
-            <input
-              id="logo"
-              value={formData.logo}
-              onChange={handleChange}
-              placeholder="[URL del logo]"
-              className="border border-gray-300 rounded-md px-3 py-2 w-full"
-            />
-          </div> */}
         </div>
 
         <button

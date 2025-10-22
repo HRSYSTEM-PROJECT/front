@@ -399,12 +399,14 @@ export default function EmpleadoDetailsPage({
               </div>
             )}
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold mt-4 sm:mt-8 text-black">
-            {empleado.first_name} {empleado.last_name}
-          </h1>
-          <p className="text-gray-600 mt-2 sm:mt-4 text-sm sm:text-base">
-            {departmentName}
-          </p>
+          <div className="flex flex-col">
+            <h1 className="text-2xl sm:text-3xl font-bold sm:mt-8 text-black">
+              {empleado.first_name} {empleado.last_name}
+            </h1>
+            <p className="text-gray-600 sm:mt-4 text-sm sm:text-base">
+              {departmentName}
+            </p>
+          </div>
         </div>
         <div>
           <button
@@ -466,13 +468,12 @@ export default function EmpleadoDetailsPage({
                 Acciones Rápidas
               </h2>
               <div className="flex justify-between mb-4">
-                {/* <button
+                <button
                   onClick={() => setIsEditing(true)}
                   className="bg-transparent hover:bg-green-700 text-black hover:text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-300 flex items-center gap-2"
                 >
                   <Edit className="h-4 w-4" /> Editar Empleado
-                </button> */}
-
+                </button>
                 <button
                   className="bg-red-700 hover:bg-red-800 text-white py-2 px-4 rounded-lg cursor-pointer border border-gray-100 flex items-center gap-2 "
                   onClick={() => handleDeleteEmpleado(empleado.id!)}
