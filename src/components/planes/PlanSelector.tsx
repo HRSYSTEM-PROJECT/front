@@ -59,11 +59,11 @@ export const PlansSelector = ({
               features = [
                 { name: "Hasta 10 empleados", included: true },
                 { name: "Gestión básica de perfiles", included: true },
-                { name: "Dashboard con métricas", included: false },
+                { name: "Dashboard con métricas", included: true },
+                { name: "Gestión de sueldos", included: true },
                 { name: "Notificaciones inteligentes", included: false },
                 { name: "Comunicación interna", included: false },
                 { name: "Control de asistencias", included: false },
-                { name: "Gestión de sueldos", included: false },
                 { name: "App para empleados", included: false },
               ];
               break;
@@ -76,7 +76,7 @@ export const PlansSelector = ({
                 { name: "Notificaciones inteligentes", included: true },
                 { name: "Comunicación interna", included: true },
                 { name: "Control de asistencias", included: true },
-                { name: "Gestión de sueldos", included: false },
+                { name: "Gestión de sueldos", included: true },
                 { name: "App para empleados", included: false },
               ];
               break;
@@ -89,7 +89,7 @@ export const PlansSelector = ({
                 { name: "Notificaciones inteligentes", included: true },
                 { name: "Comunicación interna", included: true },
                 { name: "Control de asistencias", included: true },
-                { name: "Gestión de sueldos", included: true },
+                { name: "Gestión avanzada de sueldos", included: true },
                 { name: "App para empleados", included: true },
               ];
               break;
