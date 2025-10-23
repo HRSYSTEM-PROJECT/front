@@ -195,7 +195,7 @@ export default function PlanPage() {
         />
         <div className="mt-8 pt-4 border-t border-gray-100 text-center text-sm text-gray-500">
           ¿Necesitas ayuda para elegir?{" "}
-          <Link href="/contact">Contáctanos.</Link>
+          <Link href="/contacto">Contáctanos.</Link>
         </div>
       </section>
     </div>
