@@ -67,17 +67,32 @@ export default function MensajeriaPage() {
     if (!isLoaded || !SOCKET_BASE) return;
 
     const connectSocket = async () => {
-      const token = await getToken();
+      // ✅ Obtener token fresco con skipCache para evitar tokens expirados
+      const token = await getToken({ skipCache: true });
       if (!token) return console.error("❌ No se pudo obtener token de Clerk");
+
+      console.log("🔑 Token obtenido para WebSocket");
 
       const socket = io(`${SOCKET_BASE}/chat`, {
         auth: { token },
         transports: ["websocket"],
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
       });
 
       socket.on("connect", () => console.log("🟢 Conectado al WebSocket /chat"));
       socket.on("disconnect", () => console.warn("🔴 Desconectado del WebSocket"));
-      socket.on("connect_error", (err) => console.error("⚠️ Error de conexión:", err.message));
+      socket.on("connect_error", async (err) => {
+        console.error("⚠️ Error de conexión:", err.message);
+        
+        // Si es error de token expirado, reconectar con token nuevo
+        if (err.message.includes("JWT") || err.message.includes("expired")) {
+          console.log("🔄 Token expirado, obteniendo uno nuevo...");
+          socket.disconnect();
+          setTimeout(() => connectSocket(), 2000);
+        }
+      });
 
       // Escuchar nuevo mensaje
       socket.on("new_message", (msg: any) => {
@@ -121,6 +136,22 @@ export default function MensajeriaPage() {
       });
 
       socketRef.current = socket;
+
+      // 🔄 Renovar token cada 30 minutos para evitar expiración
+      const tokenRefreshInterval = setInterval(async () => {
+        console.log("🔄 Renovando token del WebSocket...");
+        const freshToken = await getToken({ skipCache: true });
+        if (freshToken && socket.connected) {
+          // Reconectar con el nuevo token
+          socket.disconnect();
+          socket.auth = { token: freshToken };
+          socket.connect();
+        }
+      }, 30 * 60 * 1000); // 30 minutos
+
+      return () => {
+        clearInterval(tokenRefreshInterval);
+      };
     };
 
     connectSocket();
@@ -128,7 +159,7 @@ export default function MensajeriaPage() {
     return () => {
       socketRef.current?.disconnect();
     };
-  }, [isLoaded, selectedChat?.id]);
+  }, [isLoaded, selectedChat?.id, getToken]);
 
   // Cargar chats
   useEffect(() => {
