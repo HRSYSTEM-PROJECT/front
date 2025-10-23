@@ -5,7 +5,15 @@ import { useAuth, useUser } from "@clerk/nextjs";
 import axios, { AxiosError } from "axios";
 import io, { Socket } from "socket.io-client";
 import Swal from "sweetalert2";
-import { Send, Search, Phone, Video, MoreVertical, Paperclip, Smile } from "lucide-react";
+import {
+  Send,
+  Search,
+  Phone,
+  Video,
+  MoreVertical,
+  Paperclip,
+  Smile,
+} from "lucide-react";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_API_URL;
 const SOCKET_BASE = process.env.NEXT_PUBLIC_SOCKET_URL;
@@ -34,10 +42,31 @@ interface Message {
   is_read?: boolean;
 }
 
+interface IncomingMessage extends Partial<Message> {
+  chat_id?: string;
+}
+
 interface Chat {
   id: string;
   participants: UserSummary[];
   messages: Message[];
+  createdAt: string;
+  updatedAt?: string;
+  unreadCount?: number;
+}
+
+interface ChatResponse {
+  chats: Chat[];
+}
+
+interface UsersResponse {
+  users: UserSummary[];
+}
+
+interface ChatBackend {
+  id: string;
+  participants?: UserSummary[];
+  messages?: Message[];
   createdAt: string;
   updatedAt?: string;
   unreadCount?: number;
@@ -81,11 +110,15 @@ export default function MensajeriaPage() {
         reconnectionDelay: 1000,
       });
 
-      socket.on("connect", () => console.log("🟢 Conectado al WebSocket /chat"));
-      socket.on("disconnect", () => console.warn("🔴 Desconectado del WebSocket"));
+      socket.on("connect", () =>
+        console.log("🟢 Conectado al WebSocket /chat")
+      );
+      socket.on("disconnect", () =>
+        console.warn("🔴 Desconectado del WebSocket")
+      );
       socket.on("connect_error", async (err) => {
         console.error("⚠️ Error de conexión:", err.message);
-        
+
         // Si es error de token expirado, reconectar con token nuevo
         if (err.message.includes("JWT") || err.message.includes("expired")) {
           console.log("🔄 Token expirado, obteniendo uno nuevo...");
@@ -95,27 +128,36 @@ export default function MensajeriaPage() {
       });
 
       // Escuchar nuevo mensaje
-      socket.on("new_message", (msg: any) => {
+      socket.on("new_message", (msg: IncomingMessage) => {
         console.log("📩 Nuevo mensaje recibido:", msg);
-        
+
         // El backend envía el mensaje con chatId
-        const messageWithChatId = {
+        const messageWithChatId: Message = {
           ...msg,
-          chatId: msg.chatId || msg.chat_id
+          chatId: msg.chatId ?? msg.chat_id ?? "",
+          id: msg.id ?? crypto.randomUUID(),
+          senderId: msg.senderId ?? "",
+          content: msg.content ?? "",
+          type: msg.type ?? "text",
+          created_at: msg.created_at ?? new Date().toISOString(),
+          updated_at: msg.updated_at ?? new Date().toISOString(),
         };
-        
+
         setChats((prev) =>
           prev.map((chat) =>
             chat.id === messageWithChatId.chatId
-              ? { 
-                  ...chat, 
+              ? {
+                  ...chat,
                   messages: [...chat.messages, messageWithChatId],
-                  unreadCount: selectedChat?.id === chat.id ? 0 : (chat.unreadCount || 0) + 1
+                  unreadCount:
+                    selectedChat?.id === chat.id
+                      ? 0
+                      : (chat.unreadCount || 0) + 1,
                 }
               : chat
           )
         );
-        
+
         // Solo hacer scroll si el mensaje es del chat actual
         if (selectedChat?.id === messageWithChatId.chatId) {
           scrollToBottom();
@@ -176,17 +218,18 @@ export default function MensajeriaPage() {
         });
 
         console.log("✅ Chats obtenidos:", res.data);
-        
+
         // Asegurarse de que cada chat tenga la estructura correcta
-        const chatsData = (res.data.chats || []).map((chat: any) => ({
-          id: chat.id,
-          participants: chat.participants || [],
-          messages: chat.messages || [],
-          createdAt: chat.createdAt,
-          updatedAt: chat.updatedAt,
-          unreadCount: chat.unreadCount || 0
-        }));
-        
+        const chatsData = (res.data.chats || []).map(
+          (chat: ChatBackend): Chat => ({
+            id: chat.id,
+            participants: chat.participants || [],
+            messages: chat.messages || [],
+            createdAt: chat.createdAt,
+            updatedAt: chat.updatedAt,
+            unreadCount: chat.unreadCount || 0,
+          })
+        );
         setChats(chatsData);
       } catch (err) {
         const error = err as AxiosError<{ message?: string }>;
@@ -194,7 +237,8 @@ export default function MensajeriaPage() {
         Swal.fire({
           icon: "error",
           title: "Error al cargar chats",
-          text: error.response?.data?.message || "No se pudieron cargar los chats",
+          text:
+            error.response?.data?.message || "No se pudieron cargar los chats",
         });
       }
     };
@@ -273,7 +317,7 @@ export default function MensajeriaPage() {
         messages: res.data.messages || [],
         createdAt: res.data.createdAt,
         updatedAt: res.data.updatedAt,
-        unreadCount: 0
+        unreadCount: 0,
       };
 
       setChats((prev) => [...prev, newChat]);
@@ -288,9 +332,12 @@ export default function MensajeriaPage() {
       setSelectedChat(newChat);
 
       Swal.fire("Chat creado", "Ya podés empezar a chatear", "success");
-    } catch (err: any) {
-      console.error("Error al crear chat:", err);
-      const errorMsg = err.response?.data?.message || err.message || "No se pudo crear el chat";
+    } catch (err) {
+      const error = err as AxiosError<{ message?: string }>;
+      const errorMsg =
+        error.response?.data?.message ||
+        error.message ||
+        "No se pudo crear el chat";
       Swal.fire("Error", errorMsg, "error");
     }
   };
@@ -306,9 +353,7 @@ export default function MensajeriaPage() {
 
     // Marcar como leído
     setChats((prev) =>
-      prev.map((c) =>
-        c.id === chat.id ? { ...c, unreadCount: 0 } : c
-      )
+      prev.map((c) => (c.id === chat.id ? { ...c, unreadCount: 0 } : c))
     );
 
     if (socketRef.current) {
@@ -321,10 +366,10 @@ export default function MensajeriaPage() {
   // Obtener último mensaje de un chat
   const getLastMessage = (chat: Chat) => {
     if (!chat.messages || chat.messages.length === 0) return "Sin mensajes";
-    
+
     const lastMsg = chat.messages[chat.messages.length - 1];
     if (!lastMsg || !lastMsg.content) return "Sin mensajes";
-    
+
     return lastMsg.content.length > 40
       ? lastMsg.content.substring(0, 40) + "..."
       : lastMsg.content;
@@ -333,32 +378,40 @@ export default function MensajeriaPage() {
   // Formatear hora del último mensaje
   const formatLastMessageTime = (chat: Chat) => {
     if (!chat.messages || chat.messages.length === 0) return "";
-    
+
     const lastMsg = chat.messages[chat.messages.length - 1];
     if (!lastMsg || !lastMsg.created_at) return "";
-    
+
     const date = new Date(lastMsg.created_at);
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
     if (date.toDateString() === today.toDateString()) {
-      return date.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" });
+      return date.toLocaleTimeString("es-AR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     } else if (date.toDateString() === yesterday.toDateString()) {
       return "Ayer";
     } else {
-      return date.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit" });
+      return date.toLocaleDateString("es-AR", {
+        day: "2-digit",
+        month: "2-digit",
+      });
     }
   };
 
   // Filtrar chats por búsqueda
   const filteredChats = chats.filter((chat) => {
     if (!chat.participants || chat.participants.length === 0) return false;
-    
+
     const otherUser = chat.participants.find((p) => p.id !== user?.id);
     if (!otherUser) return false;
-    
-    const name = `${otherUser?.first_name || ""} ${otherUser?.last_name || ""}`.toLowerCase();
+
+    const name = `${otherUser?.first_name || ""} ${
+      otherUser?.last_name || ""
+    }`.toLowerCase();
     return name.includes(searchTerm.toLowerCase());
   });
 
@@ -367,19 +420,19 @@ export default function MensajeriaPage() {
     if (!selectedChat || !socketRef.current) return;
 
     const result = await Swal.fire({
-      title: '¿Eliminar mensaje?',
-      text: 'Esta acción no se puede deshacer',
-      icon: 'warning',
+      title: "¿Eliminar mensaje?",
+      text: "Esta acción no se puede deshacer",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#ef4444',
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#ef4444",
     });
 
     if (result.isConfirmed) {
-      socketRef.current.emit('delete_message', { 
-        messageId, 
-        chatId: selectedChat.id 
+      socketRef.current.emit("delete_message", {
+        messageId,
+        chatId: selectedChat.id,
       });
     }
   };
@@ -401,14 +454,21 @@ export default function MensajeriaPage() {
                   html: `
                     <select id="swal-select" class="swal2-input">
                       <option value="">Seleccioná un usuario...</option>
-                      ${users.map(u => `<option value="${u.id}">${u.first_name} ${u.last_name}</option>`).join("")}
+                      ${users
+                        .map(
+                          (u) =>
+                            `<option value="${u.id}">${u.first_name} ${u.last_name}</option>`
+                        )
+                        .join("")}
                     </select>
                   `,
                   showCancelButton: true,
                   confirmButtonText: "Crear Chat",
                   cancelButtonText: "Cancelar",
                   preConfirm: () => {
-                    const select = document.getElementById("swal-select") as HTMLSelectElement;
+                    const select = document.getElementById(
+                      "swal-select"
+                    ) as HTMLSelectElement;
                     return select?.value;
                   },
                 }).then((result) => {
@@ -426,7 +486,10 @@ export default function MensajeriaPage() {
 
           {/* Buscador */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={18}
+            />
             <input
               type="text"
               placeholder="Buscar conversaciones..."
@@ -445,8 +508,12 @@ export default function MensajeriaPage() {
             </div>
           ) : (
             filteredChats.map((chat) => {
-              const otherUser = chat.participants?.find((p) => p.id !== user?.id);
-              const isOnline = otherUser ? onlineUsers.has(otherUser.id) : false;
+              const otherUser = chat.participants?.find(
+                (p) => p.id !== user?.id
+              );
+              const isOnline = otherUser
+                ? onlineUsers.has(otherUser.id)
+                : false;
               const isSelected = selectedChat?.id === chat.id;
 
               return (
@@ -472,7 +539,8 @@ export default function MensajeriaPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
                         <h3 className="font-semibold text-gray-800 truncate">
-                          {otherUser?.first_name || "Usuario"} {otherUser?.last_name || ""}
+                          {otherUser?.first_name || "Usuario"}{" "}
+                          {otherUser?.last_name || ""}
                         </h3>
                         <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
                           {formatLastMessageTime(chat)}
@@ -508,8 +576,12 @@ export default function MensajeriaPage() {
             <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {(() => {
-                  const otherUser = selectedChat.participants.find((p) => p.id !== user?.id);
-                  const isOnline = otherUser ? onlineUsers.has(otherUser.id) : false;
+                  const otherUser = selectedChat.participants.find(
+                    (p) => p.id !== user?.id
+                  );
+                  const isOnline = otherUser
+                    ? onlineUsers.has(otherUser.id)
+                    : false;
                   return (
                     <>
                       <div className="relative">
@@ -522,7 +594,8 @@ export default function MensajeriaPage() {
                       </div>
                       <div>
                         <h2 className="font-semibold text-gray-800">
-                          {otherUser?.first_name || "Usuario"} {otherUser?.last_name || ""}
+                          {otherUser?.first_name || "Usuario"}{" "}
+                          {otherUser?.last_name || ""}
                         </h2>
                         <p className="text-xs text-gray-500">
                           {isOnline ? "En línea" : "Desconectado"}
@@ -551,7 +624,9 @@ export default function MensajeriaPage() {
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {!selectedChat.messages || selectedChat.messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full text-gray-400">
-                  <p className="text-sm">No hay mensajes todavía. ¡Escribí el primero!</p>
+                  <p className="text-sm">
+                    No hay mensajes todavía. ¡Escribí el primero!
+                  </p>
                 </div>
               ) : (
                 selectedChat.messages.map((msg, index) => {
@@ -563,7 +638,9 @@ export default function MensajeriaPage() {
                   return (
                     <div
                       key={msg.id}
-                      className={`flex ${isMyMessage ? "justify-end" : "justify-start"}`}
+                      className={`flex ${
+                        isMyMessage ? "justify-end" : "justify-start"
+                      }`}
                     >
                       <div
                         className={`flex gap-2 max-w-[70%] ${
@@ -573,7 +650,11 @@ export default function MensajeriaPage() {
                         {/* Avatar (solo si es necesario) */}
                         {!isMyMessage && showAvatar && (
                           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
-                            {(selectedChat.participants.find((p) => p.id === msg.senderId)?.first_name?.[0] || "?").toUpperCase()}
+                            {(
+                              selectedChat.participants.find(
+                                (p) => p.id === msg.senderId
+                              )?.first_name?.[0] || "?"
+                            ).toUpperCase()}
                           </div>
                         )}
                         {!isMyMessage && !showAvatar && <div className="w-8" />}
@@ -586,16 +667,21 @@ export default function MensajeriaPage() {
                               : "bg-white text-gray-800 rounded-bl-none border border-gray-200"
                           }`}
                         >
-                          <p className="text-sm leading-relaxed">{msg.content}</p>
+                          <p className="text-sm leading-relaxed">
+                            {msg.content}
+                          </p>
                           <span
                             className={`block text-[10px] mt-1 ${
                               isMyMessage ? "text-blue-100" : "text-gray-500"
                             }`}
                           >
-                            {new Date(msg.created_at).toLocaleTimeString("es-AR", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                            {new Date(msg.created_at).toLocaleTimeString(
+                              "es-AR",
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )}
                           </span>
                         </div>
                       </div>
