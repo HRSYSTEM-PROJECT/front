@@ -179,14 +179,14 @@ export default function DashboardSuperAdmin() {
     },
     {
       titulo: "Usuarios",
-      valor: users.length,
+       valor: empleados.length,
       icon: User2,
       iconBgColor: "bg-orange-100",
       iconColor: "text-orange-600",
     },
     {
       titulo: "Empleados",
-      valor: empleados.length,
+      valor: users.length,
       icon: Users,
       iconBgColor: "bg-green-100",
       iconColor: "text-green-600",

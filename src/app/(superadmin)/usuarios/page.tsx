@@ -115,7 +115,7 @@ export default function UsuariosSuperAdmin() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div>
           <h3 className="text-lg sm:text-xl mb-3 text-[#083E96] text-center">
-            Usuarios Registrados ({users?.length || 0})
+            Empleados Registrados ({users?.length || 0})
           </h3>
 
           {renderUsersTableStatus()}
@@ -158,7 +158,7 @@ export default function UsuariosSuperAdmin() {
 
         <div>
           <h3 className="text-lg sm:text-xl mb-3 text-[#083E96] text-center">
-            Empleados Registrados ({empleados?.length || 0})
+            Usuarios Registrados ({empleados?.length || 0})
           </h3>
 
           {renderEmpleadosTableStatus()}

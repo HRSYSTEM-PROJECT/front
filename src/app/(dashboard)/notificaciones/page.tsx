@@ -5,6 +5,7 @@ import { Bell, Calendar, Trash2 } from "lucide-react";
 import {
   deleteNotification,
   deleteScheduledReminder,
+  getCronNotifications,
   getNotifications,
   getScheduledReminders,
   scheduleReminder,
@@ -67,16 +68,16 @@ export default function NotificationsPage() {
     }
   };
 
-  // const loadCronEvents = async () => {
-  //   try {
-  //     const token = await getToken();
-  //     const events = await getCronNotifications(token!);
-  //     setCronEvents(events || []);
-  //   } catch (err) {
-  //     console.error("Error cargando eventos automáticos:", err);
-  //     toast.error("No se pudieron cargar los eventos automáticos");
-  //   }
-  // };
+  const loadCronEvents = async () => {
+    try {
+      const token = await getToken();
+      const events = await getCronNotifications(token!);
+      setCronEvents(events || []);
+    } catch (err) {
+      console.error("Error cargando eventos automáticos:", err);
+      toast.error("No se pudieron cargar los eventos automáticos");
+    }
+  };
 
   const loadScheduledReminders = async () => {
     try {
@@ -111,7 +112,7 @@ const loadEmpleados = async () => {
 
   useEffect(() => {
     loadNotifications();
-    // loadCronEvents();
+    loadCronEvents();
     loadScheduledReminders();
     loadEmpleados();
   }, []);
